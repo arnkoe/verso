@@ -53,10 +53,6 @@ async function apiListImages() {
   return await invoke('list_images');
 }
 
-async function apiRevealMediaDir(kind) {
-  // Ouvre le dossier pdf/ ou images/ dans le gestionnaire de fichiers natif.
-  return await invoke('reveal_media_dir', { kind });
-}
 
 /**
  * URL `asset://` utilisable dans <img src> ou pdf.js, pour un média stocké.
@@ -92,4 +88,37 @@ async function apiOpenProjection(x, y, width, height, fullscreen) {
 
 async function apiCloseProjection() {
   return await invoke('close_projection');
+}
+
+// ─── VERSION & MISE À JOUR ────────────────────────────────────────────────────
+// Plugins exposés sur window.__TAURI__ grâce à `withGlobalTauri: true`.
+
+/** Version courante de l'application (ex. "0.1.0"). */
+async function apiAppVersion() {
+  return await invoke('app_version');
+}
+
+/** Ouvre le dossier Verso (racine des données) dans le gestionnaire de fichiers. */
+async function apiRevealVersoDir() {
+  return await invoke('reveal_verso_dir');
+}
+
+/**
+ * Vérifie en silence si une mise à jour est disponible.
+ * Renvoie l'objet `update` (avec .version) si oui, sinon null. N'échoue jamais
+ * bruyamment : une erreur réseau renvoie null (pas de mise à jour annoncée).
+ */
+async function apiCheckUpdate() {
+  try {
+    const update = await window.__TAURI__.updater.check();
+    return update && update.available ? update : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/** Télécharge, installe la mise à jour fournie, puis relance l'application. */
+async function apiInstallUpdate(update) {
+  await update.downloadAndInstall();
+  await window.__TAURI__.process.relaunch();
 }

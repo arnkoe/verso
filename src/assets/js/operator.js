@@ -18,7 +18,6 @@ const state = {
   image: null,
   projection: null,
   projectionMode: 'textes',
-  isNoir: false,
   translation: null,
   searchCursor: 0,
 };
@@ -61,7 +60,7 @@ function switchSideTab(tab) {
 }
 
 function showPanel(id) {
-  ['panelCantique', 'panelBible', 'panelPdf', 'panelImages'].forEach(p => {
+  ['panelCantique', 'panelBible', 'panelPdf', 'panelImages', 'panelHelp', 'panelAbout'].forEach(p => {
     document.getElementById(p).classList.toggle('active', p === id);
   });
 }
@@ -223,7 +222,6 @@ function clearProjectionModeButtons() {
 function projectVerse(i) {
   if (!state.song) return;
   state.songVerse = i;
-  state.isNoir = false;
   clearProjectionModeButtons();
   project({
     type: 'song',
@@ -452,7 +450,6 @@ function projectBibleVerse(i) {
   const v = state.bible?.verses[i];
   if (!v) return;
   state.bibleVerse = i;
-  state.isNoir = false;
   clearProjectionModeButtons();
   project({
     type: 'bible',
@@ -493,11 +490,6 @@ document.getElementById('pdfSearchInput').addEventListener('input', e => {
   renderPdfList(filterMedia(pdfFiles, e.target.value));
 });
 
-// Ouvre le dossier des médias dans le gestionnaire de fichiers natif.
-async function revealMediaDir(kind) {
-  try { await apiRevealMediaDir(kind); }
-  catch (err) { alert(String(err)); }
-}
 
 function selectPdf(filename) {
   state.pdf = { filename, page_count: 0 };
@@ -572,7 +564,6 @@ async function renderPdfThumbnails(filename) {
 function projectPdfPage(page) {
   if (!state.pdf) return;
   state.pdfPage = page;
-  state.isNoir = false;
   clearProjectionModeButtons();
 
   document.querySelectorAll('#pdfPageList .pdf-page-item').forEach(el => {
@@ -633,7 +624,6 @@ async function selectImage(filename) {
 
 function projectImage() {
   if (!state.image) return;
-  state.isNoir = false;
   clearProjectionModeButtons();
 
   document.querySelectorAll('#imagePreview .strophe-item').forEach(el => {
@@ -646,21 +636,6 @@ function projectImage() {
 }
 
 // ─── BOUTON NOIR ─────────────────────────────────────────────────────────────
-
-function toggleNoir() {
-  if (state.isNoir) {
-    state.isNoir = false;
-    document.getElementById('btnModeRien').classList.remove('active');
-    if (state.song && state.songVerse >= 0) {
-      projectVerse(state.songVerse);
-    } else {
-      project({ type: 'blank' });
-    }
-  } else {
-    state.isNoir = true;
-    setProjectionMode('rien');
-  }
-}
 
 function setProjectionMode(mode) {
   state.projectionMode = mode;
@@ -790,7 +765,6 @@ function syncActiveItems(s) {
       if (live) el.scrollIntoView({ block: 'nearest' });
     });
   }
-  state.isNoir = s.type === 'blank';
   state.projectionMode = s.type === 'blank' ? 'rien' : null;
   document.getElementById('btnModeRien').classList.toggle('active', state.projectionMode === 'rien');
 }
@@ -978,16 +952,10 @@ document.addEventListener('keydown', e => {
     return;
   }
 
-  if (e.key === 'b' || e.key === 'B') {
-    toggleNoir();
-    return;
-  }
-
   if (e.key === 'Escape') {
     state.songVerse = -1;
     state.bibleVerse = -1;
     state.pdfPage = -1;
-    state.isNoir = false;
     document.querySelectorAll('.strophe-item, .bible-verse-item').forEach(el => el.classList.remove('active'));
     project({ type: 'blank' });
     return;
@@ -1212,6 +1180,72 @@ window.addEventListener('focus', () => {
       syncActiveItems(s);
     }
   } catch (_) {}
+})();
+
+// ─── OUTILS : DOSSIER, AIDE, À PROPOS ──────────────────────────────────────────
+
+/** Ouvre le dossier Verso (racine des données) dans le gestionnaire de fichiers. */
+async function openVersoDir() {
+  try { await apiRevealVersoDir(); } catch (_) {}
+}
+
+// Adapte les libellés des touches modificatrices à la plateforme : macOS affiche
+// Cmd/Opt (valeurs par défaut du HTML), Windows affiche Ctrl/Alt.
+(function _localizeShortcutKeys() {
+  const isMac = navigator.userAgent.includes('Mac');
+  if (isMac) return;
+  document.querySelectorAll('.kbd-cmd').forEach(el => { el.textContent = 'Ctrl'; });
+  document.querySelectorAll('.kbd-alt').forEach(el => { el.textContent = 'Alt'; });
+})();
+
+/** Affiche le panneau d'aide (raccourcis) au centre de la zone principale. */
+function showHelp() {
+  markContentLoaded();
+  showPanel('panelHelp');
+}
+
+/** Affiche le panneau « À propos » au centre de la zone principale. */
+function showAbout() {
+  markContentLoaded();
+  showPanel('panelAbout');
+}
+
+// ─── VERSION & MISE À JOUR ─────────────────────────────────────────────────────
+// Vérification silencieuse au lancement. Si une mise à jour existe : un point
+// rouge sur le bouton « À propos », et un lien cliquable dans le panneau À propos
+// pour l'installer et relancer. En cas d'échec réseau, rien ne change.
+
+let _pendingUpdate = null;
+
+async function installUpdate() {
+  if (!_pendingUpdate) return;
+  const link = document.getElementById('aboutUpdateLink');
+  if (link) { link.textContent = 'Installation…'; link.disabled = true; }
+  try {
+    await apiInstallUpdate(_pendingUpdate);
+    // relaunch() redémarre l'app ; le code ci-dessous n'est normalement pas atteint.
+  } catch (_) {
+    if (link) { link.textContent = 'Échec, réessayer'; link.disabled = false; }
+  }
+}
+
+(async function _initAbout() {
+  document.getElementById('aboutYear').textContent = new Date().getFullYear();
+  try {
+    const v = await apiAppVersion();
+    document.getElementById('aboutVersion').textContent = v;
+  } catch (_) {}
+
+  const update = await apiCheckUpdate();
+  if (!update) return;
+  _pendingUpdate = update;
+  document.getElementById('aboutBadge').hidden = false;
+  const wrap = document.getElementById('aboutUpdate');
+  const link = document.getElementById('aboutUpdateLink');
+  if (link) link.textContent = update.version
+    ? `Mettre à jour vers la version ${update.version}`
+    : 'Mettre à jour';
+  if (wrap) wrap.hidden = false;
 })();
 
 // ─── DELEGATION DES CLICS (remplace les onclick inline bloqués par la CSP) ─────

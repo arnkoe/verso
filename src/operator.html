@@ -84,6 +84,23 @@
             <div class="search-empty">Aucune image dans le dossier</div>
           </div>
         </div>
+
+        <!-- Barre d'outils : dossier de données, aide, à propos. -->
+        <div class="search-tools" role="toolbar" aria-label="Outils">
+          <button class="hdr-btn" data-action="openVersoDir" title="Ouvrir le dossier Verso (recueils, bibles, médias)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+            Dossier
+          </button>
+          <button class="hdr-btn" data-action="showHelp" title="Raccourcis clavier">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+            Aide
+          </button>
+          <button class="hdr-btn" data-action="showAbout" title="À propos de Verso">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            À propos
+            <span class="tool-badge" id="aboutBadge" hidden></span>
+          </button>
+        </div>
       </section>
 
       <div class="action-bar" aria-hidden="true">
@@ -174,12 +191,6 @@
           <div class="content-kicker" id="pdfSubtitle"></div>
           <div class="content-header-row">
             <div class="content-title" id="pdfTitle"></div>
-            <div class="content-header-actions">
-              <button class="hdr-btn" data-action="revealMediaDir" data-arg="pdf" title="Ouvrir le dossier des PDF">
-                <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
-                Dossier
-              </button>
-            </div>
           </div>
         </div>
         <div class="strophe-list" id="pdfPageList"></div>
@@ -190,15 +201,55 @@
         <div class="content-header" id="imageHeader" style="display:none;">
           <div class="content-header-row">
             <div class="content-title" id="imageTitle"></div>
-            <div class="content-header-actions">
-              <button class="hdr-btn" data-action="revealMediaDir" data-arg="images" title="Ouvrir le dossier des images">
-                <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
-                Dossier
-              </button>
-            </div>
           </div>
         </div>
         <div class="strophe-list" id="imagePreview"></div>
+      </div>
+
+      <!-- Panel Aide : raccourcis clavier. -->
+      <div class="panel" id="panelHelp">
+        <div class="info-pane">
+          <h2 class="info-title">Raccourcis clavier</h2>
+
+          <h3 class="info-h">Changer d'onglet</h3>
+          <ul class="info-keys">
+            <li><kbd class="kbd-cmd">Cmd</kbd>+<kbd class="kbd-alt">Opt</kbd>+<kbd>,</kbd> Chants</li>
+            <li><kbd class="kbd-cmd">Cmd</kbd>+<kbd class="kbd-alt">Opt</kbd>+<kbd>;</kbd> Bible</li>
+            <li><kbd class="kbd-cmd">Cmd</kbd>+<kbd class="kbd-alt">Opt</kbd>+<kbd>:</kbd> PDF</li>
+            <li><kbd class="kbd-cmd">Cmd</kbd>+<kbd class="kbd-alt">Opt</kbd>+<kbd>!</kbd> Images</li>
+          </ul>
+
+          <h3 class="info-h">Rechercher</h3>
+          <ul class="info-keys">
+            <li><kbd>/</kbd> Aller au champ de recherche</li>
+            <li><kbd>↑</kbd> <kbd>↓</kbd> Naviguer dans les résultats</li>
+            <li><kbd>Entrée</kbd> Valider la sélection</li>
+          </ul>
+
+          <h3 class="info-h">Projeter</h3>
+          <ul class="info-keys">
+            <li><kbd>↓</kbd> <kbd>→</kbd> Élément suivant</li>
+            <li><kbd>↑</kbd> <kbd>←</kbd> Élément précédent</li>
+            <li><kbd>Entrée</kbd> Projeter l'élément suivant</li>
+            <li><kbd>Échap</kbd> Vider la projection</li>
+            <li><kbd>Échap</kbd> Fermer la fenêtre de projection (depuis cette fenêtre)</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Panel À propos. -->
+      <div class="panel" id="panelAbout">
+        <div class="info-pane info-pane-about">
+          <img class="about-logo" src="assets/logo.png" alt="Verso">
+          <h2 class="info-title">Verso</h2>
+          <p class="about-desc">Projection de chants et de textes pour le culte. Recueils, Bibles, PDF et images, stockés en fichiers simples dans votre dossier Documents.</p>
+          <p class="about-version">Version <span id="aboutVersion">—</span></p>
+          <p class="about-update" id="aboutUpdate" hidden>
+            <button class="about-update-link" data-action="installUpdate" id="aboutUpdateLink"></button>
+          </p>
+          <p class="about-meta">© <span id="aboutYear"></span> Verso</p>
+          <p class="about-meta">Contact : <a href="mailto:good.line1106@fastmail.com" id="aboutContact">good.line1106@fastmail.com</a></p>
+        </div>
       </div>
 
     </main>

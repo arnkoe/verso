@@ -130,15 +130,9 @@ fn list_images(app: AppHandle) -> Vec<FileEntry> {
     list_uploads(&app, "images", &[".jpg", ".jpeg", ".png", ".webp"])
 }
 
-/// Ouvre le dossier des médias (`pdf/` ou `images/`) dans le gestionnaire de
-/// fichiers natif, pour que l'utilisateur y dépose/retire ses fichiers.
-#[tauri::command]
-fn reveal_media_dir(app: AppHandle, kind: String) -> Result<(), String> {
-    if kind != "pdf" && kind != "images" {
-        return Err("Type de média invalide".into());
-    }
-    let dir = storage::media_dir(&app, &kind);
-    let path = dir.as_os_str();
+/// Ouvre un dossier dans le gestionnaire de fichiers natif.
+fn open_dir(path: &std::path::Path) -> Result<(), String> {
+    let path = path.as_os_str();
 
     #[cfg(target_os = "macos")]
     let mut cmd = {
@@ -162,6 +156,13 @@ fn reveal_media_dir(app: AppHandle, kind: String) -> Result<(), String> {
     cmd.spawn()
         .map(|_| ())
         .map_err(|e| format!("Ouverture du dossier échouée : {e}"))
+}
+
+/// Ouvre le dossier Verso (racine des données : recueils, bibles, médias) dans
+/// le gestionnaire de fichiers natif.
+#[tauri::command]
+fn reveal_verso_dir(app: AppHandle) -> Result<(), String> {
+    open_dir(&storage::data_dir(&app))
 }
 
 /// Chemin absolu d'un média, pour `convertFileSrc` (asset:// protocol).
@@ -370,11 +371,21 @@ fn close_projection(app: AppHandle) {
     }
 }
 
+// ─── VERSION ────────────────────────────────────────────────────────────────
+
+/// Version courante de l'application (affichée en bas à droite de l'opérateur).
+#[tauri::command]
+fn app_version() -> String {
+    env!("CARGO_PKG_VERSION").to_string()
+}
+
 // ─── ENTRÉE ─────────────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(AppState::default())
         .invoke_handler(tauri::generate_handler![
             list_songs,
@@ -385,13 +396,14 @@ pub fn run() {
             bible_search,
             list_pdfs,
             list_images,
-            reveal_media_dir,
+            reveal_verso_dir,
             media_path,
             get_projection_state,
             set_projection_state,
             list_monitors,
             open_projection,
             close_projection,
+            app_version,
         ])
         // Fermer la fenêtre opérateur ferme aussi la projection : on évite une
         // projection « zombie » qui survivrait au processus et donnerait une
