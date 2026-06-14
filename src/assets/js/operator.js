@@ -242,6 +242,19 @@ function projectVerse(i) {
 const NT_FIRST_BOOK = 'Matthieu';
 const bibleBooksCache = {};
 
+// Bible par défaut : mémorise la dernière traduction sélectionnée.
+const DEFAULT_BIBLE_KEY = 'verso.defaultBible';
+
+function _savedDefaultBible() {
+  try { return localStorage.getItem(DEFAULT_BIBLE_KEY); }
+  catch (_) { return null; }
+}
+
+function _saveDefaultBible(t) {
+  try { localStorage.setItem(DEFAULT_BIBLE_KEY, t); }
+  catch (_) { /* stockage indisponible */ }
+}
+
 async function loadBibleBooks(translation) {
   if (bibleBooksCache[translation]) return bibleBooksCache[translation];
   const data = await apiBibleBooks(translation);
@@ -264,10 +277,11 @@ async function initBibleTranslations() {
     return;
   }
 
-  state.translation = translations[0];
+  const saved = _savedDefaultBible();
+  state.translation = translations.includes(saved) ? saved : translations[0];
   wrap.innerHTML = translations
-    .map((t, i) =>
-      `<button class="translation-btn${i === 0 ? ' active' : ''}" data-action="selectTranslation" data-arg="${esc(t)}">${esc(t)}</button>`)
+    .map(t =>
+      `<button class="translation-btn${t === state.translation ? ' active' : ''}" data-action="selectTranslation" data-arg="${esc(t)}">${esc(t)}</button>`)
     .join('');
   loadBibleBooks(state.translation);
 }
@@ -382,6 +396,7 @@ async function selectTranslation(btn, t) {
   document.querySelectorAll('.translation-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   state.translation = t;
+  _saveDefaultBible(t);
   await loadBibleBooks(t);
   document.getElementById('bibleSearchInput').dispatchEvent(new Event('input'));
 }
