@@ -1,0 +1,59 @@
+name: Publier une version
+
+# Déclenché quand on pousse un tag de version (ex. v0.2.0).
+# Construit Verso pour macOS (Apple Silicon + Intel) et Windows, signe les
+# bundles avec la clé updater, publie une release GitHub et génère le
+# `latest.json` que l'application interroge pour détecter les mises à jour.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch: # permet de lancer le build manuellement depuis l'onglet Actions
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            args: "--target aarch64-apple-darwin"
+          - platform: macos-latest
+            args: "--target x86_64-apple-darwin"
+          - platform: windows-latest
+            args: ""
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Installer Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Installer les dépendances npm
+        run: npm ci
+
+      - name: Construire et publier
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Clé privée de signature des mises à jour (secret du dépôt).
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Verso ${{ github.ref_name }}"
+          releaseBody: "Voir les changements ci-dessous."
+          releaseDraft: false
+          prerelease: false
+          # Génère latest.json (fichier interrogé par l'updater).
+          includeUpdaterJson: true
+          args: ${{ matrix.args }}
