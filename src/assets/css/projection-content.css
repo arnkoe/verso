@@ -82,6 +82,13 @@
   text-overflow: ellipsis;
 }
 
+/* Strophe courante : soulignée dans le header.
+   Via une classe CSS et non un style inline, car la CSP de la fenêtre de
+   projection (nonce Tauri) bloque les attributs `style` inline. */
+.content-text .reference .reference-current {
+  text-decoration: underline;
+}
+
 .proj-logo {
   max-width: 40%;
   max-height: 40%;

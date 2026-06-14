@@ -37,7 +37,7 @@ function renderProjectionContent(state, container) {
       : ['S' + (state.verse + 1)];
     const labelsHtml = labels.map((l, i) =>
       i === state.verse
-        ? `<span style="text-decoration:underline">${esc(l)}</span>`
+        ? `<span class="reference-current">${esc(l)}</span>`
         : esc(l)
     ).join(' ');
     const headerBase = [bookPart, state.title].filter(Boolean).map(esc).join(' — ');
