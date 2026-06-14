@@ -90,19 +90,14 @@ Les raccourcis ci-dessous valent dans la fenêtre **opérateur** (sauf quand un 
 
 **Changer d'onglet**
 
-- `c` — onglet Chants
-- `b` — onglet Bible
-- `p` — onglet PDF
-- `i` — onglet Images
+Des combinaisons avec `Alt` permettent de changer d'onglet, y compris depuis un champ de saisie. Elles se basent sur la position physique des touches (clavier AZERTY) : le modificateur change selon l'OS (`Ctrl` sous Windows, `Cmd` sous macOS) et, pour l'onglet Images, le caractère imprimé diffère (`!` sous Windows, `=` sous macOS) :
 
-Des combinaisons avec `Alt` permettent aussi de changer d'onglet **même depuis un champ de saisie**. Elles dépendent de la position physique des touches, donc les caractères diffèrent entre Windows et macOS (claviers AZERTY) :
-
-| Onglet  | Windows (AZERTY)       | macOS (AZERTY)         |
-| ------- | ---------------------- | ---------------------- |
-| Chants  | `Ctrl` + `Alt` + `,`   | `Cmd` + `Opt` + `,`    |
-| Bible   | `Ctrl` + `Alt` + `;`   | `Cmd` + `Opt` + `;`    |
-| PDF     | `Ctrl` + `Alt` + `:`   | `Cmd` + `Opt` + `:`    |
-| Images  | `Ctrl` + `Alt` + `!`   | `Cmd` + `Opt` + `=`    |
+| Onglet  | Windows               | macOS                 |
+| ------- | --------------------- | --------------------- |
+| Chants  | `Ctrl` + `Alt` + `,`  | `Cmd` + `Opt` + `,`   |
+| Bible   | `Ctrl` + `Alt` + `;`  | `Cmd` + `Opt` + `;`   |
+| PDF     | `Ctrl` + `Alt` + `:`  | `Cmd` + `Opt` + `:`   |
+| Images  | `Ctrl` + `Alt` + `!`  | `Cmd` + `Opt` + `=`   |
 
 **Rechercher**
 
@@ -115,7 +110,6 @@ Des combinaisons avec `Alt` permettent aussi de changer d'onglet **même depuis 
 - `↓` `→` — élément suivant (strophe, verset, page PDF)
 - `↑` `←` — élément précédent
 - `Entrée` — projeter l'élément suivant (ou le premier si rien n'est encore projeté)
-- `b` — écran noir : masquer/réafficher la projection
 - `Échap` — vider la projection (retour à l'écran neutre)
 
 **Fenêtre de projection**

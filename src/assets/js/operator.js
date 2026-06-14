@@ -878,16 +878,6 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-  if (!e.ctrlKey && !e.metaKey && !e.altKey) {
-    const tabMap = { 'c': 'cantiques', 'b': 'bible', 'p': 'pdf', 'i': 'images' };
-    const tab = tabMap[e.key];
-    if (tab) {
-      e.preventDefault();
-      activateTab(tab);
-      return;
-    }
-  }
-
   if (e.key === '/') {
     const input = tabSearchInput(state.activeTab);
     if (input) {
@@ -1189,13 +1179,16 @@ async function openVersoDir() {
   try { await apiRevealVersoDir(); } catch (_) {}
 }
 
-// Adapte les libellés des touches modificatrices à la plateforme : macOS affiche
-// Cmd/Opt (valeurs par défaut du HTML), Windows affiche Ctrl/Alt.
+// Adapte les libellés des touches à la plateforme : macOS affiche Cmd/Opt et la
+// touche Images « = » (valeurs par défaut du HTML), Windows affiche Ctrl/Alt et
+// la touche Images « ! ». La position physique de la touche est la même (AZERTY),
+// seul le caractère imprimé diffère.
 (function _localizeShortcutKeys() {
   const isMac = navigator.userAgent.includes('Mac');
   if (isMac) return;
   document.querySelectorAll('.kbd-cmd').forEach(el => { el.textContent = 'Ctrl'; });
   document.querySelectorAll('.kbd-alt').forEach(el => { el.textContent = 'Alt'; });
+  document.querySelectorAll('.kbd-img').forEach(el => { el.textContent = '!'; });
 })();
 
 /** Affiche le panneau d'aide (raccourcis) au centre de la zone principale. */
