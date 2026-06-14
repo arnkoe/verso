@@ -153,6 +153,13 @@ pub fn media_dir(app: &AppHandle, kind: &str) -> PathBuf {
 
 // ─── Chants ─────────────────────────────────────────────────────────────────
 
+/// Vrai pour les fichiers cachés (commençant par `.`), notamment les fichiers
+/// AppleDouble `._*` créés par macOS, qui ne doivent jamais être traités comme
+/// des recueils ou des bibles réels.
+fn is_hidden(name: &str) -> bool {
+    name.starts_with('.')
+}
+
 /// Liste les fichiers `<prefix>-*.json` d'un dossier, triés par nom.
 fn songbook_files(dir: &Path, prefix: &str) -> Vec<PathBuf> {
     let mut files: Vec<PathBuf> = fs::read_dir(dir)
@@ -162,7 +169,7 @@ fn songbook_files(dir: &Path, prefix: &str) -> Vec<PathBuf> {
                 .filter(|p| {
                     p.file_name()
                         .and_then(|n| n.to_str())
-                        .map(|n| n.starts_with(prefix) && n.ends_with(".json"))
+                        .map(|n| !is_hidden(n) && n.starts_with(prefix) && n.ends_with(".json"))
                         .unwrap_or(false)
                 })
                 .collect()
@@ -268,6 +275,9 @@ pub fn list_bibles(app: &AppHandle) -> Vec<String> {
             it.flatten()
                 .filter_map(|e| {
                     let name = e.file_name().to_string_lossy().to_string();
+                    if is_hidden(&name) {
+                        return None;
+                    }
                     name.strip_suffix(".json").map(|s| s.to_string())
                 })
                 .collect()
