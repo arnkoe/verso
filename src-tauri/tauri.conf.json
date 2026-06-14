@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Verso",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "app.verso.desktop",
   "build": {
     "frontendDist": "../src"
@@ -46,7 +46,7 @@
       "endpoints": [
         "https://github.com/arnkoe/verso/releases/latest/download/latest.json"
       ],
-      "pubkey": "REMPLACER_PAR_LA_CLE_PUBLIQUE_GENEREE"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFFQzc4MzQ0MENFNzYyRTUKUldUbFl1Y01SSVBIcmpXdG1QOHAxTm1TNldRc1BJbUppZHU4aGpYdzBUbkh6RkF1S05SQU9tU3AK"
     }
   }
 }
