@@ -8,7 +8,7 @@
  */
 
 function renderProjectionContent(state, container) {
-  const isActive = state && state.type && state.type !== 'gallery' && state.type !== 'blank';
+  const isActive = state && state.type && state.type !== 'blank';
 
   if (!isActive) {
     container.classList.remove('active', 'media-mode');
@@ -19,14 +19,6 @@ function renderProjectionContent(state, container) {
   container.classList.add('active');
   container.classList.toggle('media-mode', state.type === 'pdf' || state.type === 'image');
   container.innerHTML = '';
-
-  if (state.type === 'logo') {
-    const img = document.createElement('img');
-    img.className = 'proj-logo';
-    img.src = 'assets/logo.png';
-    container.appendChild(img);
-    return;
-  }
 
   if (state.type === 'song') {
     const div = document.createElement('div');
@@ -130,7 +122,22 @@ function fitBodyText(box, inner, varName) {
   box.style.setProperty(varName, best + 'px');
 }
 
+// Cache borné de documents PDF décodés. Chaque PDFDocumentProxy retient ses
+// buffers en mémoire ; on garde au plus PDF_CACHE_MAX docs (LRU) et on détruit
+// le plus ancien à l'éviction pour éviter une croissance illimitée.
+const PDF_CACHE_MAX = 3;
 const _pdfDocCache = new Map();
+
+function _cachePdfDoc(cache, key, doc) {
+  cache.set(key, doc);
+  while (cache.size > PDF_CACHE_MAX) {
+    const oldestKey = cache.keys().next().value;
+    const old = cache.get(oldestKey);
+    cache.delete(oldestKey);
+    try { old.destroy(); } catch (_) {}
+  }
+}
+
 let _pdfRenderSeq = 0;
 
 async function renderPdfPage(canvas, filename, pageNum) {
@@ -147,7 +154,7 @@ async function renderPdfPage(canvas, filename, pageNum) {
     if (!doc) {
       const url = await mediaUrl('pdf', filename);
       doc = await pdfjsLib.getDocument({ url }).promise;
-      _pdfDocCache.set(filename, doc);
+      _cachePdfDoc(_pdfDocCache, filename, doc);
     }
     if (seq !== _pdfRenderSeq) return;
     const page = await doc.getPage(pageNum);

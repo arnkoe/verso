@@ -22,6 +22,16 @@ const state = {
   searchCursor: 0,
 };
 
+// Pastille « En projection » affichée sur l'item live d'une liste.
+const LIVE_PILL = '<span class="live-pill"><span class="dot"></span><span class="live-pill-text">En projection</span></span>';
+
+// Marque/démarque un item de liste comme étant en projection (classe + pastille).
+function setLive(el, isLive) {
+  el.classList.toggle('active', isLive);
+  const action = el.querySelector('.strophe-action');
+  if (action) action.innerHTML = isLive ? LIVE_PILL : '';
+}
+
 // ─── PROJECTION API ──────────────────────────────────────────────────────────
 
 async function project(payload) {
@@ -208,7 +218,7 @@ function renderVerseList() {
       <div class="strophe-number" data-short="${esc(shortLabel)}">${esc(label)}</div>
       <div class="strophe-text">${esc(verse.text)}</div>
       <div class="strophe-action">
-        ${isLive ? '<span class="live-pill"><span class="dot"></span><span class="live-pill-text">En projection</span></span>' : ''}
+        ${isLive ? LIVE_PILL : ''}
       </div>
     </div>`;
   }).join('');
@@ -334,6 +344,23 @@ function bibleRefAttr(book, chapter, vStart, vEnd) {
   return esc(JSON.stringify({ book, chapter, vStart, vEnd }));
 }
 
+// Construit la liste HTML des livres groupés par testament. `entry(book)` retourne
+// l'objet { ref, title } d'un item (référence pour data-bible-ref + libellé affiché).
+function renderBibleBookList(books, candidates, entry) {
+  const ntIdx = books.indexOf(NT_FIRST_BOOK);
+  let html = '', lastTestament = null;
+  for (const b of candidates.slice(0, 20)) {
+    const testament = ntIdx >= 0 && books.indexOf(b) >= ntIdx ? 'NOUVEAU TESTAMENT' : 'ANCIEN TESTAMENT';
+    if (testament !== lastTestament) {
+      html += `<div class="source-group">${testament}</div>`;
+      lastTestament = testament;
+    }
+    const { ref, title } = entry(b);
+    html += `<div class="content-item" data-bible-ref='${ref}'><span class="item-title">${esc(title)}</span></div>`;
+  }
+  return html;
+}
+
 document.getElementById('bibleSearchInput').addEventListener('input', async e => {
   const q = e.target.value.trim();
   const list = document.getElementById('bibleList');
@@ -348,17 +375,10 @@ document.getElementById('bibleSearchInput').addEventListener('input', async e =>
 
   if (ref) {
     const candidates = ref.ambiguous ? ref.candidates : [ref.book];
-    const ntIdx = books.indexOf(NT_FIRST_BOOK);
-    let html = '', lastTestament = null;
-    for (const b of candidates.slice(0, 20)) {
-      const testament = ntIdx >= 0 && books.indexOf(b) >= ntIdx ? 'NOUVEAU TESTAMENT' : 'ANCIEN TESTAMENT';
-      if (testament !== lastTestament) {
-        html += `<div class="source-group">${testament}</div>`;
-        lastTestament = testament;
-      }
-      html += `<div class="content-item" data-bible-ref='${bibleRefAttr(b, ref.chapter, ref.vStart, ref.vEnd)}'><span class="item-title">${esc(`${b} ${ref.chapter}`)}</span></div>`;
-    }
-    list.innerHTML = html;
+    list.innerHTML = renderBibleBookList(books, candidates, b => ({
+      ref: bibleRefAttr(b, ref.chapter, ref.vStart, ref.vEnd),
+      title: `${b} ${ref.chapter}`,
+    }));
     if (candidates.length === 1) {
       list.querySelector('.content-item').classList.add('active');
       fetchBibleChapter({ book: candidates[0], chapter: ref.chapter, vStart: ref.vStart, vEnd: ref.vEnd });
@@ -368,17 +388,10 @@ document.getElementById('bibleSearchInput').addEventListener('input', async e =>
 
   const matches = findBooks(books, q, false).slice(0, 20);
   if (!matches.length) { list.innerHTML = '<div class="search-empty">Aucun livre trouvé</div>'; return; }
-  const ntIdx = books.indexOf(NT_FIRST_BOOK);
-  let html = '', lastTestament = null;
-  for (const b of matches) {
-    const testament = ntIdx >= 0 && books.indexOf(b) >= ntIdx ? 'NOUVEAU TESTAMENT' : 'ANCIEN TESTAMENT';
-    if (testament !== lastTestament) {
-      html += `<div class="source-group">${testament}</div>`;
-      lastTestament = testament;
-    }
-    html += `<div class="content-item" data-bible-ref='${bibleRefAttr(b, 1, null, null)}'><span class="item-title">${esc(b)}</span></div>`;
-  }
-  list.innerHTML = html;
+  list.innerHTML = renderBibleBookList(books, matches, b => ({
+    ref: bibleRefAttr(b, 1, null, null),
+    title: b,
+  }));
 });
 
 document.getElementById('bibleList').addEventListener('click', e => {
@@ -440,7 +453,7 @@ function renderBibleVerses(verses) {
       <span class="bible-verse-number" data-short="V${v.verse}">Verset ${v.verse}</span>
       <span class="bible-verse-text">${esc(v.text)}</span>
       <div class="strophe-action">
-        ${isLive ? '<span class="live-pill"><span class="dot"></span><span class="live-pill-text">En projection</span></span>' : ''}
+        ${isLive ? LIVE_PILL : ''}
       </div>
     </div>`;
   }).join('');
@@ -567,9 +580,7 @@ function projectPdfPage(page) {
   clearProjectionModeButtons();
 
   document.querySelectorAll('#pdfPageList .pdf-page-item').forEach(el => {
-    const live = parseInt(el.dataset.page) === page;
-    el.classList.toggle('active', live);
-    el.querySelector('.strophe-action').innerHTML = live ? '<span class="live-pill"><span class="dot"></span><span class="live-pill-text">En projection</span></span>' : '';
+    setLive(el, parseInt(el.dataset.page) === page);
   });
 
   project({ type: 'pdf', filename: state.pdf.filename, page });
@@ -617,7 +628,7 @@ async function selectImage(filename) {
     <div class="strophe-item image-page-item${isLive ? ' active' : ''}" data-image-preview="${esc(filename)}" data-action="projectImage">
       <div class="strophe-number">Image</div>
       <img src="${esc(url)}" style="max-width:100%;max-height:400px;object-fit:contain;display:block;">
-      <div class="strophe-action">${isLive ? '<span class="live-pill"><span class="dot"></span><span class="live-pill-text">En projection</span></span>' : ''}</div>
+      <div class="strophe-action">${isLive ? LIVE_PILL : ''}</div>
     </div>
   `;
 }
@@ -627,9 +638,7 @@ function projectImage() {
   clearProjectionModeButtons();
 
   document.querySelectorAll('#imagePreview .strophe-item').forEach(el => {
-    const live = el.dataset.imagePreview === state.image.filename;
-    el.classList.toggle('active', live);
-    el.querySelector('.strophe-action').innerHTML = live ? '<span class="live-pill"><span class="dot"></span><span class="live-pill-text">En projection</span></span>' : '';
+    setLive(el, el.dataset.imagePreview === state.image.filename);
   });
 
   project({ type: 'image', filename: state.image.filename });
@@ -655,7 +664,7 @@ function updatePreview(s) {
     scalePreview();
     return;
   }
-  if (s.type === 'logo' || s.type === 'song' || s.type === 'bible') {
+  if (s.type === 'song' || s.type === 'bible') {
     renderProjectionContent(s, el);
     scalePreview();
     return;
@@ -715,7 +724,7 @@ async function renderPreviewPdf(canvas, filename, pageNum) {
     if (!doc) {
       const url = await mediaUrl('pdf', filename);
       doc = await pdfjsLib.getDocument({ url }).promise;
-      _previewPdfCache.set(filename, doc);
+      _cachePdfDoc(_previewPdfCache, filename, doc);
     }
     if (seq !== _previewPdfSeq) return;
     const page = await doc.getPage(pageNum);
@@ -731,39 +740,29 @@ async function renderPreviewPdf(canvas, filename, pageNum) {
   }
 }
 
+// Met à jour les items d'une liste : marque comme live celui qui matche, le fait
+// défiler à vue, et démarque les autres.
+function syncList(selector, matchFn) {
+  document.querySelectorAll(selector).forEach(el => {
+    const live = matchFn(el);
+    setLive(el, live);
+    if (live) el.scrollIntoView({ block: 'nearest' });
+  });
+}
+
 function syncActiveItems(s) {
   if (!s) return;
   if (s.type === 'blank') {
     document.querySelectorAll('.strophe-item, .bible-verse-item, .pdf-page-item').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.strophe-action').forEach(el => { el.innerHTML = ''; });
   } else if (s.type === 'song') {
-    document.querySelectorAll('#verseList .strophe-item').forEach(el => {
-      const live = parseInt(el.dataset.verse) === s.verse;
-      el.classList.toggle('active', live);
-      el.querySelector('.strophe-action').innerHTML = live ? '<span class="live-pill"><span class="dot"></span><span class="live-pill-text">En projection</span></span>' : '';
-      if (live) el.scrollIntoView({ block: 'nearest' });
-    });
+    syncList('#verseList .strophe-item', el => parseInt(el.dataset.verse) === s.verse);
   } else if (s.type === 'bible') {
-    document.querySelectorAll('#bibleVerseList .bible-verse-item').forEach(el => {
-      const live = parseInt(el.dataset.verse) === s.verse;
-      el.classList.toggle('active', live);
-      el.querySelector('.strophe-action').innerHTML = live ? '<span class="live-pill"><span class="dot"></span><span class="live-pill-text">En projection</span></span>' : '';
-      if (live) el.scrollIntoView({ block: 'nearest' });
-    });
+    syncList('#bibleVerseList .bible-verse-item', el => parseInt(el.dataset.verse) === s.verse);
   } else if (s.type === 'pdf') {
-    document.querySelectorAll('#pdfPageList .pdf-page-item').forEach(el => {
-      const live = parseInt(el.dataset.page) === s.page;
-      el.classList.toggle('active', live);
-      el.querySelector('.strophe-action').innerHTML = live ? '<span class="live-pill"><span class="dot"></span><span class="live-pill-text">En projection</span></span>' : '';
-      if (live) el.scrollIntoView({ block: 'nearest' });
-    });
+    syncList('#pdfPageList .pdf-page-item', el => parseInt(el.dataset.page) === s.page);
   } else if (s.type === 'image') {
-    document.querySelectorAll('#imagePreview .strophe-item').forEach(el => {
-      const live = el.dataset.imagePreview === s.filename;
-      el.classList.toggle('active', live);
-      el.querySelector('.strophe-action').innerHTML = live ? '<span class="live-pill"><span class="dot"></span><span class="live-pill-text">En projection</span></span>' : '';
-      if (live) el.scrollIntoView({ block: 'nearest' });
-    });
+    syncList('#imagePreview .strophe-item', el => el.dataset.imagePreview === s.filename);
   }
   state.projectionMode = s.type === 'blank' ? 'rien' : null;
   document.getElementById('btnModeRien').classList.toggle('active', state.projectionMode === 'rien');
@@ -1095,7 +1094,7 @@ async function openProjection() {
     }
 
     // Toujours en plein écran sur l'écran cible (s'adapte à sa résolution).
-    await apiOpenProjection(target.x, target.y, target.width, target.height, true);
+    await apiOpenProjection(target.x, target.y, target.width, target.height);
   } finally {
     _openingProjection = false;
   }
@@ -1111,7 +1110,7 @@ async function pickProjectionScreen() {
     const choice = await _askScreenChoice(monitors);
     if (!choice) return;
     _saveScreen(choice);
-    await apiOpenProjection(choice.x, choice.y, choice.width, choice.height, true);
+    await apiOpenProjection(choice.x, choice.y, choice.width, choice.height);
   } finally {
     _openingProjection = false;
   }

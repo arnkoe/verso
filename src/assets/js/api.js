@@ -82,12 +82,8 @@ async function apiListMonitors() {
   return await invoke('list_monitors');
 }
 
-async function apiOpenProjection(x, y, width, height, fullscreen) {
-  return await invoke('open_projection', { x, y, width, height, fullscreen });
-}
-
-async function apiCloseProjection() {
-  return await invoke('close_projection');
+async function apiOpenProjection(x, y, width, height) {
+  return await invoke('open_projection', { x, y, width, height });
 }
 
 // ─── VERSION & MISE À JOUR ────────────────────────────────────────────────────

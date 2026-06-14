@@ -307,12 +307,10 @@ async fn open_projection(
     y: i32,
     width: u32,
     height: u32,
-    fullscreen: bool,
 ) -> Result<(), String> {
     use tauri::{PhysicalPosition, PhysicalSize};
 
-    let _ = fullscreen; // toujours en plein écran « sans bordure » (voir ci-dessous).
-
+    // Toujours en plein écran « sans bordure » (voir ci-dessous).
     // Si une projection existe déjà sur l'écran cible, on la réutilise : cela
     // évite la course entre close() (asynchrone côté OS) et build() qui peut
     // laisser une fenêtre fantôme ou échouer car le label « projection » est
@@ -364,13 +362,6 @@ async fn open_projection(
     Ok(())
 }
 
-#[tauri::command]
-fn close_projection(app: AppHandle) {
-    if let Some(win) = app.get_webview_window("projection") {
-        let _ = win.close();
-    }
-}
-
 // ─── VERSION ────────────────────────────────────────────────────────────────
 
 /// Version courante de l'application (affichée en bas à droite de l'opérateur).
@@ -402,7 +393,6 @@ pub fn run() {
             set_projection_state,
             list_monitors,
             open_projection,
-            close_projection,
             app_version,
         ])
         // Fermer la fenêtre opérateur ferme aussi la projection : on évite une
