@@ -1,5 +1,5 @@
 {
-  "name": "verso2",
+  "name": "verso",
   "version": "0.1.0",
   "description": "Verso — projection de chants et textes (version Tauri, stockage fichiers)",
   "private": true,

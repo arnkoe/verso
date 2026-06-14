@@ -1,5 +1,5 @@
 [package]
-name = "verso2"
+name = "verso"
 version = "0.1.0"
 description = "Verso — projection de chants et textes"
 authors = ["Verso"]
@@ -7,7 +7,7 @@ edition = "2021"
 rust-version = "1.77"
 
 [lib]
-name = "verso2_lib"
+name = "verso_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
