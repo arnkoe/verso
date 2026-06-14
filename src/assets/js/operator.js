@@ -1086,6 +1086,10 @@ async function saveSong() {
 
 const PROJ_SCREEN_KEY = 'verso.projectionMonitor'; // {x,y,width,height,name}
 
+// Verrou anti-réentrance : empêche les ouvertures concurrentes (double-clic,
+// clic pendant la modale de choix d'écran) qui pourraient empiler des fenêtres.
+let _openingProjection = false;
+
 function _savedScreen() {
   try { return JSON.parse(localStorage.getItem(PROJ_SCREEN_KEY) || 'null'); }
   catch (_) { return null; }
@@ -1111,36 +1115,48 @@ function _updateMonitorScreen(m) {
 }
 
 async function openProjection() {
-  let monitors;
-  try { monitors = await apiListMonitors(); }
-  catch (e) { alert('Impossible de lister les écrans : ' + String(e)); return; }
+  if (_openingProjection) return;
+  _openingProjection = true;
+  try {
+    let monitors;
+    try { monitors = await apiListMonitors(); }
+    catch (e) { alert('Impossible de lister les écrans : ' + String(e)); return; }
 
-  if (!monitors.length) { alert('Aucun écran détecté.'); return; }
+    if (!monitors.length) { alert('Aucun écran détecté.'); return; }
 
-  let target = _savedScreen();
-  if (target) {
-    const match = monitors.find(m => m.x === target.x && m.y === target.y && m.width === target.width && m.height === target.height);
-    if (!match) target = null;
+    let target = _savedScreen();
+    if (target) {
+      const match = monitors.find(m => m.x === target.x && m.y === target.y && m.width === target.width && m.height === target.height);
+      if (!match) target = null;
+    }
+    if (!target) {
+      const nonPrimary = monitors.find(m => !m.is_primary);
+      target = nonPrimary || (monitors.length > 1 ? await _askScreenChoice(monitors) : monitors[0]);
+      if (!target) return;
+      _saveScreen(target);
+    }
+
+    // Toujours en plein écran sur l'écran cible (s'adapte à sa résolution).
+    await apiOpenProjection(target.x, target.y, target.width, target.height, true);
+  } finally {
+    _openingProjection = false;
   }
-  if (!target) {
-    const nonPrimary = monitors.find(m => !m.is_primary);
-    target = nonPrimary || (monitors.length > 1 ? await _askScreenChoice(monitors) : monitors[0]);
-    if (!target) return;
-    _saveScreen(target);
-  }
-
-  // Toujours en plein écran sur l'écran cible (s'adapte à sa résolution).
-  await apiOpenProjection(target.x, target.y, target.width, target.height, true);
 }
 
 async function pickProjectionScreen() {
-  let monitors;
-  try { monitors = await apiListMonitors(); }
-  catch (e) { alert('Impossible de lister les écrans : ' + String(e)); return; }
-  const choice = await _askScreenChoice(monitors);
-  if (!choice) return;
-  _saveScreen(choice);
-  await apiOpenProjection(choice.x, choice.y, choice.width, choice.height, true);
+  if (_openingProjection) return;
+  _openingProjection = true;
+  try {
+    let monitors;
+    try { monitors = await apiListMonitors(); }
+    catch (e) { alert('Impossible de lister les écrans : ' + String(e)); return; }
+    const choice = await _askScreenChoice(monitors);
+    if (!choice) return;
+    _saveScreen(choice);
+    await apiOpenProjection(choice.x, choice.y, choice.width, choice.height, true);
+  } finally {
+    _openingProjection = false;
+  }
 }
 
 function _askScreenChoice(monitors) {

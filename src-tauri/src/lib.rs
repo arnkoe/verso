@@ -248,14 +248,35 @@ async fn open_projection(
     height: u32,
     fullscreen: bool,
 ) -> Result<(), String> {
-    // Ferme une éventuelle projection existante.
-    if let Some(existing) = app.get_webview_window("projection") {
-        let _ = existing.close();
-    }
-
     use tauri::{PhysicalPosition, PhysicalSize};
 
     let _ = fullscreen; // toujours en plein écran « sans bordure » (voir ci-dessous).
+
+    // Si une projection existe déjà sur l'écran cible, on la réutilise : cela
+    // évite la course entre close() (asynchrone côté OS) et build() qui peut
+    // laisser une fenêtre fantôme ou échouer car le label « projection » est
+    // déjà pris. En revanche, déplacer une fenêtre borderless plein-écran vers
+    // un AUTRE écran est peu fiable sur macOS (la fenêtre reste collée à son
+    // écran d'origine) : dans ce cas on ferme et on recrée sur le bon écran.
+    if let Some(existing) = app.get_webview_window("projection") {
+        let same_screen = existing
+            .outer_position()
+            .map(|p| p.x == x && p.y == y)
+            .unwrap_or(false);
+        if same_screen {
+            let _ = existing.set_size(PhysicalSize::new(width, height));
+            let _ = existing.set_focus();
+            return Ok(());
+        }
+        let _ = existing.close();
+        // Laisse l'OS détruire la fenêtre avant de réutiliser le label.
+        for _ in 0..50 {
+            if app.get_webview_window("projection").is_none() {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+    }
 
     let win = WebviewWindowBuilder::new(
         &app,
@@ -312,6 +333,18 @@ pub fn run() {
             open_projection,
             close_projection,
         ])
+        // Fermer la fenêtre opérateur ferme aussi la projection : on évite une
+        // projection « zombie » qui survivrait au processus et donnerait une
+        // seconde fenêtre au prochain lancement de l'application.
+        .on_window_event(|window, event| {
+            if matches!(event, tauri::WindowEvent::CloseRequested { .. })
+                && window.label() == "operator"
+            {
+                if let Some(proj) = window.app_handle().get_webview_window("projection") {
+                    let _ = proj.close();
+                }
+            }
+        })
         .run(tauri::generate_context!())
         .expect("erreur au lancement de Verso");
 }
