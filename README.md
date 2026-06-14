@@ -22,17 +22,100 @@ Rien n'est livré avec l'application : vous déposez vous-même vos recueils, bi
 
 L'état de la dernière projection est conservé et repris à la réouverture.
 
+### Format d'un recueil de chants
+
+Un recueil est un fichier `songbooks/songbook-<nom>.json` (le nom de fichier doit commencer par `songbook-`) contenant un **tableau** de chants. Des exemples complets sont dans le dossier [`examples/`](examples/).
+
+```json
+[
+  {
+    "id": 1,
+    "title": "Titre du chant",
+    "author": "Auteur ou null",
+    "source_book": "Mon recueil",
+    "source_number": 1,
+    "verses": [
+      { "type": "S", "number": 1, "text": "Strophe 1, ligne 1.\nLigne 2." },
+      { "type": "R", "text": "Texte du refrain." },
+      { "type": "S", "number": 2, "text": "Strophe 2." }
+    ]
+  }
+]
+```
+
+- `id` — entier **unique** dans le recueil (identifiant interne).
+- `title` — titre affiché et recherché.
+- `author` — chaîne ou `null` si inconnu.
+- `source_book` — nom du recueil ; sert à grouper les chants dans la recherche.
+- `source_number` — numéro du chant dans le recueil (ou `null`).
+- `verses` — liste **ordonnée** des couplets. Chaque couplet a :
+  - `type` — `"S"` strophe, `"R"` refrain, `"P"` pont, `"I"` intro, `"O"` final. Absent → strophe (`"S"`).
+  - `number` — numéro de strophe (facultatif).
+  - `text` — le texte ; les sauts de ligne se notent `\n`.
+
+Le JSON n'autorise pas de vrai retour à la ligne à l'intérieur d'une chaîne : écrivez `\n` pour chaque saut de ligne dans `text`.
+
+### Format d'une bible
+
+Une traduction est un fichier `bibles/<code>.json` (ex. `S21.json`). Voir [`examples/bible-exemple.json`](examples/bible-exemple.json).
+
+```json
+{
+  "translation": "S21",
+  "books": [
+    {
+      "name": "Genèse",
+      "chapters": [
+        ["Genèse 1.1", "Genèse 1.2", "Genèse 1.3"],
+        ["Genèse 2.1", "Genèse 2.2"]
+      ]
+    }
+  ]
+}
+```
+
+- `translation` — code de la traduction (idéalement identique au nom du fichier).
+- `books` — liste **ordonnée** des livres.
+  - `name` — nom du livre (utilisé pour la recherche de référence).
+  - `chapters` — tableau de chapitres ; chaque chapitre est un tableau de versets (chaînes).
+  - L'ordre fait foi : `chapters[0]` est le chapitre 1, et `chapters[0][0]` le verset 1.
+
 ## Utilisation
 
 L'opérateur dispose de quatre onglets : **Chants**, **Bible**, **PDF**, **Images**. On recherche, on sélectionne, et le contenu s'affiche sur la fenêtre de projection envoyée en plein écran sur l'écran secondaire.
 
 ### Raccourcis clavier
 
-- `c` / `b` / `p` / `i` — onglets Chants / Bible / PDF / Images
-- `/` — chercher dans l'onglet actif
-- `↑` `↓` `←` `→` `Entrée` — naviguer et projeter (strophe, verset, page)
-- `b` — écran noir (masquer la projection)
-- `Échap` — masquer la projection
+Les raccourcis ci-dessous valent dans la fenêtre **opérateur** (sauf quand un champ de saisie a le focus, où seules les flèches de la recherche s'appliquent).
+
+**Changer d'onglet**
+
+- `c` — onglet Chants
+- `b` — onglet Bible
+- `p` — onglet PDF
+- `i` — onglet Images
+- `Ctrl`/`Cmd` + `Alt` + `M` — Chants (fonctionne même depuis un champ de saisie)
+- `Ctrl`/`Cmd` + `Alt` + `,` — Bible (idem)
+- `Ctrl`/`Cmd` + `Alt` + `.` — PDF (idem)
+- `Ctrl`/`Cmd` + `Alt` + `/` — Images (idem)
+
+**Rechercher**
+
+- `/` — placer le curseur dans le champ de recherche de l'onglet actif
+- `↑` `↓` — déplacer la sélection dans la liste de résultats
+- `Entrée` — valider le résultat sélectionné
+
+**Projeter et naviguer**
+
+- `↓` `→` — élément suivant (strophe, verset, page PDF)
+- `↑` `←` — élément précédent
+- `Entrée` — projeter l'élément suivant (ou le premier si rien n'est encore projeté)
+- `b` — écran noir : masquer/réafficher la projection
+- `Échap` — vider la projection (retour à l'écran neutre)
+
+**Fenêtre de projection**
+
+- `Échap` — fermer la fenêtre de projection
 
 ## Développement
 

@@ -1,0 +1,27 @@
+{
+  "translation": "XXX",
+  "books": [
+    {
+      "name": "Genèse",
+      "chapters": [
+        [
+          "Au commencement, Dieu créa le ciel et la terre.",
+          "La terre était informe et vide ; les ténèbres couvraient l'abîme.",
+          "Dieu dit : « Que la lumière soit ! » et la lumière fut."
+        ],
+        [
+          "Premier verset du chapitre 2.",
+          "Deuxième verset du chapitre 2."
+        ]
+      ]
+    },
+    {
+      "name": "Jean",
+      "chapters": [
+        [
+          "Au commencement était la Parole, et la Parole était avec Dieu, et la Parole était Dieu."
+        ]
+      ]
+    }
+  ]
+}
