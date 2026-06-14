@@ -94,10 +94,15 @@ Les raccourcis ci-dessous valent dans la fenêtre **opérateur** (sauf quand un 
 - `b` — onglet Bible
 - `p` — onglet PDF
 - `i` — onglet Images
-- `Ctrl`/`Cmd` + `Alt` + `M` — Chants (fonctionne même depuis un champ de saisie)
-- `Ctrl`/`Cmd` + `Alt` + `,` — Bible (idem)
-- `Ctrl`/`Cmd` + `Alt` + `.` — PDF (idem)
-- `Ctrl`/`Cmd` + `Alt` + `/` — Images (idem)
+
+Des combinaisons avec `Alt` permettent aussi de changer d'onglet **même depuis un champ de saisie**. Elles dépendent de la position physique des touches, donc les caractères diffèrent entre Windows et macOS (claviers AZERTY) :
+
+| Onglet  | Windows (AZERTY)       | macOS (AZERTY)         |
+| ------- | ---------------------- | ---------------------- |
+| Chants  | `Ctrl` + `Alt` + `,`   | `Cmd` + `Opt` + `,`    |
+| Bible   | `Ctrl` + `Alt` + `;`   | `Cmd` + `Opt` + `;`    |
+| PDF     | `Ctrl` + `Alt` + `:`   | `Cmd` + `Opt` + `:`    |
+| Images  | `Ctrl` + `Alt` + `!`   | `Cmd` + `Opt` + `=`    |
 
 **Rechercher**
 
