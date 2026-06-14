@@ -1,0 +1,317 @@
+mod bible_search;
+mod storage;
+
+use std::fs;
+
+use serde::Serialize;
+use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
+
+use bible_search::BibleSearchResult;
+use storage::{AppState, Song, SongSummary, Verse};
+
+// ─── CHANTS ─────────────────────────────────────────────────────────────────
+
+#[tauri::command]
+fn list_songs(app: AppHandle, state: tauri::State<AppState>) -> Result<Vec<SongSummary>, String> {
+    let songs = storage::load_songs(&app, &state)?;
+    Ok(songs
+        .iter()
+        .map(|s| SongSummary {
+            id: s.id,
+            title: s.title.clone(),
+            author: s.author.clone(),
+            source_book: s.source_book.clone(),
+            source_number: s.source_number,
+            verse_count: s.verses.len(),
+        })
+        .collect())
+}
+
+#[tauri::command]
+fn get_song(app: AppHandle, state: tauri::State<AppState>, id: i64) -> Result<Song, String> {
+    let songs = storage::load_songs(&app, &state)?;
+    songs
+        .into_iter()
+        .find(|s| s.id == id)
+        .ok_or_else(|| "Cantique introuvable".into())
+}
+
+#[tauri::command]
+fn update_song(
+    app: AppHandle,
+    state: tauri::State<AppState>,
+    id: i64,
+    verses: Vec<Verse>,
+) -> Result<Song, String> {
+    if verses.is_empty() {
+        return Err("Le chant doit avoir au moins une strophe.".into());
+    }
+    let mut songs = storage::load_songs(&app, &state)?;
+    let song = songs
+        .iter_mut()
+        .find(|s| s.id == id)
+        .ok_or_else(|| "Cantique introuvable".to_string())?;
+    song.verses = verses;
+    let updated = song.clone();
+    storage::save_songs(&app, &state, &songs)?;
+    Ok(updated)
+}
+
+// ─── BIBLE ──────────────────────────────────────────────────────────────────
+
+#[derive(Serialize)]
+struct BooksResponse {
+    translation: String,
+    books: Vec<String>,
+}
+
+#[tauri::command]
+fn list_bibles(app: AppHandle) -> Vec<String> {
+    storage::list_bibles(&app)
+}
+
+#[tauri::command]
+fn bible_books(
+    app: AppHandle,
+    state: tauri::State<AppState>,
+    translation: String,
+) -> Result<BooksResponse, String> {
+    let bible = storage::load_bible(&app, &state, &translation)?;
+    Ok(BooksResponse {
+        translation,
+        books: bible.books.iter().map(|b| b.name.clone()).collect(),
+    })
+}
+
+#[tauri::command]
+fn bible_search(
+    app: AppHandle,
+    state: tauri::State<AppState>,
+    q: String,
+    translation: String,
+) -> Result<BibleSearchResult, String> {
+    let bible = storage::load_bible(&app, &state, &translation)?;
+    bible_search::search(&bible, &q)
+}
+
+// ─── PDF & IMAGES ───────────────────────────────────────────────────────────
+
+#[derive(Serialize)]
+struct FileEntry {
+    filename: String,
+}
+
+fn list_uploads(app: &AppHandle, kind: &str, exts: &[&str]) -> Vec<FileEntry> {
+    let dir = storage::media_dir(app, kind);
+    let mut out = vec![];
+    if let Ok(rd) = fs::read_dir(&dir) {
+        for entry in rd.flatten() {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if name.starts_with('.') {
+                continue;
+            }
+            let ext_ok = exts.iter().any(|e| name.to_lowercase().ends_with(e));
+            if ext_ok {
+                out.push(FileEntry { filename: name });
+            }
+        }
+    }
+    out.sort_by(|a, b| a.filename.to_lowercase().cmp(&b.filename.to_lowercase()));
+    out
+}
+
+#[tauri::command]
+fn list_pdfs(app: AppHandle) -> Vec<FileEntry> {
+    list_uploads(&app, "pdf", &[".pdf"])
+}
+
+#[tauri::command]
+fn list_images(app: AppHandle) -> Vec<FileEntry> {
+    list_uploads(&app, "images", &[".jpg", ".jpeg", ".png", ".webp"])
+}
+
+/// Ouvre le dossier des médias (`pdf/` ou `images/`) dans le gestionnaire de
+/// fichiers natif, pour que l'utilisateur y dépose/retire ses fichiers.
+#[tauri::command]
+fn reveal_media_dir(app: AppHandle, kind: String) -> Result<(), String> {
+    if kind != "pdf" && kind != "images" {
+        return Err("Type de média invalide".into());
+    }
+    let dir = storage::media_dir(&app, &kind);
+    let path = dir.as_os_str();
+
+    #[cfg(target_os = "macos")]
+    let mut cmd = {
+        let mut c = std::process::Command::new("open");
+        c.arg(path);
+        c
+    };
+    #[cfg(target_os = "windows")]
+    let mut cmd = {
+        let mut c = std::process::Command::new("explorer");
+        c.arg(path);
+        c
+    };
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let mut cmd = {
+        let mut c = std::process::Command::new("xdg-open");
+        c.arg(path);
+        c
+    };
+
+    cmd.spawn()
+        .map(|_| ())
+        .map_err(|e| format!("Ouverture du dossier échouée : {e}"))
+}
+
+/// Chemin absolu d'un média, pour `convertFileSrc` (asset:// protocol).
+#[tauri::command]
+fn media_path(app: AppHandle, kind: String, filename: String) -> Result<String, String> {
+    if kind != "pdf" && kind != "images" {
+        return Err("Type de média invalide".into());
+    }
+    let name = storage::sanitize_filename(&filename).ok_or("Nom invalide")?;
+    let path = storage::media_dir(&app, &kind).join(name);
+    if !path.exists() {
+        return Err("Fichier introuvable".into());
+    }
+    Ok(path.to_string_lossy().to_string())
+}
+
+// ─── PROJECTION ─────────────────────────────────────────────────────────────
+
+/// État de projection : lu par la fenêtre projection à son ouverture (reprise).
+#[tauri::command]
+fn get_projection_state(app: AppHandle) -> serde_json::Value {
+    storage::read_projection_state(&app)
+}
+
+/// Pousse un nouvel état : persiste sur disque + émet l'event vers la projection.
+/// Remplace le BroadcastChannel de la version web.
+#[tauri::command]
+fn set_projection_state(app: AppHandle, payload: serde_json::Value) -> Result<(), String> {
+    storage::write_projection_state(&app, &payload)?;
+    // Émet vers toutes les fenêtres (la projection écoute "projection-update").
+    app.emit("projection-update", &payload)
+        .map_err(|e| format!("Émission event : {e}"))?;
+    Ok(())
+}
+
+#[derive(Serialize, Clone)]
+struct MonitorInfo {
+    name: String,
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+    is_primary: bool,
+    scale: f64,
+}
+
+/// Liste les écrans disponibles (remplace getScreenDetails du web).
+#[tauri::command]
+fn list_monitors(app: AppHandle) -> Result<Vec<MonitorInfo>, String> {
+    let win = app
+        .get_webview_window("operator")
+        .ok_or("Fenêtre opérateur introuvable")?;
+    let monitors = win.available_monitors().map_err(|e| e.to_string())?;
+    let primary = win.primary_monitor().map_err(|e| e.to_string())?;
+    let primary_pos = primary.as_ref().map(|m| *m.position());
+
+    Ok(monitors
+        .into_iter()
+        .map(|m| {
+            let pos = m.position();
+            let size = m.size();
+            let is_primary = primary_pos.map_or(false, |p| p == *pos);
+            MonitorInfo {
+                name: m.name().cloned().unwrap_or_else(|| "Écran".into()),
+                x: pos.x,
+                y: pos.y,
+                width: size.width,
+                height: size.height,
+                is_primary,
+                scale: m.scale_factor(),
+            }
+        })
+        .collect())
+}
+
+/// Ouvre (ou recrée) la fenêtre de projection sur un écran donné, en plein écran.
+/// `x`/`y` sont la position physique du coin haut-gauche de l'écran cible.
+#[tauri::command]
+async fn open_projection(
+    app: AppHandle,
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+    fullscreen: bool,
+) -> Result<(), String> {
+    // Ferme une éventuelle projection existante.
+    if let Some(existing) = app.get_webview_window("projection") {
+        let _ = existing.close();
+    }
+
+    use tauri::{PhysicalPosition, PhysicalSize};
+
+    let _ = fullscreen; // toujours en plein écran « sans bordure » (voir ci-dessous).
+
+    let win = WebviewWindowBuilder::new(
+        &app,
+        "projection",
+        WebviewUrl::App("projection.html".into()),
+    )
+    .title("Verso — Projection")
+    .position(x as f64, y as f64)
+    .inner_size(width as f64, height as f64)
+    .decorations(false)
+    .resizable(false)
+    .build()
+    .map_err(|e| format!("Création fenêtre projection : {e}"))?;
+
+    // Plein écran « sans bordure » : on couvre exactement l'écran cible (position et
+    // taille en pixels PHYSIQUES) au lieu du plein écran natif macOS. Le plein écran
+    // natif crée un espace dédié et intercepte Échap (sortie de plein écran) avant le
+    // JS ; en mode sans bordure, Échap déclenche bien la fermeture côté projection.
+    // (set_position/set_size répétés : certains WM ignorent la valeur au build.)
+    let _ = win.set_position(PhysicalPosition::new(x, y));
+    let _ = win.set_size(PhysicalSize::new(width, height));
+    let _ = win.set_position(PhysicalPosition::new(x, y));
+    let _ = win.set_focus();
+    Ok(())
+}
+
+#[tauri::command]
+fn close_projection(app: AppHandle) {
+    if let Some(win) = app.get_webview_window("projection") {
+        let _ = win.close();
+    }
+}
+
+// ─── ENTRÉE ─────────────────────────────────────────────────────────────────
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .manage(AppState::default())
+        .invoke_handler(tauri::generate_handler![
+            list_songs,
+            get_song,
+            update_song,
+            list_bibles,
+            bible_books,
+            bible_search,
+            list_pdfs,
+            list_images,
+            reveal_media_dir,
+            media_path,
+            get_projection_state,
+            set_projection_state,
+            list_monitors,
+            open_projection,
+            close_projection,
+        ])
+        .run(tauri::generate_context!())
+        .expect("erreur au lancement de Verso");
+}

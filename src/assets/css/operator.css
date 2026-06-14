@@ -1,0 +1,773 @@
+:root {
+  --bg: #f3f4f6;
+  --panel: #ffffff;
+  --ink: #111111;
+  --ink-2: #3a3a3a;
+  --mute: #6b6b6b;
+  --mute-2: #9a9a9a;
+  --line: #e6e6e6;
+  --line-2: #efefef;
+  --hover: #f6f6f6;
+  --sel: #f4f6f8;
+  --live: #22C55E;
+  --live-weak: rgba(34,197,94,0.12);
+  --radius: 10px;
+  --w-sidebar: 320px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--bg);
+  /* -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale; */
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── APP SHELL ─────────────────────────────────────────────────────────────── */
+.app {
+  display: grid;
+  grid-template-rows: 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── BODY ──────────────────────────────────────────────────────────────────── */
+.body {
+  display: grid;
+  grid-template-columns: var(--w-sidebar) 1fr;
+  gap: 12px;
+  padding: 12px;
+  min-height: 0;
+}
+
+/* ── CARDS ─────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── SIDEBARS ──────────────────────────────────────────────────────────────── */
+.sidebar-left {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 12px;
+  min-height: 0;
+  height: 100%;
+}
+
+/* ── CARD RECHERCHE ────────────────────────────────────────────────────────── */
+.card-search {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 0;
+}
+/* Tabs sur la 1re ligne ; le panneau visible occupe toujours la 2e (1fr),
+   quel que soit l'onglet, pour qu'il scrolle au lieu de pousser la carte
+   « Retour projection » hors de l'écran. */
+.card-search > .tabs { grid-row: 1; }
+#searchCantiques, #searchBible, #listPdf, #listImages { grid-row: 2; }
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  border-bottom: 1px solid var(--line-2);
+}
+.tab {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--mute);
+  padding: 12px 0;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  position: relative;
+  transition: color 0.15s;
+}
+.tab.active { color: var(--ink); font-weight: 500; }
+.tab.active::after {
+  content: "";
+  position: absolute;
+  left: 12px; right: 12px; bottom: -1px;
+  height: 1.5px; background: var(--ink);
+}
+.tab:hover:not(.active) { color: var(--ink-2); }
+
+/* ── ZONE RECHERCHE DANS SIDEBAR ───────────────────────────────────────────── */
+.search-box {
+  padding: 12px;
+  border-bottom: 1px solid var(--line-2);
+  display: grid;
+  gap: 8px;
+}
+
+.field { position: relative; display: flex; align-items: center; }
+.field svg {
+  position: absolute; left: 9px;
+  width: 13px; height: 13px; color: var(--mute-2);
+  pointer-events: none;
+}
+.search-input {
+  width: 100%; height: 30px;
+  padding: 0 10px 0 28px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-family: inherit; font-size: 12.5px;
+  color: var(--ink); background: #fff; outline: none;
+}
+.search-input:focus { border-color: var(--ink-2); }
+.search-input::placeholder { color: var(--mute-2); }
+
+/* compat: l'ancien code utilise input[type=text] dans .search-box */
+.search-box input[type=text] {
+  width: 100%; height: 30px;
+  padding: 0 10px 0 28px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-family: inherit; font-size: 12.5px;
+  color: var(--ink); background: #fff; outline: none;
+}
+.search-box input[type=text]:focus { border-color: var(--ink-2); }
+.search-box input[type=text]::placeholder { color: var(--mute-2); }
+
+/* Pills de traduction */
+.bible-translations { display: flex; gap: 4px; flex-wrap: wrap; padding-top: 4px; }
+.translation-btn {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-family: inherit; font-size: 11px;
+  padding: 4px 9px; border-radius: 999px;
+  color: var(--mute); cursor: pointer;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.translation-btn:hover:not(.active) {
+  background: var(--hover); border-color: #c8c8c8; color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.09);
+}
+.translation-btn.active {
+  background: var(--ink); color: #fff; border-color: var(--ink);
+  box-shadow: none;
+}
+
+/* ── LISTE SIDEBAR ─────────────────────────────────────────────────────────── */
+.content-list {
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+}
+.content-list::-webkit-scrollbar { width: 10px; }
+.content-list::-webkit-scrollbar-thumb {
+  background: #e0e0e0; border-radius: 10px; border: 2px solid var(--panel);
+}
+
+.source-group {
+  padding: 10px 14px 4px;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute-2);
+}
+
+.content-item {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 2px 8px;
+  align-items: baseline;
+  padding: 7px 14px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.15s;
+}
+.content-item:hover { background: var(--hover); }
+.content-item.active { border-left-color: var(--live); background: var(--sel); position: relative; }
+.content-item.active::after {
+  content: "";
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--live);
+}
+.content-item.cursor:not(.active) { background: var(--sel); border-left-color: var(--ink); }
+.content-list:has(.content-item.active) .content-item:not(.active) { cursor: default; }
+
+.item-number {
+  font-variant-numeric: tabular-nums;
+  font-size: 11px; color: var(--mute); text-align: right;
+  grid-row: 1;
+}
+.item-title {
+  font-size: 12.5px; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  grid-column: 2; grid-row: 1;
+}
+.item-author {
+  font-size: 11px; color: var(--mute-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  grid-column: 2; grid-row: 2;
+}
+
+/* Résultat Bible : sans numéro, texte aligné sur la colonne titre (44px + 8px gap) */
+.content-item[data-bible-ref] {
+  grid-template-columns: 1fr;
+  padding-left: calc(14px + 44px + 8px);
+}
+.content-item[data-bible-ref] .item-title {
+  grid-column: 1;
+}
+
+.search-empty {
+  padding: 22px 14px; color: var(--mute-2); font-size: 12px; text-align: center;
+}
+
+/* Conteneurs onglets sidebar : chaque panneau visible est une colonne flex
+   bornée (min-height:0) pour que sa liste scrolle au lieu de déborder. */
+#searchCantiques, #searchBible, #listPdf, #listImages {
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+/* searchCantiques est affiché via display:'' (retour au défaut CSS) : il lui
+   faut donc display:flex ici ; les autres reçoivent display:flex en inline. */
+#searchCantiques { display: flex; }
+#searchCantiques .content-list { flex: 1; }
+
+/* ── CARD CONTRÔLES ────────────────────────────────────────────────────────── */
+.actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+/* ── CARD MONITOR ──────────────────────────────────────────────────────────── */
+.card-monitor { padding: 12px; }
+.monitor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.monitor-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mute);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.monitor-label .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--live);
+}
+.monitor-screen {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.monitor-actions {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+.monitor-actions .hdr-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: center;
+  padding: 0 6px;
+  overflow: hidden;
+}
+.monitor-actions .hdr-btn.active {
+  border-color: var(--ink);
+  background: #fafafa;
+  color: var(--ink);
+}
+
+/* Canvas de preview (reproduit fidèlement la projection 16/9, scalé).
+   Même ratio que le slide ; le cadre du moniteur est lui-même en 16/9. */
+.preview-stage {
+  position: absolute;
+  top: 0; left: 0;
+  /* width/height fixés dynamiquement par scalePreview() aux dimensions logiques
+     réelles du slide sur l'écran cible (pour un word-wrap identique). */
+  background: #fff;
+  transform-origin: top left;
+  /* Bord fin matérialisant la zone 16/9 (cohérent avec la projection). */
+  border: 1px solid #ddd;
+}
+/* Même boîte que #screen de la projection : container-type + padding en cqh/cqw,
+   pour que le contenu (.content-text de projection-content.css) hérite EXACTEMENT
+   des mêmes tailles cqh/cqw. L'aperçu est donc fidèle par construction. */
+.preview-content {
+  width: 100%; height: 100%;
+  color: #000;
+  font-family: var(--font);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  container-type: size;
+}
+.preview-content.preview-fullbleed { padding: 0; align-items: center; justify-content: center; background: #fff; }
+
+.monitor-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 10.5px;
+  color: var(--mute-2);
+}
+
+/* ── ZONE PRINCIPALE ───────────────────────────────────────────────────────── */
+.main {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* Empty state : visible tant qu'aucun contenu n'a été chargé */
+.empty-state {
+  grid-row: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  padding: 24px;
+  color: var(--mute);
+}
+.main[data-loaded="true"] .empty-state { display: none; }
+.main:not([data-loaded="true"]) .panel { display: none; }
+.empty-state-icon {
+  width: 48px;
+  height: 48px;
+  fill: none;
+  stroke: var(--mute-2);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  margin-bottom: 4px;
+}
+.empty-state-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+.empty-state-text {
+  font-size: 13px;
+  color: var(--mute);
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+.content-header {
+  padding: 16px 24px 14px;
+  display: grid;
+  gap: 2px;
+  border-bottom: 1px solid var(--line-2);
+  min-height: 80px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+.content-header-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+.content-kicker {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.content-title {
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.content-subtitle {
+  font-size: 12px;
+  color: var(--mute);
+  margin-top: 2px;
+}
+.content-header-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Boutons rectangulaires avec texte dans l'en-tête du panneau */
+.hdr-btn {
+  appearance: none;
+  background: #fff;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  height: 28px;
+  color: var(--ink-2);
+  font-family: inherit;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  text-decoration: none;
+}
+.hdr-btn:hover { box-shadow: 0 1px 3px rgba(0,0,0,0.09); }
+.hdr-btn svg {
+  width: 13px; height: 13px;
+  stroke: currentColor; fill: none;
+  stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+  flex-shrink: 0;
+}
+.hdr-btn:hover { border-color: #c8c8c8; background: var(--hover); color: var(--ink); }
+.hdr-btn.save { border-color: var(--live); color: var(--live); }
+.hdr-btn.save:hover { background: var(--live-weak); }
+.hdr-btn.danger { border-color: #fca5a5; color: #dc2626; }
+.hdr-btn.danger:hover { background: #fef2f2; }
+
+/* Panels */
+.panel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.panel.active { display: flex; }
+
+/* ── LISTE CENTRALE ────────────────────────────────────────────────────────── */
+.strophe-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+.strophe-list::-webkit-scrollbar { width: 12px; }
+.strophe-list::-webkit-scrollbar-thumb {
+  background: #e0e0e0; border-radius: 10px; border: 3px solid var(--panel);
+}
+
+.strophe-item {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 18px;
+  align-items: start;
+  padding: 14px 24px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid var(--line-2);
+  background: var(--panel);
+  transition: background 0.15s;
+}
+/* .strophe-item:last-child border-bottom kept for single-strophe songs */
+.strophe-item:hover { background: var(--hover); }
+.strophe-item.active { background: var(--sel); border-left-color: var(--live); }
+
+.strophe-number {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+  font-variant-numeric: tabular-nums;
+  padding-top: 3px;
+  text-align: right;
+}
+.strophe-item.active .strophe-number { color: var(--live); font-weight: 600; }
+
+.strophe-text {
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink);
+  white-space: pre-wrap;
+  letter-spacing: -0.002em;
+}
+
+.strophe-action {
+  padding-top: 3px;
+  display: flex;
+  align-items: center;
+  min-height: 22px;
+  width: 90px;
+  flex-shrink: 0;
+}
+@media (max-width: 900px) {
+  .strophe-action { width: 28px; }
+}
+.live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 9px;
+  height: 22px;
+  border-radius: 13px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--live);
+  background: var(--live-weak);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.live-pill .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+/* Bible */
+.bible-verse-item {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 18px;
+  align-items: start;
+  padding: 14px 24px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid var(--line-2);
+  background: var(--panel);
+  transition: background 0.15s;
+}
+.bible-verse-item:last-child { border-bottom: 0; }
+.bible-verse-item:hover { background: var(--hover); }
+.bible-verse-item.active { background: var(--sel); border-left-color: var(--live); }
+
+.bible-verse-number {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  padding-top: 3px;
+}
+.bible-verse-item.active .bible-verse-number { color: var(--live); font-weight: 600; }
+.bible-verse-text {
+  font-size: 16px;
+  color: var(--ink);
+  line-height: 1.55;
+}
+
+/* PDF pages */
+.pdf-page-item {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 14px 24px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid var(--line-2);
+  background: var(--panel);
+  transition: background 0.15s;
+}
+.pdf-page-item:last-child { border-bottom: 0; }
+.pdf-page-item:hover { background: var(--hover); }
+.pdf-page-item.active { background: var(--sel); border-left-color: var(--live); }
+
+.pdf-page-thumb {
+  width: 200px;
+  background: #f4f4f4;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  grid-column: 1 / -1;
+  max-width: 320px;
+  margin: 0 auto;
+}
+.pdf-page-thumb canvas { display: block; width: 100%; height: auto; }
+.thumb-loading { font-size: 11px; color: var(--mute-2); padding: 16px 0; }
+/* Ajustement pour items PDF en layout grid (strophe-number | thumb | action) */
+.pdf-page-item {
+  grid-template-columns: 80px 1fr auto;
+  align-items: flex-start;
+}
+.pdf-page-item .pdf-page-thumb {
+  width: 100%;
+  max-width: 220px;
+  min-height: 68px;
+  grid-column: unset;
+  margin: 0;
+}
+.pdf-page-item .strophe-number { align-self: flex-start; }
+.pdf-page-item .strophe-action { align-self: flex-start; }
+
+/* Image items — même layout 3 colonnes que pdf-page-item */
+.image-page-item {
+  align-items: flex-start;
+}
+.image-page-item .strophe-number { align-self: flex-start; }
+.image-page-item .strophe-action { align-self: flex-start; }
+.image-page-item img { display: block; max-width: 100%; max-height: 400px; object-fit: contain; }
+
+/* En-têtes panneaux */
+#songHeader, #bibleHeader, #pdfHeader, #imageHeader {
+  /* style appliqué via .content-header */
+}
+
+/* Édition de strophes */
+#songEditArea { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+#songEditTextarea {
+  width: 100%; min-height: 400px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px; line-height: 1.6;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  resize: vertical;
+  box-sizing: border-box;
+  outline: none;
+}
+#songEditTextarea:focus { border-color: var(--ink-2); }
+
+/* Bandeau d'action bas sidebar (anciens boutons) – conservé pour le JS */
+.action-bar { display: none; }
+
+/* Modale de sélection d'écran */
+.screen-modal {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0,0,0,.2);
+}
+.screen-modal__title {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.screen-modal__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.screen-modal__item {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: #fafafa;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  transition: border-color 0.15s, background 0.15s;
+}
+.screen-modal__item:hover { border-color: #c8c8c8; background: var(--hover); }
+.screen-modal__item-meta {
+  color: var(--ink-2);
+  font-size: 12px;
+}
+.screen-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ── RESPONSIVE 900px ─────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  /* Sidebar plus étroite pour libérer de la place au contenu */
+  .body {
+    grid-template-columns: 260px 1fr;
+  }
+
+  /* En-tête : padding latéral réduit */
+  .content-header {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* Numéros (strophe / verset / page) : label court via data-short */
+  .strophe-number[data-short],
+  .bible-verse-number[data-short] {
+    font-size: 0;
+  }
+  .strophe-number[data-short]::before,
+  .bible-verse-number[data-short]::before {
+    content: attr(data-short);
+    font-size: 10.5px;
+  }
+
+  /* Colonne des numéros plus étroite, alignée à gauche.
+     padding-left aligné sur le padding de .content-header (16px) pour que
+     les numéros soient sur la même verticale que le kicker et le titre. */
+  .strophe-item,
+  .bible-verse-item,
+  .pdf-page-item {
+    grid-template-columns: 22px 1fr auto;
+    gap: 10px;
+    padding-left: 16px;
+    padding-right: 12px;
+  }
+  .strophe-number,
+  .bible-verse-number {
+    text-align: left;
+  }
+
+  /* Texte du contenu un peu plus compact */
+  .strophe-text,
+  .bible-verse-text {
+    font-size: 14px;
+  }
+
+  /* live-pill : masquer le texte, garder juste le point */
+  .live-pill-text {
+    display: none;
+  }
+  .live-pill {
+    padding: 0 6px;
+    width: 22px;
+    justify-content: center;
+  }
+
+  /* En-tête : boutons d'action sous le titre, sans réduire l'espace kicker → titre */
+  .content-header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .content-header-row .content-title {
+    margin-top: 4px;
+  }
+  .content-header-actions {
+    justify-content: flex-start;
+  }
+}

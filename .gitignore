@@ -1,0 +1,10 @@
+node_modules/
+.claude/
+src-tauri/target/
+src-tauri/gen/schemas/
+dist/
+.DS_Store
+*.tmp
+
+# Archive des seeds (recueils + bibles) sortis du build, conservés hors git.
+_seeds-archive/

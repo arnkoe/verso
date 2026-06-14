@@ -1,0 +1,46 @@
+# Build de l'exécutable Windows de Verso via GitHub Actions.
+# Tourne sur un runner Windows hébergé par GitHub (gratuit en dépôt public)
+# et publie le .exe portable + les installeurs .msi / .exe (NSIS) en artefacts.
+
+name: Build Windows
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch: # permet de lancer le build manuellement depuis l'onglet Actions
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Récupère le code
+        uses: actions/checkout@v4
+
+      - name: Installe Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Installe Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache des dépendances Rust
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Installe les dépendances npm
+        run: npm install
+
+      - name: Build Tauri (Windows)
+        run: npm run build
+
+      - name: Publie les artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: verso-windows
+          path: |
+            src-tauri/target/release/Verso.exe
+            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error

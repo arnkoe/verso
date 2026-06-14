@@ -1,0 +1,110 @@
+/* ─── CONTENU DE PROJECTION (partagé entre projection.php, watch, operator) ── */
+/* Ne définit que les styles du contenu lui-même, pas le layout du conteneur.   */
+
+/* Tailles exprimées en unités de conteneur (cqh/cqw) : le rendu est calibré pour
+   le plein écran de projection, et l'aperçu opérateur (conteneur plus petit avec
+   container-type: size) en obtient automatiquement une version réduite à la même
+   proportion. Calibré pour 12 lignes max (pire cas figé) sous la référence. */
+.content-text {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Padding porté ici (et non sur le conteneur #screen/.preview-content qui a
+     container-type: size) : sur cet enfant, cqh/cqw se réfèrent bien au slide,
+     pas au viewport. C'est ce qui rend les marges identiques projection/aperçu. */
+  padding: 2cqh 2cqw;
+}
+
+/* Bloc texte : occupe tout l'espace au-dessus de la référence. Aligné à gauche
+   horizontalement, centré verticalement.
+   Taille de base 6.48cqh = 70px sur un écran 1080p (proportionnelle à la hauteur). */
+.content-text .verse-text,
+.content-text .bible-text {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
+  font-size: 8cqh;
+  line-height: 1.1;
+  font-weight: 700;
+  width: 100%;
+  /* Force des avances de glyphes proportionnelles (pas de hinting entier) : le
+     word-wrap devient invariant à l'échelle, donc la césure est identique entre
+     la projection (rendue à ~2000px) et l'aperçu (rendu à 1470px puis scalé). */
+  text-rendering: geometricPrecision;
+}
+
+/* Chants : sauts de ligne manuels préservés, AUCUN retour à la ligne automatique.
+   Si une ligne déborde en largeur ou si l'ensemble déborde en hauteur, c'est le JS
+   (scheduleFit) qui réduit la taille de police via --song-font-size. */
+.content-text .verse-text {
+  font-size: var(--song-font-size, 8cqh);
+  overflow: hidden;
+}
+/* Texte du chant : aucun retour à la ligne automatique. Les sauts de ligne
+   manuels (source) sont préservés. Hérite la taille de .verse-text (donc de
+   --song-font-size posée par scheduleFit). */
+.content-text .verse-inner {
+  white-space: pre;
+}
+
+/* Versets bibliques : retour à la ligne automatique autorisé. La police part de
+   8cqh et est réduite par fitBodyText (--bible-font-size) si le texte déborde en
+   hauteur du slide. Le wrap absorbe tout débordement horizontal. */
+.content-text .bible-text {
+  font-size: var(--bible-font-size, 8cqh);
+  overflow: hidden;
+}
+.content-text .bible-inner {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  width: 100%;
+}
+
+/* Référence (header) : en haut, alignée à gauche, grise à fort contraste, sur une
+   seule ligne. Taille FIXE 4.63cqh = 50px sur un écran 1080p, jamais ajustée par JS.
+   `order: -1` la place avant le bloc texte dans le flex-column. */
+.content-text .reference {
+  order: -1;
+  flex-shrink: 0;
+  margin-bottom: 3.5cqh;
+  text-align: left;
+  font-size: 5cqh;
+  font-weight: 700;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.proj-logo {
+  max-width: 40%;
+  max-height: 40%;
+  object-fit: contain;
+}
+
+#screen.media-mode,
+#text-content.media-mode {
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.proj-pdf {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.proj-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}

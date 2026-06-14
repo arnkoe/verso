@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verso — Opérateur</title>
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="stylesheet" href="assets/css/projection-content.css">
+<link rel="stylesheet" href="assets/css/operator.css">
+<script src="vendor/pdfjs/pdf.min.js"></script>
+<script src="assets/js/pdf-worker-config.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!-- SIDEBAR GAUCHE -->
+    <aside class="sidebar-left">
+
+      <section class="card card-search">
+        <div class="tabs" role="tablist">
+          <button class="tab active" id="tabCantiques" data-action="switchSideTab" data-arg="cantiques" role="tab">Chants</button>
+          <button class="tab" id="tabBible" data-action="switchSideTab" data-arg="bible" role="tab">Bible</button>
+          <button class="tab" id="tabPdf" data-action="switchSideTab" data-arg="pdf" role="tab">PDF</button>
+          <button class="tab" id="tabImages" data-action="switchSideTab" data-arg="images" role="tab">Images</button>
+        </div>
+
+        <!-- Cantiques -->
+        <div id="searchCantiques">
+          <div class="search-box">
+            <div class="field">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input type="text" class="search-input" id="songSearchInput" placeholder="Ex : 240" autocomplete="off">
+            </div>
+            <!-- Bouton « Tous » fixe + boutons par recueil générés dynamiquement (voir operator.js). -->
+            <div class="bible-translations" id="songBookFilter">
+              <button class="translation-btn active" data-action="selectSongBook" data-arg="">Tous</button>
+            </div>
+          </div>
+          <div class="content-list" id="songList">
+            <div class="search-empty"></div>
+          </div>
+        </div>
+
+        <!-- Bible -->
+        <div id="searchBible" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+          <div class="search-box">
+            <div class="field">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input type="text" class="search-input" id="bibleSearchInput" placeholder="Ex : col3" autocomplete="off">
+            </div>
+            <!-- Boutons générés dynamiquement depuis les bibles présentes (voir operator.js). -->
+            <div class="bible-translations" id="bibleTranslations"></div>
+          </div>
+          <div class="content-list" id="bibleList">
+            <div class="search-empty"></div>
+          </div>
+        </div>
+
+        <!-- PDF -->
+        <div id="listPdf" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+          <div class="search-box">
+            <div class="field">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input type="text" class="search-input" id="pdfSearchInput" placeholder="Rechercher un PDF" autocomplete="off">
+            </div>
+          </div>
+          <div class="content-list" id="pdfList">
+            <div class="search-empty">Aucun PDF dans le dossier</div>
+          </div>
+        </div>
+
+        <!-- Images -->
+        <div id="listImages" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+          <div class="search-box">
+            <div class="field">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input type="text" class="search-input" id="imageSearchInput" placeholder="Rechercher une image" autocomplete="off">
+            </div>
+          </div>
+          <div class="content-list" id="imageList">
+            <div class="search-empty">Aucune image dans le dossier</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="action-bar" aria-hidden="true">
+        <div class="action-bar-center"></div>
+      </div>
+
+      <!-- CARD : Retour projection + Contrôles -->
+      <section class="card card-monitor">
+        <div class="monitor-head">
+          <span class="monitor-label">
+            <span class="dot"></span>
+            <span>Retour projection</span>
+          </span>
+        </div>
+        <div class="monitor-screen" id="previewMonitor">
+          <div class="preview-stage" id="previewStage">
+            <div class="preview-content" id="previewContent"></div>
+          </div>
+        </div>
+        <div class="monitor-foot">
+          <span id="monitorScreen"></span>
+          <span id="monitorRes"></span>
+        </div>
+        <div class="actions-bar monitor-actions" role="toolbar" aria-label="Contrôles de projection">
+          <button class="hdr-btn" id="btnPickScreen" data-action="pickProjectionScreen" title="Choisir l'écran de projection" style="display:none;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 10 2 2 4-4"/><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
+            Écran
+          </button>
+          <button class="hdr-btn" id="btnOpenProjection" data-action="openProjection" title="Ouvrir la projection sur l'écran sélectionné">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.033 9.44a.647.647 0 0 1 0 1.12l-4.065 2.352a.645.645 0 0 1-.968-.56V7.648a.645.645 0 0 1 .967-.56z"/><path d="M12 17v4"/><path d="M8 21h8"/><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
+            Projeter
+          </button>
+          <button class="hdr-btn" id="btnModeRien" data-action="setProjectionMode" data-arg="rien" title="Masquer tout le contenu">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 12.5-5-5"/><path d="m9.5 12.5 5-5"/><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
+            Masquer
+          </button>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- ZONE CENTRALE -->
+    <main class="main card">
+
+      <div class="empty-state" id="emptyState">
+        <svg viewBox="0 0 24 24" class="empty-state-icon"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+        <div class="empty-state-title">Aucun contenu sélectionné</div>
+        <div class="empty-state-text">Choisissez un élément dans la barre latérale.</div>
+      </div>
+
+      <!-- Panel Cantique -->
+      <div class="panel active" id="panelCantique">
+        <div class="content-header" id="songHeader" style="display:none;">
+          <div class="content-kicker" id="songSubtitle"></div>
+          <div class="content-header-row">
+            <div class="content-title" id="songTitle"></div>
+            <div class="content-header-actions">
+              <button class="hdr-btn" id="btnEditSong" data-action="enterEditMode" title="Modifier">
+                <svg viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+                Modifier
+              </button>
+              <button class="hdr-btn" id="btnCancelSong" data-action="exitEditMode" title="Annuler" style="display:none;">
+                <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                Annuler
+              </button>
+              <button class="hdr-btn save" id="btnSaveSong" data-action="saveSong" title="Sauvegarder" style="display:none;">
+                <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+                Sauvegarder
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="strophe-list" id="verseList"></div>
+      </div>
+
+      <!-- Panel Bible -->
+      <div class="panel" id="panelBible">
+        <div class="content-header" id="bibleHeader" style="display:none;">
+          <div class="content-kicker" id="bibleSubtitle"></div>
+          <div class="content-title" id="bibleTitle"></div>
+        </div>
+        <div class="strophe-list" id="bibleVerseList"></div>
+      </div>
+
+      <!-- Panel PDF -->
+      <div class="panel" id="panelPdf">
+        <div class="content-header" id="pdfHeader" style="display:none;">
+          <div class="content-kicker" id="pdfSubtitle"></div>
+          <div class="content-header-row">
+            <div class="content-title" id="pdfTitle"></div>
+            <div class="content-header-actions">
+              <button class="hdr-btn" data-action="revealMediaDir" data-arg="pdf" title="Ouvrir le dossier des PDF">
+                <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+                Dossier
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="strophe-list" id="pdfPageList"></div>
+      </div>
+
+      <!-- Panel Images -->
+      <div class="panel" id="panelImages">
+        <div class="content-header" id="imageHeader" style="display:none;">
+          <div class="content-header-row">
+            <div class="content-title" id="imageTitle"></div>
+            <div class="content-header-actions">
+              <button class="hdr-btn" data-action="revealMediaDir" data-arg="images" title="Ouvrir le dossier des images">
+                <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+                Dossier
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="strophe-list" id="imagePreview"></div>
+      </div>
+
+    </main>
+
+  </div>
+</div>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/projection-render.js"></script>
+<script src="assets/js/operator.js"></script>
+</body>
+</html>
