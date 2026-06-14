@@ -208,6 +208,52 @@ struct MonitorInfo {
     scale: f64,
 }
 
+/// macOS : map `model_number` -> nom lisible (marque/modèle) via NSScreen.
+///
+/// tao (le backend fenêtre de Tauri) ne nous transmet que la chaîne
+/// "Monitor #<N>", où N = `CGDisplayModelNumber(displayID)` (cf. tao
+/// platform_impl/macos/monitor.rs). Tauri jette le `CGDirectDisplayID`, donc on
+/// ne peut pas joindre par l'ID. On recompose ici, pour chaque NSScreen, le même
+/// N (NSScreen -> NSScreenNumber = displayID -> CGDisplayModelNumber) et on
+/// l'associe au `localizedName`. La jointure utilise donc exactement la valeur
+/// que tao a utilisée pour fabriquer la chaîne : elle ne peut pas diverger.
+/// Doit s'exécuter sur le thread principal (NSScreen.screens l'exige).
+#[cfg(target_os = "macos")]
+fn macos_names_by_model(app: &AppHandle) -> std::collections::HashMap<u32, String> {
+    use std::sync::mpsc;
+
+    let (tx, rx) = mpsc::channel();
+    // run_on_main_thread garantit l'accès UI thread-safe.
+    let _ = app.run_on_main_thread(move || {
+        use objc2_app_kit::NSScreen;
+        use objc2_core_graphics::CGDisplayModelNumber;
+        use objc2_foundation::{ns_string, MainThreadMarker, NSNumber};
+
+        let mut map = std::collections::HashMap::new();
+        // run_on_main_thread nous place bien sur le thread principal.
+        let mtm = unsafe { MainThreadMarker::new_unchecked() };
+        for screen in NSScreen::screens(mtm).iter() {
+            let desc = screen.deviceDescription();
+            let Some(obj) = desc.objectForKey(ns_string!("NSScreenNumber")) else {
+                continue;
+            };
+            let Ok(num) = obj.downcast::<NSNumber>() else { continue };
+            let display_id = num.unsignedIntValue();
+            // Même calcul que tao pour reconstruire le "Monitor #<N>".
+            let model = CGDisplayModelNumber(display_id);
+            map.insert(model, screen.localizedName().to_string());
+        }
+        let _ = tx.send(map);
+    });
+    rx.recv().unwrap_or_default()
+}
+
+/// Extrait le model_number du nom tao ("Monitor #<N>").
+#[cfg(target_os = "macos")]
+fn parse_model_number(tao_name: &str) -> Option<u32> {
+    tao_name.rsplit('#').next()?.trim().parse().ok()
+}
+
 /// Liste les écrans disponibles (remplace getScreenDetails du web).
 #[tauri::command]
 fn list_monitors(app: AppHandle) -> Result<Vec<MonitorInfo>, String> {
@@ -218,14 +264,28 @@ fn list_monitors(app: AppHandle) -> Result<Vec<MonitorInfo>, String> {
     let primary = win.primary_monitor().map_err(|e| e.to_string())?;
     let primary_pos = primary.as_ref().map(|m| *m.position());
 
+    #[cfg(target_os = "macos")]
+    let names = macos_names_by_model(&app);
+
     Ok(monitors
         .into_iter()
         .map(|m| {
             let pos = m.position();
             let size = m.size();
             let is_primary = primary_pos.map_or(false, |p| p == *pos);
+            let raw = m.name().cloned().unwrap_or_else(|| "Écran".into());
+
+            // Sur macOS, remplace "Monitor #<N>" par le nom lisible si trouvé.
+            #[cfg(target_os = "macos")]
+            let name = parse_model_number(&raw)
+                .and_then(|n| names.get(&n).cloned())
+                .filter(|s| !s.is_empty())
+                .unwrap_or(raw);
+            #[cfg(not(target_os = "macos"))]
+            let name = raw;
+
             MonitorInfo {
-                name: m.name().cloned().unwrap_or_else(|| "Écran".into()),
+                name,
                 x: pos.x,
                 y: pos.y,
                 width: size.width,

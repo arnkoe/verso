@@ -18,6 +18,14 @@ tauri = { version = "2", features = ["protocol-asset"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
+# macOS : récupère le nom lisible des écrans (marque/modèle) via NSScreen,
+# que winit n'expose pas (il renvoie "Monitor #<displayID>").
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", features = ["NSString", "NSDictionary", "NSValue", "NSArray", "NSGeometry"] }
+objc2-app-kit = { version = "0.3", features = ["NSScreen", "NSGraphics"] }
+objc2-core-graphics = { version = "0.3", features = ["CGDisplayConfiguration", "CGDirectDisplay"] }
+
 [profile.release]
 panic = "abort"
 codegen-units = 1
