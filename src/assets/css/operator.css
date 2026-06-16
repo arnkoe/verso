@@ -803,9 +803,15 @@ body {
 .tool-badge[hidden] { display: none; }
 
 /* ─── Panneaux d'information (Aide, À propos) ────────────────────────────────── */
-.info-pane {
-  height: 100%;
+/* Centrage vertical des panneaux Aide / À propos dans la main card. */
+#panelHelp, #panelAbout {
+  grid-row: 1 / -1;
+  justify-content: center;
+  align-items: center;
   overflow-y: auto;
+}
+.info-pane {
+  width: 100%;
   padding: 28px 32px;
   max-width: 640px;
   margin: 0 auto;
