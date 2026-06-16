@@ -53,7 +53,26 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "Verso ${{ github.ref_name }}"
-          releaseBody: "Voir les changements ci-dessous."
+          releaseBody: |
+            ## Installation sur macOS
+
+            L'application n'est pas notarisée par Apple. Au premier lancement,
+            macOS affiche « "Verso" est endommagé et ne peut pas être ouvert ».
+            C'est normal. Pour débloquer (une seule fois) :
+
+            1. Glissez **Verso** dans le dossier **Applications**.
+            2. Ouvrez le **Terminal** et exécutez :
+
+               ```
+               xattr -dr com.apple.quarantine /Applications/Verso.app
+               ```
+
+            3. Lancez Verso normalement. Les mises à jour suivantes
+               s'installeront sans cette étape.
+
+            ---
+
+            Voir les changements ci-dessous.
           releaseDraft: false
           prerelease: false
           # Génère latest.json (fichier interrogé par l'updater).
