@@ -4,11 +4,29 @@ Application de bureau pour projeter des chants et des textes bibliques pendant u
 
 ## Installation
 
-Téléchargez la dernière version Windows depuis l'onglet **Actions** du dépôt (ou la page des *releases*), puis lancez l'installeur :
+Téléchargez la dernière version depuis la page des *releases* du dépôt (ou l'onglet **Actions**). Des bundles sont publiés pour Windows et macOS (Apple Silicon et Intel).
+
+### Windows
 
 - `Verso_x64-setup.exe` — installeur classique (recommandé).
 - `Verso_x64_en-US.msi` — variante MSI.
 - `Verso.exe` — version portable, sans installation.
+
+### macOS
+
+Téléchargez le `.dmg` correspondant à votre Mac (Apple Silicon ou Intel) et glissez **Verso** dans **Applications**.
+
+L'application n'étant pas notarisée par Apple, macOS affiche au premier lancement « "Verso" est endommagé et ne peut pas être ouvert ». C'est normal. Pour débloquer (une seule fois), ouvrez le **Terminal** et exécutez :
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Verso.app
+```
+
+Lancez ensuite Verso normalement. Les mises à jour suivantes s'installent sans cette étape.
+
+## Mises à jour
+
+Au démarrage, Verso vérifie en arrière-plan s'il existe une version plus récente. Le cas échéant, un point apparaît sur le bouton **À propos** et un lien dans le panneau correspondant permet d'installer la mise à jour puis de relancer l'application. Les bundles ne sont installés que si leur signature est valide.
 
 ## Vos données
 
@@ -18,7 +36,7 @@ Verso lit et écrit ses contenus dans le dossier **`Documents/Verso/`** :
 - `bibles/` — une traduction par fichier `.json`.
 - `pdf/` et `images/` — vos PDF et images à projeter.
 
-Rien n'est livré avec l'application : vous déposez vous-même vos recueils, bibles, PDF et images dans ce dossier. Les onglets PDF et Images proposent un bouton **« Dossier »** pour l'ouvrir directement.
+Rien n'est livré avec l'application : vous déposez vous-même vos recueils, bibles, PDF et images dans ces sous-dossiers (créés automatiquement au premier lancement). Le bouton **« Dossier »** de la barre d'outils de l'opérateur ouvre directement la racine `Documents/Verso/` dans votre gestionnaire de fichiers.
 
 L'état de la dernière projection est conservé et repris à la réouverture.
 
@@ -49,7 +67,7 @@ Un recueil est un fichier `songbooks/songbook-<nom>.json` (le nom de fichier doi
 - `source_book` — nom du recueil ; sert à grouper les chants dans la recherche.
 - `source_number` — numéro du chant dans le recueil (ou `null`).
 - `verses` — liste **ordonnée** des couplets. Chaque couplet a :
-  - `type` — `"S"` strophe, `"R"` refrain, `"P"` pont, `"I"` intro, `"O"` final. Absent → strophe (`"S"`).
+  - `type` — `"S"` pour une strophe, `"R"` pour un refrain. Absent → strophe (`"S"`). Les refrains sont étiquetés « Refrain » ; tout autre type est affiché comme une strophe.
   - `number` — numéro de strophe (facultatif).
   - `text` — le texte ; les sauts de ligne se notent `\n`.
 
