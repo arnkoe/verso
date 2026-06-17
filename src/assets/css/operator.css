@@ -184,7 +184,7 @@ body {
 
 .content-item {
   display: grid;
-  grid-template-columns: 44px 1fr;
+  grid-template-columns: 30px 1fr;
   gap: 2px 8px;
   align-items: baseline;
   padding: 7px 14px;
@@ -223,10 +223,10 @@ body {
   grid-column: 2; grid-row: 2;
 }
 
-/* Résultat Bible : sans numéro, texte aligné sur la colonne titre (44px + 8px gap) */
+/* Résultat Bible : sans numéro, texte aligné sur la colonne titre (30px + 8px gap) */
 .content-item[data-bible-ref] {
   grid-template-columns: 1fr;
-  padding-left: calc(14px + 44px + 8px);
+  padding-left: calc(14px + 30px + 8px);
 }
 .content-item[data-bible-ref] .item-title {
   grid-column: 1;
