@@ -172,6 +172,14 @@ fn media_path(app: AppHandle, kind: String, filename: String) -> Result<String, 
         return Err("Type de média invalide".into());
     }
     let name = storage::sanitize_filename(&filename).ok_or("Nom invalide")?;
+    let exts: &[&str] = match kind.as_str() {
+        "pdf" => &[".pdf"],
+        _ => &[".jpg", ".jpeg", ".png", ".webp"],
+    };
+    let lower = name.to_lowercase();
+    if !exts.iter().any(|e| lower.ends_with(e)) {
+        return Err("Extension de fichier non autorisée".into());
+    }
     let path = storage::media_dir(&app, &kind).join(name);
     if !path.exists() {
         return Err("Fichier introuvable".into());
