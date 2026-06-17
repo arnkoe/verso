@@ -175,7 +175,6 @@ function renderSongList(grouped) {
       <div class="content-item" data-song-id="${s.id}" data-action="loadSong">
         <span class="item-number">${s.source_number ?? ''}</span>
         <span class="item-title">${esc(s.title)}</span>
-        ${s.author ? `<span class="item-author">${esc(s.author)}</span>` : ''}
       </div>
     `).join('')
   ).join('');
