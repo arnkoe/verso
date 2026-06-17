@@ -89,12 +89,6 @@
   text-decoration: underline;
 }
 
-.proj-logo {
-  max-width: 40%;
-  max-height: 40%;
-  object-fit: contain;
-}
-
 #screen.media-mode,
 #text-content.media-mode {
   padding: 0;
