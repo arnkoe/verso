@@ -8,9 +8,7 @@ Téléchargez la dernière version depuis la page des *releases* du dépôt (ou 
 
 ### Windows
 
-- `Verso_x64-setup.exe` — installeur classique (recommandé).
-- `Verso_x64_en-US.msi` — variante MSI.
-- `Verso.exe` — version portable, sans installation.
+Téléchargez `Verso_<version>_x64-setup.exe` (installeur NSIS) et lancez-le.
 
 L'application n'étant pas signée par un certificat reconnu, Windows affiche au premier lancement un écran bleu **« Windows a protégé votre ordinateur »** (Microsoft Defender SmartScreen). C'est normal. Pour débloquer (une seule fois) : cliquez sur **Informations complémentaires**, puis sur le bouton **Exécuter quand même**.
 
@@ -110,7 +108,7 @@ L'opérateur dispose de quatre onglets : **Chants**, **Bible**, **PDF**, **Image
 
 ### Raccourcis clavier
 
-Les raccourcis ci-dessous valent dans la fenêtre **opérateur** (sauf quand un champ de saisie a le focus, où seules les flèches de la recherche s'appliquent).
+Les raccourcis ci-dessous valent dans la fenêtre **opérateur**.
 
 **Changer d'onglet**
 
