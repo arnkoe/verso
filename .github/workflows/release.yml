@@ -54,6 +54,18 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: "Verso ${{ github.ref_name }}"
           releaseBody: |
+            ## Installation sur Windows
+
+            L'application n'est pas signée par un certificat reconnu. Au premier
+            lancement, Windows affiche un écran bleu **« Windows a protégé votre
+            ordinateur »** (Microsoft Defender SmartScreen). C'est normal. Pour
+            débloquer (une seule fois) :
+
+            1. Cliquez sur **Informations complémentaires**.
+            2. Cliquez sur le bouton **Exécuter quand même**.
+
+            Les mises à jour suivantes s'installeront sans cette étape.
+
             ## Installation sur macOS
 
             L'application n'est pas notarisée par Apple. Au premier lancement,

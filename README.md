@@ -12,6 +12,10 @@ Téléchargez la dernière version depuis la page des *releases* du dépôt (ou 
 - `Verso_x64_en-US.msi` — variante MSI.
 - `Verso.exe` — version portable, sans installation.
 
+L'application n'étant pas signée par un certificat reconnu, Windows affiche au premier lancement un écran bleu **« Windows a protégé votre ordinateur »** (Microsoft Defender SmartScreen). C'est normal. Pour débloquer (une seule fois) : cliquez sur **Informations complémentaires**, puis sur le bouton **Exécuter quand même**.
+
+Les mises à jour suivantes s'installent sans cette étape.
+
 ### macOS
 
 Téléchargez le `.dmg` correspondant à votre Mac (Apple Silicon ou Intel) et glissez **Verso** dans **Applications**.
