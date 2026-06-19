@@ -35,6 +35,7 @@
     "active": true,
     "targets": ["dmg", "nsis"],
     "createUpdaterArtifacts": true,
+    "resources": ["resources/bibles/*.json", "resources/songbooks/*.json"],
     "icon": [
       "icons/icon.png",
       "icons/icon.icns",

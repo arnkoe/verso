@@ -1,7 +1,8 @@
 //! Stockage fichiers : tout l'état applicatif vit dans le dossier de données de
-//! l'app (app data dir). Pas de base SQLite. Aucune donnée n'est empaquetée dans
-//! le build : recueils et bibles sont fournis par l'utilisateur dans son dossier
-//! de données.
+//! l'app (app data dir). Pas de base SQLite. Au premier lancement, des recueils et
+//! bibles libres de droits empaquetés dans le build sont déposés dans le dossier
+//! de données (voir `seed_defaults`) ; ensuite l'utilisateur les édite/complète
+//! librement.
 //!
 //! Arborescence (sous app_data_dir) :
 //!   songbooks/songbook-<recueil>.json — un fichier par recueil (déposés/édités par l'utilisateur)
@@ -18,6 +19,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
+use tauri::path::BaseDirectory;
 use tauri::{AppHandle, Manager};
 
 // ─── Modèles ────────────────────────────────────────────────────────────────
@@ -149,6 +151,61 @@ pub fn media_dir(app: &AppHandle, kind: &str) -> PathBuf {
     let dir = data_dir(app).join(kind);
     let _ = fs::create_dir_all(&dir);
     dir
+}
+
+// ─── Seed initial ─────────────────────────────────────────────────────────────
+
+/// Recueils et bibles libres de droits empaquetés dans le build, copiés dans le
+/// dossier de données au premier lancement. Le chemin source est relatif au
+/// dossier `resources/` du bundle ; la destination est relative à `data_dir`.
+const SEED_FILES: &[(&str, &str)] = &[
+    ("resources/songbooks/songbook-reflets.json", "songbooks/songbook-reflets.json"),
+    ("resources/songbooks/songbook-hec.json", "songbooks/songbook-hec.json"),
+    ("resources/bibles/DRB.json", "bibles/DRB.json"),
+    ("resources/bibles/LSG.json", "bibles/LSG.json"),
+];
+
+/// Vrai si le dossier de données contient déjà au moins un recueil ou une bible,
+/// signe d'une installation existante (utilisateur antérieur à cette
+/// fonctionnalité) qu'il ne faut surtout pas réamorcer.
+fn has_existing_data(app: &AppHandle) -> bool {
+    !songbook_files(&songbooks_dir(app), "songbook-").is_empty() || !list_bibles(app).is_empty()
+}
+
+/// Copie les recueils et bibles libres de droits empaquetés dans le dossier de
+/// données, une seule fois (au premier lancement). Ne fait rien si un marqueur
+/// `.seeded` est présent, ou si le dossier contient déjà des recueils/bibles
+/// (installation existante) : on évite ainsi d'écraser ou de compléter les
+/// données de l'utilisateur. Par sécurité, les fichiers déjà présents ne sont de
+/// toute façon jamais écrasés.
+pub fn seed_defaults(app: &AppHandle) {
+    let marker = data_dir(app).join(".seeded");
+    if marker.exists() {
+        return;
+    }
+
+    // S'assure que les dossiers cibles existent.
+    let _ = songbooks_dir(app);
+    let _ = bibles_dir(app);
+
+    // Installation existante : on pose le marqueur et on n'amorce rien.
+    if has_existing_data(app) {
+        let _ = fs::write(&marker, b"");
+        return;
+    }
+
+    for (res, dest_rel) in SEED_FILES {
+        let dest = data_dir(app).join(dest_rel);
+        if dest.exists() {
+            continue;
+        }
+        let Ok(src) = app.path().resolve(res, BaseDirectory::Resource) else {
+            continue;
+        };
+        let _ = fs::copy(&src, &dest);
+    }
+
+    let _ = fs::write(&marker, b"");
 }
 
 // ─── Chants ─────────────────────────────────────────────────────────────────

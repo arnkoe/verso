@@ -386,6 +386,12 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(AppState::default())
+        .setup(|app| {
+            // Premier lancement : dépose les recueils et bibles libres de droits
+            // empaquetés dans le dossier de données de l'utilisateur.
+            storage::seed_defaults(app.handle());
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             list_songs,
             get_song,
