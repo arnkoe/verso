@@ -36,7 +36,9 @@ Verso lit et écrit ses contenus dans le dossier **`Documents/Verso/`** :
 - `bibles/` — une traduction par fichier `.json`.
 - `pdf/` et `images/` — vos PDF et images à projeter.
 
-Rien n'est livré avec l'application : vous déposez vous-même vos recueils, bibles, PDF et images dans ces sous-dossiers (créés automatiquement au premier lancement). Le bouton **« Dossier »** de la barre d'outils de l'opérateur ouvre directement la racine `Documents/Verso/` dans votre gestionnaire de fichiers.
+Au tout premier lancement, si le dossier `Documents/Verso/` est vide, Verso y dépose automatiquement des contenus libres de droits pour démarrer : les recueils **Reflets** et **HEC**, et les bibles **DRB** (Darby) et **LSG** (Louis Segond). Ces fichiers sont ensuite des fichiers comme les autres : vous pouvez les modifier, les compléter ou les supprimer. Aucun amorçage n'a lieu si le dossier contient déjà des recueils ou des bibles, afin de ne jamais écraser vos données.
+
+Vous déposez ensuite vous-même vos propres recueils, bibles, PDF et images dans ces sous-dossiers (créés automatiquement au premier lancement). Le bouton **« Dossier »** de la barre d'outils de l'opérateur ouvre directement la racine `Documents/Verso/` dans votre gestionnaire de fichiers.
 
 L'état de la dernière projection est conservé et repris à la réouverture.
 
@@ -159,7 +161,8 @@ src/                       frontend (HTML/JS, pas d'étape de build)
 
 src-tauri/                 backend Rust
   src/lib.rs               commandes Tauri + fenêtres
-  src/storage.rs           stockage fichiers
+  src/storage.rs           stockage fichiers + amorçage initial
   src/bible_search.rs      résolution de référence biblique
+  resources/               recueils + bibles libres de droits empaquetés (seed)
   tauri.conf.json          config (fenêtres, CSP, bundle)
 ```
