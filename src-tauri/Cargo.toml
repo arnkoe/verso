@@ -1,6 +1,6 @@
 [package]
 name = "verso"
-version = "0.3.3"
+version = "0.3.4"
 description = "Verso — projection de chants et textes"
 authors = ["Verso"]
 edition = "2021"
