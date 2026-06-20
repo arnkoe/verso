@@ -2,15 +2,17 @@ name: Publier une version
 
 # Déclenché quand on pousse un tag de version (ex. v0.2.0).
 # Construit Verso pour macOS (Apple Silicon + Intel) et Windows, signe les
-# bundles avec la clé updater, puis publie une release GitHub et un unique
-# `latest.json` agrégeant les trois plateformes.
+# bundles avec la clé updater, et publie une release GitHub avec un unique
+# `latest.json` couvrant les trois plateformes.
 #
-# Pourquoi deux phases (build puis publish) ?
-# tauri-action en matrice parallèle réécrit `latest.json` à chaque job, si bien
-# que le dernier job (Windows) écrasait les entrées macOS. Résultat : sur Mac,
-# l'updater ne trouvait aucune plateforme et ne proposait jamais de mise à jour.
-# On sépare donc le build (qui ne fait qu'uploader des artefacts) de la
-# publication (un seul job qui assemble un `latest.json` complet).
+# Pattern officiel Tauri pour le multi-plateforme :
+#   1. create-release : crée une release BROUILLON et expose son id.
+#   2. build (matrice) : chaque job construit, signe et uploade ses bundles
+#      DANS cette release ; tauri-action complète latest.json plateforme par
+#      plateforme (au lieu de l'écraser comme en publication parallèle).
+#   3. publish : bascule le brouillon en release publiée.
+# Cela évite que le dernier job (Windows) écrase les entrées macOS de
+# latest.json, ce qui empêchait l'updater macOS de voir les mises à jour.
 on:
   push:
     tags:
@@ -18,7 +20,67 @@ on:
   workflow_dispatch: # permet de lancer le build manuellement depuis l'onglet Actions
 
 jobs:
+  create-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create.outputs.result }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Créer la release brouillon
+        id: create
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = context.ref.replace('refs/tags/', '');
+            const body = [
+              '## Installation sur Windows',
+              '',
+              "L'application n'est pas signée par un certificat reconnu. Au premier",
+              'lancement, Windows affiche un écran bleu **« Windows a protégé votre',
+              'ordinateur »** (Microsoft Defender SmartScreen). C\'est normal. Pour',
+              'débloquer (une seule fois) :',
+              '',
+              '1. Cliquez sur **Informations complémentaires**.',
+              '2. Cliquez sur le bouton **Exécuter quand même**.',
+              '',
+              'Les mises à jour suivantes s\'installeront sans cette étape.',
+              '',
+              '## Installation sur macOS',
+              '',
+              "L'application n'est pas notarisée par Apple. Au premier lancement,",
+              'macOS affiche « "Verso" est endommagé et ne peut pas être ouvert ».',
+              "C'est normal. Pour débloquer (une seule fois) :",
+              '',
+              '1. Glissez **Verso** dans le dossier **Applications**.',
+              '2. Ouvrez le **Terminal** et exécutez :',
+              '',
+              '   ```',
+              '   xattr -dr com.apple.quarantine /Applications/Verso.app',
+              '   ```',
+              '',
+              '3. Lancez Verso normalement. Les mises à jour suivantes',
+              "   s'installeront sans cette étape.",
+              '',
+              '---',
+              '',
+              'Voir les changements ci-dessous.',
+            ].join('\n');
+            const { data } = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: `Verso ${tag}`,
+              body,
+              draft: true,
+              prerelease: false,
+            });
+            return data.id;
+
   build:
+    needs: create-release
     permissions:
       contents: write
     strategy:
@@ -26,11 +88,11 @@ jobs:
       matrix:
         include:
           - platform: macos-latest
-            target: aarch64-apple-darwin
+            args: "--target aarch64-apple-darwin"
           - platform: macos-latest
-            target: x86_64-apple-darwin
+            args: "--target x86_64-apple-darwin"
           - platform: windows-latest
-            target: x86_64-pc-windows-msvc
+            args: ""
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -38,7 +100,7 @@ jobs:
       - name: Installer Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Installer Node
         uses: actions/setup-node@v4
@@ -48,7 +110,7 @@ jobs:
       - name: Installer les dépendances npm
         run: npm ci
 
-      - name: Construire et signer les bundles
+      - name: Construire, signer et uploader vers la release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -58,132 +120,26 @@ jobs:
           # secrets vides, on n'en crée pas et on force la chaîne vide ici.
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
         with:
-          # On ne crée PAS la release ici : chaque job ne fait que construire.
-          args: --target ${{ matrix.target }}
-
-      - name: Rassembler les bundles à publier
-        shell: bash
-        run: |
-          set -eu
-          mkdir -p dist
-          base="src-tauri/target/${{ matrix.target }}/release/bundle"
-          target="${{ matrix.target }}"
-
-          echo "::group::Arborescence de $base"
-          find "$base" -maxdepth 3 -type f | sort
-          echo "::endgroup::"
-
-          # Copie les installateurs, les archives updater et leurs signatures.
-          # -print pour tracer ce qui est réellement copié.
-          find "$base" \
-            \( -name "*.dmg" \
-            -o -name "*.app.tar.gz" \
-            -o -name "*-setup.exe" \
-            -o -name "*.sig" \) \
-            -print -exec cp {} dist/ \;
-
-          # Les deux archives updater macOS portent le même nom (Verso.app.tar.gz)
-          # quelle que soit l'architecture. On les renomme avec le target pour
-          # éviter qu'une architecture n'écrase l'autre au moment d'agréger.
-          for f in dist/*.app.tar.gz dist/*.app.tar.gz.sig; do
-            [ -e "$f" ] || continue
-            dir="$(dirname "$f")"; nameNoArch="$(basename "$f")"
-            case "$nameNoArch" in
-              *"$target"*) ;; # déjà taggé
-              *.app.tar.gz)     mv "$f" "$dir/Verso_${target}.app.tar.gz" ;;
-              *.app.tar.gz.sig) mv "$f" "$dir/Verso_${target}.app.tar.gz.sig" ;;
-            esac
-          done
-
-          # Sur macOS, l'archive updater (.app.tar.gz) est indispensable : sans
-          # elle l'updater n'a pas de bundle à proposer. On échoue tôt si Tauri
-          # ne l'a pas produite, plutôt que de publier un latest.json incomplet.
-          case "$target" in
-            *apple-darwin)
-              if ! ls dist/*.app.tar.gz >/dev/null 2>&1; then
-                echo "ERREUR: aucune archive updater .app.tar.gz produite pour $target." >&2
-                exit 1
-              fi
-              ;;
-          esac
-
-          echo "Contenu final de dist/ :"
-          ls -la dist
-
-      - name: Uploader les artefacts du build
-        uses: actions/upload-artifact@v4
-        with:
-          name: bundles-${{ matrix.target }}
-          path: dist/*
-          if-no-files-found: error
-          retention-days: 1
+          # Uploade dans la release brouillon créée plus haut. Chaque job ajoute
+          # ses bundles et complète latest.json pour sa plateforme.
+          releaseId: ${{ needs.create-release.outputs.release_id }}
+          # Génère latest.json (fichier interrogé par l'updater).
+          includeUpdaterJson: true
+          args: ${{ matrix.args }}
 
   publish:
-    needs: build
-    runs-on: ubuntu-latest
+    needs: [create-release, build]
     permissions:
       contents: write
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Télécharger tous les bundles
-        uses: actions/download-artifact@v4
+      - name: Publier la release
+        uses: actions/github-script@v7
         with:
-          pattern: bundles-*
-          merge-multiple: true
-          path: dist
-
-      - name: Lister les bundles
-        run: ls -la dist
-
-      - name: Générer latest.json (agrège les trois plateformes)
-        env:
-          TAG: ${{ github.ref_name }}
-        run: node .github/scripts/generate-latest-json.mjs
-
-      - name: Publier la release GitHub
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: "Verso ${{ github.ref_name }}"
-          draft: false
-          prerelease: false
-          files: |
-            dist/*.dmg
-            dist/*.app.tar.gz
-            dist/*.app.tar.gz.sig
-            dist/*-setup.exe
-            dist/*-setup.exe.sig
-            dist/latest.json
-          body: |
-            ## Installation sur Windows
-
-            L'application n'est pas signée par un certificat reconnu. Au premier
-            lancement, Windows affiche un écran bleu **« Windows a protégé votre
-            ordinateur »** (Microsoft Defender SmartScreen). C'est normal. Pour
-            débloquer (une seule fois) :
-
-            1. Cliquez sur **Informations complémentaires**.
-            2. Cliquez sur le bouton **Exécuter quand même**.
-
-            Les mises à jour suivantes s'installeront sans cette étape.
-
-            ## Installation sur macOS
-
-            L'application n'est pas notarisée par Apple. Au premier lancement,
-            macOS affiche « "Verso" est endommagé et ne peut pas être ouvert ».
-            C'est normal. Pour débloquer (une seule fois) :
-
-            1. Glissez **Verso** dans le dossier **Applications**.
-            2. Ouvrez le **Terminal** et exécutez :
-
-               ```
-               xattr -dr com.apple.quarantine /Applications/Verso.app
-               ```
-
-            3. Lancez Verso normalement. Les mises à jour suivantes
-               s'installeront sans cette étape.
-
-            ---
-
-            Voir les changements ci-dessous.
+          script: |
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ needs.create-release.outputs.release_id }},
+              draft: false,
+            });
