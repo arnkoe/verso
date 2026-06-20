@@ -2,8 +2,15 @@ name: Publier une version
 
 # Déclenché quand on pousse un tag de version (ex. v0.2.0).
 # Construit Verso pour macOS (Apple Silicon + Intel) et Windows, signe les
-# bundles avec la clé updater, publie une release GitHub et génère le
-# `latest.json` que l'application interroge pour détecter les mises à jour.
+# bundles avec la clé updater, puis publie une release GitHub et un unique
+# `latest.json` agrégeant les trois plateformes.
+#
+# Pourquoi deux phases (build puis publish) ?
+# tauri-action en matrice parallèle réécrit `latest.json` à chaque job, si bien
+# que le dernier job (Windows) écrasait les entrées macOS. Résultat : sur Mac,
+# l'updater ne trouvait aucune plateforme et ne proposait jamais de mise à jour.
+# On sépare donc le build (qui ne fait qu'uploader des artefacts) de la
+# publication (un seul job qui assemble un `latest.json` complet).
 on:
   push:
     tags:
@@ -11,7 +18,7 @@ on:
   workflow_dispatch: # permet de lancer le build manuellement depuis l'onglet Actions
 
 jobs:
-  release:
+  build:
     permissions:
       contents: write
     strategy:
@@ -19,11 +26,11 @@ jobs:
       matrix:
         include:
           - platform: macos-latest
-            args: "--target aarch64-apple-darwin"
+            target: aarch64-apple-darwin
           - platform: macos-latest
-            args: "--target x86_64-apple-darwin"
+            target: x86_64-apple-darwin
           - platform: windows-latest
-            args: ""
+            target: x86_64-pc-windows-msvc
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +38,7 @@ jobs:
       - name: Installer Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.target }}
 
       - name: Installer Node
         uses: actions/setup-node@v4
@@ -41,7 +48,7 @@ jobs:
       - name: Installer les dépendances npm
         run: npm ci
 
-      - name: Construire et publier
+      - name: Construire et signer les bundles
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -51,9 +58,83 @@ jobs:
           # secrets vides, on n'en crée pas et on force la chaîne vide ici.
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "Verso ${{ github.ref_name }}"
-          releaseBody: |
+          # On ne crée PAS la release ici : chaque job ne fait que construire.
+          args: --target ${{ matrix.target }}
+
+      - name: Rassembler les bundles à publier
+        shell: bash
+        run: |
+          set -eu
+          mkdir -p dist
+          base="src-tauri/target/${{ matrix.target }}/release/bundle"
+          target="${{ matrix.target }}"
+          # Copie les installateurs, les archives updater et leurs signatures.
+          find "$base" \
+            \( -name "*.dmg" \
+            -o -name "*.app.tar.gz" \
+            -o -name "*-setup.exe" \
+            -o -name "*.sig" \) \
+            -exec cp {} dist/ \;
+          # Les deux archives updater macOS portent le même nom (Verso.app.tar.gz)
+          # quelle que soit l'architecture. On les renomme avec le target pour
+          # éviter qu'une architecture n'écrase l'autre au moment d'agréger.
+          for f in dist/*.app.tar.gz dist/*.app.tar.gz.sig; do
+            [ -e "$f" ] || continue
+            dir="$(dirname "$f")"; nameNoArch="$(basename "$f")"
+            case "$nameNoArch" in
+              *"$target"*) ;; # déjà taggé
+              *.app.tar.gz)     mv "$f" "$dir/Verso_${target}.app.tar.gz" ;;
+              *.app.tar.gz.sig) mv "$f" "$dir/Verso_${target}.app.tar.gz.sig" ;;
+            esac
+          done
+          ls -la dist
+
+      - name: Uploader les artefacts du build
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundles-${{ matrix.target }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Télécharger tous les bundles
+        uses: actions/download-artifact@v4
+        with:
+          pattern: bundles-*
+          merge-multiple: true
+          path: dist
+
+      - name: Lister les bundles
+        run: ls -la dist
+
+      - name: Générer latest.json (agrège les trois plateformes)
+        env:
+          TAG: ${{ github.ref_name }}
+        run: node .github/scripts/generate-latest-json.mjs
+
+      - name: Publier la release GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Verso ${{ github.ref_name }}"
+          draft: false
+          prerelease: false
+          files: |
+            dist/*.dmg
+            dist/*.app.tar.gz
+            dist/*.app.tar.gz.sig
+            dist/*-setup.exe
+            dist/*-setup.exe.sig
+            dist/latest.json
+          body: |
             ## Installation sur Windows
 
             L'application n'est pas signée par un certificat reconnu. Au premier
@@ -85,8 +166,3 @@ jobs:
             ---
 
             Voir les changements ci-dessous.
-          releaseDraft: false
-          prerelease: false
-          # Génère latest.json (fichier interrogé par l'updater).
-          includeUpdaterJson: true
-          args: ${{ matrix.args }}
