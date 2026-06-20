@@ -1,86 +1,21 @@
 name: Publier une version
 
-# Déclenché quand on pousse un tag de version (ex. v0.2.0).
-# Construit Verso pour macOS (Apple Silicon + Intel) et Windows, signe les
-# bundles avec la clé updater, et publie une release GitHub avec un unique
-# `latest.json` couvrant les trois plateformes.
+# Workflow standard documenté par Tauri :
+# https://v2.tauri.app/distribute/pipelines/github/
 #
-# Pattern officiel Tauri pour le multi-plateforme :
-#   1. create-release : crée une release BROUILLON et expose son id.
-#   2. build (matrice) : chaque job construit, signe et uploade ses bundles
-#      DANS cette release ; tauri-action complète latest.json plateforme par
-#      plateforme (au lieu de l'écraser comme en publication parallèle).
-#   3. publish : bascule le brouillon en release publiée.
-# Cela évite que le dernier job (Windows) écrase les entrées macOS de
-# latest.json, ce qui empêchait l'updater macOS de voir les mises à jour.
+# Déclenchement : pousser sur la branche `release`. tauri-action lit la version
+# dans src-tauri/tauri.conf.json, crée le tag (verso-v<version>) et une release
+# GitHub BROUILLON, construit/signe les bundles macOS (ARM + Intel) et Windows,
+# et fusionne `latest.json` plateforme par plateforme (un seul job en matrice).
+# Le job `publish` bascule ensuite le brouillon en release publiée.
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - release
   workflow_dispatch: # permet de lancer le build manuellement depuis l'onglet Actions
 
 jobs:
-  create-release:
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    outputs:
-      release_id: ${{ steps.create.outputs.result }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Créer la release brouillon
-        id: create
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const tag = context.ref.replace('refs/tags/', '');
-            const body = [
-              '## Installation sur Windows',
-              '',
-              "L'application n'est pas signée par un certificat reconnu. Au premier",
-              'lancement, Windows affiche un écran bleu **« Windows a protégé votre',
-              'ordinateur »** (Microsoft Defender SmartScreen). C\'est normal. Pour',
-              'débloquer (une seule fois) :',
-              '',
-              '1. Cliquez sur **Informations complémentaires**.',
-              '2. Cliquez sur le bouton **Exécuter quand même**.',
-              '',
-              'Les mises à jour suivantes s\'installeront sans cette étape.',
-              '',
-              '## Installation sur macOS',
-              '',
-              "L'application n'est pas notarisée par Apple. Au premier lancement,",
-              'macOS affiche « "Verso" est endommagé et ne peut pas être ouvert ».',
-              "C'est normal. Pour débloquer (une seule fois) :",
-              '',
-              '1. Glissez **Verso** dans le dossier **Applications**.',
-              '2. Ouvrez le **Terminal** et exécutez :',
-              '',
-              '   ```',
-              '   xattr -dr com.apple.quarantine /Applications/Verso.app',
-              '   ```',
-              '',
-              '3. Lancez Verso normalement. Les mises à jour suivantes',
-              "   s'installeront sans cette étape.",
-              '',
-              '---',
-              '',
-              'Voir les changements ci-dessous.',
-            ].join('\n');
-            const { data } = await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: tag,
-              name: `Verso ${tag}`,
-              body,
-              draft: true,
-              prerelease: false,
-            });
-            return data.id;
-
-  build:
-    needs: create-release
+  publish-tauri:
     permissions:
       contents: write
     strategy:
@@ -97,21 +32,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Installer Rust
+      - name: Installer Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Installer Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
-      - name: Installer Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
       - name: Installer les dépendances npm
         run: npm ci
 
-      - name: Construire, signer et uploader vers la release
-        uses: tauri-apps/tauri-action@v0
+      - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Clé privée de signature des mises à jour (secret du dépôt).
@@ -120,26 +54,79 @@ jobs:
           # secrets vides, on n'en crée pas et on force la chaîne vide ici.
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
         with:
-          # Uploade dans la release brouillon créée plus haut. Chaque job ajoute
-          # ses bundles et complète latest.json pour sa plateforme.
-          releaseId: ${{ needs.create-release.outputs.release_id }}
-          # Génère latest.json (fichier interrogé par l'updater).
+          # tauri-action crée le tag à partir de la version de tauri.conf.json.
+          tagName: verso-v__VERSION__
+          releaseName: "Verso v__VERSION__"
+          releaseDraft: true
+          prerelease: false
+          # Génère et fusionne latest.json (fichier interrogé par l'updater).
           includeUpdaterJson: true
           args: ${{ matrix.args }}
+          releaseBody: |
+            ## Installation sur Windows
 
+            L'application n'est pas signée par un certificat reconnu. Au premier
+            lancement, Windows affiche un écran bleu **« Windows a protégé votre
+            ordinateur »** (Microsoft Defender SmartScreen). C'est normal. Pour
+            débloquer (une seule fois) :
+
+            1. Cliquez sur **Informations complémentaires**.
+            2. Cliquez sur le bouton **Exécuter quand même**.
+
+            Les mises à jour suivantes s'installeront sans cette étape.
+
+            ## Installation sur macOS
+
+            L'application n'est pas notarisée par Apple. Au premier lancement,
+            macOS affiche « "Verso" est endommagé et ne peut pas être ouvert ».
+            C'est normal. Pour débloquer (une seule fois) :
+
+            1. Glissez **Verso** dans le dossier **Applications**.
+            2. Ouvrez le **Terminal** et exécutez :
+
+               ```
+               xattr -dr com.apple.quarantine /Applications/Verso.app
+               ```
+
+            3. Lancez Verso normalement. Les mises à jour suivantes
+               s'installeront sans cette étape.
+
+            ---
+
+            Voir les changements ci-dessous.
+
+  # Bascule la release brouillon en publiée une fois tous les builds réussis.
   publish:
-    needs: [create-release, build]
+    needs: publish-tauri
     permissions:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - name: Publier la release
+      - name: Basculer la release en publiée
         uses: actions/github-script@v7
         with:
           script: |
+            const { data: pkg } = await github.rest.repos.getContent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: 'src-tauri/tauri.conf.json',
+              ref: context.sha,
+            });
+            const version = JSON.parse(
+              Buffer.from(pkg.content, 'base64').toString()
+            ).version;
+            const tag = `verso-v${version}`;
+            const { data: releases } = await github.rest.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const release = releases.find(r => r.tag_name === tag);
+            if (!release) {
+              throw new Error(`Release introuvable pour le tag ${tag}`);
+            }
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              release_id: ${{ needs.create-release.outputs.release_id }},
+              release_id: release.id,
               draft: false,
             });
