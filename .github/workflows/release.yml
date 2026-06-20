@@ -68,13 +68,20 @@ jobs:
           mkdir -p dist
           base="src-tauri/target/${{ matrix.target }}/release/bundle"
           target="${{ matrix.target }}"
+
+          echo "::group::Arborescence de $base"
+          find "$base" -maxdepth 3 -type f | sort
+          echo "::endgroup::"
+
           # Copie les installateurs, les archives updater et leurs signatures.
+          # -print pour tracer ce qui est réellement copié.
           find "$base" \
             \( -name "*.dmg" \
             -o -name "*.app.tar.gz" \
             -o -name "*-setup.exe" \
             -o -name "*.sig" \) \
-            -exec cp {} dist/ \;
+            -print -exec cp {} dist/ \;
+
           # Les deux archives updater macOS portent le même nom (Verso.app.tar.gz)
           # quelle que soit l'architecture. On les renomme avec le target pour
           # éviter qu'une architecture n'écrase l'autre au moment d'agréger.
@@ -87,6 +94,20 @@ jobs:
               *.app.tar.gz.sig) mv "$f" "$dir/Verso_${target}.app.tar.gz.sig" ;;
             esac
           done
+
+          # Sur macOS, l'archive updater (.app.tar.gz) est indispensable : sans
+          # elle l'updater n'a pas de bundle à proposer. On échoue tôt si Tauri
+          # ne l'a pas produite, plutôt que de publier un latest.json incomplet.
+          case "$target" in
+            *apple-darwin)
+              if ! ls dist/*.app.tar.gz >/dev/null 2>&1; then
+                echo "ERREUR: aucune archive updater .app.tar.gz produite pour $target." >&2
+                exit 1
+              fi
+              ;;
+          esac
+
+          echo "Contenu final de dist/ :"
           ls -la dist
 
       - name: Uploader les artefacts du build
