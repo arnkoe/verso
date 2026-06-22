@@ -1167,6 +1167,11 @@ window.addEventListener('focus', () => {
   document.getElementById('btnPickScreen').style.display = '';
 })();
 
+// Place le curseur dans le champ de recherche des chants au lancement.
+(function _focusSongSearch() {
+  document.getElementById('songSearchInput').focus();
+})();
+
 // Reprend le dernier état projeté pour refléter l'UI au lancement.
 (async function _restoreProjection() {
   try {
