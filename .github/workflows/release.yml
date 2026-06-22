@@ -63,33 +63,51 @@ jobs:
           includeUpdaterJson: true
           args: ${{ matrix.args }}
           releaseBody: |
-            ## Installation sur Windows
+            ## Quel fichier télécharger ?
 
-            L'application n'est pas signée par un certificat reconnu. Au premier
-            lancement, Windows affiche un écran bleu **« Windows a protégé votre
-            ordinateur »** (Microsoft Defender SmartScreen). C'est normal. Pour
-            débloquer (une seule fois) :
+            - **Windows** : le fichier qui finit par `setup.exe`.
+            - **Mac récent (puce Apple)** : le fichier `.dmg` qui contient `aarch64`.
+            - **Mac plus ancien (puce Intel)** : le fichier `.dmg` qui contient `x64`.
 
-            1. Cliquez sur **Informations complémentaires**.
-            2. Cliquez sur le bouton **Exécuter quand même**.
+            Pas sûr de votre Mac ? Menu Pomme → **À propos de ce Mac**, regardez
+            la ligne « Puce » ou « Processeur ».
 
-            Les mises à jour suivantes s'installeront sans cette étape.
+            > Au premier lancement, votre ordinateur affichera un message qui fait
+            > peur. **C'est normal et ce n'est pas un virus** : Verso est un logiciel
+            > gratuit qui n'a pas les certificats payants de Microsoft et d'Apple.
+            > Voici comment passer cette étape, une seule fois.
 
-            ## Installation sur macOS
+            ## Premier lancement sur Windows
 
-            L'application n'est pas notarisée par Apple. Au premier lancement,
-            macOS affiche « "Verso" est endommagé et ne peut pas être ouvert ».
-            C'est normal. Pour débloquer (une seule fois) :
+            Windows peut afficher un **écran bleu** : « Windows a protégé votre
+            ordinateur ». Pour continuer :
 
-            1. Glissez **Verso** dans le dossier **Applications**.
-            2. Ouvrez le **Terminal** et exécutez :
+            1. Cliquez sur le petit texte **« Informations complémentaires »**.
+            2. Cliquez sur le bouton **« Exécuter quand même »** qui apparaît.
 
-               ```
-               xattr -dr com.apple.quarantine /Applications/Verso.app
-               ```
+            Les mises à jour suivantes s'installeront toutes seules, sans cette étape.
 
-            3. Lancez Verso normalement. Les mises à jour suivantes
-               s'installeront sans cette étape.
+            ## Premier lancement sur Mac
+
+            1. Ouvrez le fichier `.dmg`, puis **glissez Verso dans le dossier
+               Applications**.
+            2. Si le Mac affiche « "Verso" est endommagé et ne peut pas être ouvert »,
+               une petite manipulation est nécessaire, **une seule fois** :
+
+               a. Ouvrez le **Terminal** : appuyez sur **Cmd + Espace**, tapez
+                  `Terminal`, puis **Entrée**.
+
+               b. Copiez-collez cette ligne dans la fenêtre noire :
+
+                  ```
+                  xattr -dr com.apple.quarantine /Applications/Verso.app
+                  ```
+
+               c. Appuyez sur **Entrée** (rien ne s'affiche, c'est normal), puis
+                  fermez le Terminal.
+
+            3. Ouvrez Verso normalement. Les mises à jour suivantes s'installeront
+               toutes seules, sans cette étape.
 
             ---
 

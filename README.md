@@ -1,52 +1,128 @@
 # Verso
 
-Application de bureau pour projeter des chants et des textes bibliques pendant un culte. Une fenêtre opérateur pour piloter, une fenêtre de projection plein écran sur le vidéoprojecteur.
+Verso est un logiciel pour projeter des chants et des textes de la Bible sur un grand écran ou un vidéoprojecteur pendant un culte.
 
-## Installation
+Vous travaillez sur une fenêtre (la fenêtre **opérateur**, sur votre ordinateur) et ce que vous choisissez s'affiche sur une deuxième fenêtre, en plein écran, sur le vidéoprojecteur.
 
-Téléchargez la dernière version depuis la page des *releases* du dépôt (ou l'onglet **Actions**). Des bundles sont publiés pour Windows et macOS (Apple Silicon et Intel).
+---
 
-### Windows
+## Installer Verso
 
-Téléchargez `Verso_<version>_x64-setup.exe` (installeur NSIS) et lancez-le.
+1. Allez sur la page des **versions** (« Releases ») du projet.
+2. Téléchargez le fichier qui correspond à votre ordinateur :
+   - **Windows** : le fichier dont le nom finit par `setup.exe`.
+   - **Mac récent (puce Apple, depuis 2020)** : le fichier `.dmg` qui contient `aarch64`.
+   - **Mac plus ancien (puce Intel)** : le fichier `.dmg` qui contient `x64`.
 
-L'application n'étant pas signée par un certificat reconnu, Windows affiche au premier lancement un écran bleu **« Windows a protégé votre ordinateur »** (Microsoft Defender SmartScreen). C'est normal. Pour débloquer (une seule fois) : cliquez sur **Informations complémentaires**, puis sur le bouton **Exécuter quand même**.
+   Si vous ne savez pas quel Mac vous avez : menu Pomme  (en haut à gauche) → **À propos de ce Mac**. La ligne « Puce » ou « Processeur » vous le dit.
 
-Les mises à jour suivantes s'installent sans cette étape.
+3. Ouvrez le fichier téléchargé et suivez les indications ci-dessous selon votre système.
 
-### macOS
+> Au tout premier lancement, votre ordinateur va afficher un message qui fait peur. **C'est normal et ce n'est pas un virus.** Cela arrive parce que Verso est un petit logiciel gratuit qui n'a pas payé les certificats coûteux de Microsoft et d'Apple. Voici comment passer cette étape, une seule fois.
 
-Téléchargez le `.dmg` correspondant à votre Mac (Apple Silicon ou Intel) et glissez **Verso** dans **Applications**.
+### Sur Windows
 
-L'application n'étant pas notarisée par Apple, macOS affiche au premier lancement « "Verso" est endommagé et ne peut pas être ouvert ». C'est normal. Pour débloquer (une seule fois), ouvrez le **Terminal** et exécutez :
+Quand vous lancez le fichier `setup.exe`, Windows peut afficher un **écran bleu** : « Windows a protégé votre ordinateur ».
 
-```bash
-xattr -dr com.apple.quarantine /Applications/Verso.app
-```
+Pour continuer :
 
-Lancez ensuite Verso normalement. Les mises à jour suivantes s'installent sans cette étape.
+1. Cliquez sur le petit texte **« Informations complémentaires »**.
+2. Un bouton **« Exécuter quand même »** apparaît. Cliquez dessus.
 
-## Mises à jour
+L'installation se poursuit normalement. Vous n'aurez plus jamais à faire cela : les prochaines mises à jour s'installeront toutes seules.
 
-Au démarrage, Verso vérifie en arrière-plan s'il existe une version plus récente. Le cas échéant, un point apparaît sur le bouton **À propos** et un lien dans le panneau correspondant permet d'installer la mise à jour puis de relancer l'application. Les bundles ne sont installés que si leur signature est valide.
+### Sur Mac
 
-## Vos données
+1. Ouvrez le fichier `.dmg` que vous avez téléchargé.
+2. Une fenêtre s'ouvre. **Glissez l'icône de Verso sur le dossier Applications** affiché à côté.
+3. Si, en essayant d'ouvrir Verso, le Mac affiche « "Verso" est endommagé et ne peut pas être ouvert », il faut faire une petite manipulation, **une seule fois** :
 
-Verso lit et écrit ses contenus dans le dossier **`Documents/Verso/`** :
+   a. Ouvrez l'application **Terminal**. Pour la trouver : appuyez sur les touches **Cmd () + Espace**, tapez `Terminal`, puis appuyez sur **Entrée**.
 
-- `songbooks/` — un fichier `.json` par recueil de chants (modifiable ; vos retouches de strophes y sont enregistrées).
-- `bibles/` — une traduction par fichier `.json`.
-- `pdf/` et `images/` — vos PDF et images à projeter.
+   b. Dans la fenêtre noire qui s'ouvre, copiez-collez exactement la ligne suivante :
 
-Au tout premier lancement, si le dossier `Documents/Verso/` est vide, Verso y dépose automatiquement des contenus libres de droits pour démarrer : les recueils **Reflets** et **HEC**, et les bibles **DRB** (Darby) et **LSG** (Louis Segond). Ces fichiers sont ensuite des fichiers comme les autres : vous pouvez les modifier, les compléter ou les supprimer. Aucun amorçage n'a lieu si le dossier contient déjà des recueils ou des bibles, afin de ne jamais écraser vos données.
+   ```
+   xattr -dr com.apple.quarantine /Applications/Verso.app
+   ```
 
-Vous déposez ensuite vous-même vos propres recueils, bibles, PDF et images dans ces sous-dossiers (créés automatiquement au premier lancement). Le bouton **« Dossier »** de la barre d'outils de l'opérateur ouvre directement la racine `Documents/Verso/` dans votre gestionnaire de fichiers.
+   c. Appuyez sur **Entrée**. (Rien ne s'affiche : c'est bon signe.)
 
-L'état de la dernière projection est conservé et repris à la réouverture.
+   d. Fermez le Terminal et ouvrez Verso normalement.
 
-### Format d'un recueil de chants
+Vous n'aurez plus jamais à refaire cela : les prochaines mises à jour s'installeront toutes seules.
 
-Un recueil est un fichier `songbooks/songbook-<nom>.json` (le nom de fichier doit commencer par `songbook-`) contenant un **tableau** de chants. Des exemples complets sont dans le dossier [`examples/`](examples/).
+---
+
+## Mettre à jour Verso
+
+Vous n'avez rien à surveiller. À chaque démarrage, Verso regarde tout seul si une version plus récente existe.
+
+Si c'est le cas, un petit **point** apparaît sur le bouton **« À propos »**. Cliquez sur ce bouton : un lien vous propose d'installer la mise à jour, puis Verso redémarre. C'est tout.
+
+---
+
+## Vos chants, vos bibles, vos documents
+
+Verso range tout dans un dossier nommé **`Verso`**, à l'intérieur de vos **Documents**. Le bouton **« Dossier »** dans la barre d'outils de Verso ouvre directement ce dossier.
+
+À l'intérieur, vous trouverez :
+
+- **`songbooks`** — vos recueils de chants (un fichier par recueil).
+- **`bibles`** — vos traductions de la Bible (un fichier par traduction).
+- **`pdf`** — les documents PDF que vous voulez projeter.
+- **`images`** — les images que vous voulez projeter.
+
+Pour ajouter vos propres PDF ou images, déposez simplement vos fichiers dans le dossier `pdf` ou `images`.
+
+La première fois que vous lancez Verso, si le dossier est vide, Verso y dépose automatiquement quelques contenus gratuits pour commencer : les recueils **Reflets** et **HEC**, et les bibles **Darby** et **Louis Segond**. Vous pouvez les garder, les modifier ou les supprimer comme vous voulez. Verso ne touche jamais à vos fichiers si vous en avez déjà mis.
+
+Verso se souvient aussi de ce qui était projeté la dernière fois et le reprend à la réouverture.
+
+---
+
+## Se servir de Verso
+
+La fenêtre opérateur a quatre onglets : **Chants**, **Bible**, **PDF** et **Images**.
+
+Le principe est toujours le même : vous cherchez ce que vous voulez, vous le sélectionnez, et il s'affiche sur le vidéoprojecteur.
+
+### Les raccourcis clavier qui font gagner du temps
+
+Ces raccourcis fonctionnent dans la fenêtre opérateur (celle sur votre ordinateur).
+
+**Changer d'onglet**
+
+- **Tab** : passer à l'onglet suivant (Chants → Bible → PDF → Images).
+- **Maj + Tab** : revenir à l'onglet précédent.
+
+**Chercher**
+
+- **/** (la touche slash) : aller directement dans le champ de recherche.
+- **Flèches haut / bas** : se déplacer dans la liste des résultats.
+- **Entrée** : valider le résultat sélectionné.
+
+**Projeter et avancer**
+
+- **Flèche bas** ou **flèche droite** : élément suivant (strophe suivante, verset suivant, page suivante).
+- **Flèche haut** ou **flèche gauche** : élément précédent.
+- **Entrée** : projeter l'élément suivant (ou le premier si rien n'est encore projeté).
+- **Échap** : effacer la projection (écran neutre).
+
+**Dans la fenêtre de projection**
+
+- **Échap** : fermer la fenêtre de projection.
+
+---
+
+## Pour aller plus loin (partie technique)
+
+Cette section s'adresse aux personnes à l'aise avec les fichiers JSON ou le code. Vous n'en avez **pas besoin** pour utiliser Verso au quotidien.
+
+### Ajouter un recueil de chants
+
+Un recueil est un fichier rangé dans `songbooks`, dont le nom commence par `songbook-` et finit par `.json` (par exemple `songbook-monrecueil.json`).
+
+Le fichier contient un **tableau** de chants :
 
 ```json
 [
@@ -67,7 +143,7 @@ Un recueil est un fichier `songbooks/songbook-<nom>.json` (le nom de fichier doi
 
 - `id` — entier **unique** dans le recueil (identifiant interne).
 - `title` — titre affiché et recherché.
-- `author` — chaîne ou `null` si inconnu.
+- `author` — texte, ou `null` si inconnu.
 - `source_book` — nom du recueil ; sert à grouper les chants dans la recherche.
 - `source_number` — numéro du chant dans le recueil (ou `null`).
 - `verses` — liste **ordonnée** des couplets. Chaque couplet a :
@@ -75,11 +151,13 @@ Un recueil est un fichier `songbooks/songbook-<nom>.json` (le nom de fichier doi
   - `number` — numéro de strophe (facultatif).
   - `text` — le texte ; les sauts de ligne se notent `\n`.
 
-Le JSON n'autorise pas de vrai retour à la ligne à l'intérieur d'une chaîne : écrivez `\n` pour chaque saut de ligne dans `text`.
+Le format JSON n'autorise pas de vrai retour à la ligne à l'intérieur d'un texte : écrivez `\n` pour chaque saut de ligne dans `text`.
 
-### Format d'une bible
+Un fichier complet est disponible dans [`examples/songbook-exemple.json`](examples/songbook-exemple.json) : vous pouvez le copier et le remplir avec vos chants.
 
-Une traduction est un fichier `bibles/<code>.json` (ex. `S21.json`). Voir [`examples/bible-exemple.json`](examples/bible-exemple.json).
+### Ajouter une bible
+
+Une traduction est un fichier rangé dans `bibles`, nommé `<code>.json` (par exemple `S21.json`).
 
 ```json
 {
@@ -88,50 +166,36 @@ Une traduction est un fichier `bibles/<code>.json` (ex. `S21.json`). Voir [`exam
     {
       "name": "Genèse",
       "chapters": [
-        ["Genèse 1.1", "Genèse 1.2", "Genèse 1.3"],
-        ["Genèse 2.1", "Genèse 2.2"]
+        [
+          "Au commencement, Dieu créa le ciel et la terre.",
+          "La terre était informe et vide ; les ténèbres couvraient l'abîme.",
+          "Dieu dit : « Que la lumière soit ! » et la lumière fut."
+        ],
+        [
+          "Premier verset du chapitre 2.",
+          "Deuxième verset du chapitre 2."
+        ]
+      ]
+    },
+    {
+      "name": "Jean",
+      "chapters": [
+        ["Au commencement était la Parole, et la Parole était avec Dieu, et la Parole était Dieu."]
       ]
     }
   ]
 }
 ```
 
+Un fichier complet est disponible dans [`examples/bible-exemple.json`](examples/bible-exemple.json) : vous pouvez le copier et le remplir avec votre traduction.
+
 - `translation` — code de la traduction (idéalement identique au nom du fichier).
 - `books` — liste **ordonnée** des livres.
   - `name` — nom du livre (utilisé pour la recherche de référence).
-  - `chapters` — tableau de chapitres ; chaque chapitre est un tableau de versets (chaînes).
+  - `chapters` — tableau de chapitres ; chaque chapitre est un tableau de versets (textes).
   - L'ordre fait foi : `chapters[0]` est le chapitre 1, et `chapters[0][0]` le verset 1.
 
-## Utilisation
-
-L'opérateur dispose de quatre onglets : **Chants**, **Bible**, **PDF**, **Images**. On recherche, on sélectionne, et le contenu s'affiche sur la fenêtre de projection envoyée en plein écran sur l'écran secondaire.
-
-### Raccourcis clavier
-
-Les raccourcis ci-dessous valent dans la fenêtre **opérateur**.
-
-**Changer d'onglet**
-
-`Tab` passe à l'onglet suivant, `Maj` + `Tab` à l'onglet précédent (ordre : Chants → Bible → PDF → Images). Fonctionne partout, y compris depuis un champ de saisie, identique sous Windows et macOS.
-
-**Rechercher**
-
-- `/` — placer le curseur dans le champ de recherche de l'onglet actif
-- `↑` `↓` — déplacer la sélection dans la liste de résultats
-- `Entrée` — valider le résultat sélectionné
-
-**Projeter et naviguer**
-
-- `↓` `→` — élément suivant (strophe, verset, page PDF)
-- `↑` `←` — élément précédent
-- `Entrée` — projeter l'élément suivant (ou le premier si rien n'est encore projeté)
-- `Échap` — vider la projection (retour à l'écran neutre)
-
-**Fenêtre de projection**
-
-- `Échap` — fermer la fenêtre de projection
-
-## Développement
+### Développement
 
 ```bash
 npm install
@@ -145,7 +209,7 @@ Tests Rust :
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-### Structure
+### Structure du code
 
 ```
 src/                       frontend (HTML/JS, pas d'étape de build)
