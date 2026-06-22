@@ -263,6 +263,93 @@ fn parse_model_number(tao_name: &str) -> Option<u32> {
     tao_name.rsplit('#').next()?.trim().parse().ok()
 }
 
+/// Windows : map nom GDI ("\\.\DISPLAY<N>") -> nom lisible (marque/modèle).
+///
+/// tao renvoie sur Windows le nom GDI (`szDevice`, ex. "\\.\DISPLAY1"). Le nom
+/// lisible (issu de l'EDID, ex. "DELL U2419H") n'est exposé que par l'API
+/// DisplayConfig. On énumère les chemins d'affichage actifs ; pour chacun on
+/// demande le nom source (`viewGdiDeviceName` == le `szDevice` de tao) puis le
+/// nom cible (`monitorFriendlyDeviceName`), et on associe les deux. La jointure
+/// se fait donc sur exactement la chaîne que tao a utilisée.
+#[cfg(target_os = "windows")]
+fn windows_names_by_gdi() -> std::collections::HashMap<String, String> {
+    use windows::Win32::Devices::Display::{
+        DisplayConfigGetDeviceInfo, GetDisplayConfigBufferSizes, QueryDisplayConfig,
+        DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME, DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME,
+        DISPLAYCONFIG_MODE_INFO, DISPLAYCONFIG_PATH_INFO, DISPLAYCONFIG_SOURCE_DEVICE_NAME,
+        DISPLAYCONFIG_TARGET_DEVICE_NAME, QDC_ONLY_ACTIVE_PATHS,
+    };
+    use windows::Win32::Foundation::ERROR_SUCCESS;
+
+    let mut map = std::collections::HashMap::new();
+
+    let mut path_count: u32 = 0;
+    let mut mode_count: u32 = 0;
+    // SAFETY : appels FFI ; les pointeurs proviennent de vecteurs dimensionnés
+    // par GetDisplayConfigBufferSizes juste avant.
+    unsafe {
+        if GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &mut path_count, &mut mode_count)
+            != ERROR_SUCCESS
+        {
+            return map;
+        }
+
+        let mut paths = vec![DISPLAYCONFIG_PATH_INFO::default(); path_count as usize];
+        let mut modes = vec![DISPLAYCONFIG_MODE_INFO::default(); mode_count as usize];
+
+        if QueryDisplayConfig(
+            QDC_ONLY_ACTIVE_PATHS,
+            &mut path_count,
+            paths.as_mut_ptr(),
+            &mut mode_count,
+            modes.as_mut_ptr(),
+            None,
+        ) != ERROR_SUCCESS
+        {
+            return map;
+        }
+
+        for path in paths.iter().take(path_count as usize) {
+            // Nom GDI de la source ("\\.\DISPLAY<N>").
+            let mut source = DISPLAYCONFIG_SOURCE_DEVICE_NAME::default();
+            source.header.r#type = DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME;
+            source.header.size = std::mem::size_of::<DISPLAYCONFIG_SOURCE_DEVICE_NAME>() as u32;
+            source.header.adapterId = path.sourceInfo.adapterId;
+            source.header.id = path.sourceInfo.id;
+            if DisplayConfigGetDeviceInfo(&mut source.header) != ERROR_SUCCESS.0 as i32 {
+                continue;
+            }
+            let gdi = wchar_to_string(&source.viewGdiDeviceName);
+            if gdi.is_empty() {
+                continue;
+            }
+
+            // Nom lisible de la cible (marque/modèle issus de l'EDID).
+            let mut target = DISPLAYCONFIG_TARGET_DEVICE_NAME::default();
+            target.header.r#type = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
+            target.header.size = std::mem::size_of::<DISPLAYCONFIG_TARGET_DEVICE_NAME>() as u32;
+            target.header.adapterId = path.targetInfo.adapterId;
+            target.header.id = path.targetInfo.id;
+            if DisplayConfigGetDeviceInfo(&mut target.header) != ERROR_SUCCESS.0 as i32 {
+                continue;
+            }
+            let friendly = wchar_to_string(&target.monitorFriendlyDeviceName);
+            if !friendly.is_empty() {
+                map.insert(gdi, friendly);
+            }
+        }
+    }
+
+    map
+}
+
+/// Convertit un tableau wchar terminé par NUL en String.
+#[cfg(target_os = "windows")]
+fn wchar_to_string(buf: &[u16]) -> String {
+    let len = buf.iter().position(|&c| c == 0).unwrap_or(buf.len());
+    String::from_utf16_lossy(&buf[..len])
+}
+
 /// Liste les écrans disponibles (remplace getScreenDetails du web).
 #[tauri::command]
 fn list_monitors(app: AppHandle) -> Result<Vec<MonitorInfo>, String> {
@@ -275,6 +362,9 @@ fn list_monitors(app: AppHandle) -> Result<Vec<MonitorInfo>, String> {
 
     #[cfg(target_os = "macos")]
     let names = macos_names_by_model(&app);
+
+    #[cfg(target_os = "windows")]
+    let names = windows_names_by_gdi();
 
     Ok(monitors
         .into_iter()
@@ -290,7 +380,11 @@ fn list_monitors(app: AppHandle) -> Result<Vec<MonitorInfo>, String> {
                 .and_then(|n| names.get(&n).cloned())
                 .filter(|s| !s.is_empty())
                 .unwrap_or(raw);
-            #[cfg(not(target_os = "macos"))]
+            // Sur Windows, remplace le nom GDI ("\\.\DISPLAY<N>") par le nom
+            // lisible (marque/modèle) si trouvé.
+            #[cfg(target_os = "windows")]
+            let name = names.get(&raw).cloned().unwrap_or(raw);
+            #[cfg(not(any(target_os = "macos", target_os = "windows")))]
             let name = raw;
 
             MonitorInfo {

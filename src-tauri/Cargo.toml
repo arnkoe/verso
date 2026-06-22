@@ -28,6 +28,11 @@ objc2-foundation = { version = "0.3", features = ["NSString", "NSDictionary", "N
 objc2-app-kit = { version = "0.3", features = ["NSScreen", "NSGraphics"] }
 objc2-core-graphics = { version = "0.3", features = ["CGDisplayConfiguration", "CGDirectDisplay"] }
 
+# Windows : récupère le nom lisible des écrans (marque/modèle) via l'API
+# DisplayConfig, que winit n'expose pas (il renvoie le nom GDI "\\.\DISPLAY<N>").
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.62", features = ["Win32_Devices_Display", "Win32_Foundation", "Win32_Graphics_Gdi"] }
+
 [profile.release]
 panic = "abort"
 codegen-units = 1
