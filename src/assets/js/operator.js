@@ -112,6 +112,8 @@ function buildSongBookButtons(songs) {
     btn.textContent = book;
     wrap.appendChild(btn);
   }
+  // S'assure que le filtre courant (« Tous » par défaut) reste visuellement sélectionné.
+  wrap.querySelectorAll('.translation-btn').forEach(b => b.classList.toggle('active', b.dataset.arg === songBookFilter));
 }
 
 loadSongCache().catch(() => {}); // préchargement, erreurs gérées à la recherche
