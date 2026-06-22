@@ -149,13 +149,15 @@ document.getElementById('songSearchInput').addEventListener('input', async e => 
 
 function searchSongs(q) {
   if (!songCache) return;
-  const lower = q.toLowerCase();
-  const num   = parseInt(q, 10);
-  let hits  = songCache.filter(s =>
-    s.title.toLowerCase().includes(lower) ||
-    (s.author && s.author.toLowerCase().includes(lower)) ||
-    (!isNaN(num) && s.source_number === num)
-  );
+  const lower     = q.toLowerCase();
+  const isNumeric = /^\d+$/.test(q.trim());
+  const num       = isNumeric ? parseInt(q, 10) : NaN;
+  let hits = isNumeric
+    ? songCache.filter(s => s.source_number === num)
+    : songCache.filter(s =>
+        s.title.toLowerCase().includes(lower) ||
+        (s.author && s.author.toLowerCase().includes(lower))
+      );
   if (songBookFilter) hits = hits.filter(s => s.source_book === songBookFilter);
   const grouped = {};
   for (const s of hits) {
