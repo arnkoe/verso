@@ -62,6 +62,10 @@ body {
   grid-template-rows: 1fr auto;
   gap: 12px;
   min-height: 0;
+  /* min-width:0 pour que la sidebar respecte strictement la largeur de sa
+     colonne (var(--w-sidebar)) : sans ça, le contenu de la card recherche
+     (champ + barre de boutons en nowrap) élargit la sidebar et déborde. */
+  min-width: 0;
   height: 100%;
 }
 
@@ -69,7 +73,13 @@ body {
 .card-search {
   display: grid;
   grid-template-rows: auto 1fr auto;
+  /* Colonne explicite bornée : sans ça, la colonne implicite du grid est
+     dimensionnée en max-content et s'étend à la largeur du contenu le plus
+     large (onglets, barre de boutons en nowrap), ce qui élargit la card
+     au-delà de la sidebar. */
+  grid-template-columns: minmax(0, 1fr);
   min-height: 0;
+  min-width: 0;
 }
 /* Tabs sur la 1re ligne ; le panneau visible occupe toujours la 2e (1fr),
    quel que soit l'onglet, pour qu'il scrolle au lieu de pousser la carte
@@ -759,6 +769,16 @@ body {
   .content-header-actions {
     justify-content: flex-start;
   }
+
+  /* Boutons de la barre d'outils : label court (ex. "Racc.") pour tenir dans
+     la sidebar réduite sans rognage. */
+  .search-tools .tool-label[data-short] {
+    font-size: 0;
+  }
+  .search-tools .tool-label[data-short]::before {
+    content: attr(data-short);
+    font-size: 12px;
+  }
 }
 
 /* ─── Barre d'outils (dossier, aide, à propos) en bas de la card recherche ───── */
@@ -775,7 +795,12 @@ body {
   min-width: 0;
   justify-content: center;
   padding: 0 6px;
+  /* overflow visible pour laisser sortir le .tool-badge (point de mise à jour)
+     positionné hors du bouton ; le rognage du texte se fait sur .tool-label. */
   overflow: visible;
+}
+.search-tools .tool-label {
+  white-space: nowrap;
 }
 /* Point rouge signalant une mise à jour disponible (bouton À propos). */
 .tool-badge {
