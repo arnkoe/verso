@@ -112,14 +112,7 @@ Les raccourcis ci-dessous valent dans la fenêtre **opérateur**.
 
 **Changer d'onglet**
 
-Des combinaisons avec `Alt` permettent de changer d'onglet, y compris depuis un champ de saisie. Elles se basent sur la position physique des touches (clavier AZERTY) : le modificateur change selon l'OS (`Ctrl` sous Windows, `Cmd` sous macOS) et, pour l'onglet Images, le caractère imprimé diffère (`!` sous Windows, `=` sous macOS) :
-
-| Onglet  | Windows               | macOS                 |
-| ------- | --------------------- | --------------------- |
-| Chants  | `Ctrl` + `Alt` + `,`  | `Cmd` + `Opt` + `,`   |
-| Bible   | `Ctrl` + `Alt` + `;`  | `Cmd` + `Opt` + `;`   |
-| PDF     | `Ctrl` + `Alt` + `:`  | `Cmd` + `Opt` + `:`   |
-| Images  | `Ctrl` + `Alt` + `!`  | `Cmd` + `Opt` + `=`   |
+`Tab` passe à l'onglet suivant, `Maj` + `Tab` à l'onglet précédent (ordre : Chants → Bible → PDF → Images). Fonctionne partout, y compris depuis un champ de saisie, identique sous Windows et macOS.
 
 **Rechercher**
 

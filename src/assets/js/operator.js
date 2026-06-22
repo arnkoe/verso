@@ -866,13 +866,18 @@ function tabSearchInput(tab) {
   })[tab] || null;
 }
 
+// Tab / Maj+Tab fait défiler les onglets dans l'ordre visuel, y compris depuis un
+// champ de saisie. C'est intercepté globalement (la navigation Tab entre champs
+// est donc neutralisée dans la fenêtre opérateur, qui se pilote au clavier via
+// les champs de recherche et les flèches).
+const TAB_ORDER = ['cantiques', 'bible', 'pdf', 'images'];
+
 document.addEventListener('keydown', e => {
-  if (!(e.metaKey || e.ctrlKey) || !e.altKey) return;
-  const shortcutMap = { 'Comma': 'bible', 'KeyM': 'cantiques', 'Period': 'pdf', 'Slash': 'images' };
-  const tab = shortcutMap[e.code];
-  if (!tab) return;
+  if (e.key !== 'Tab' || e.metaKey || e.ctrlKey || e.altKey) return;
   e.preventDefault();
-  activateTab(tab);
+  const i = TAB_ORDER.indexOf(state.activeTab);
+  const next = (i + (e.shiftKey ? -1 : 1) + TAB_ORDER.length) % TAB_ORDER.length;
+  activateTab(TAB_ORDER[next]);
 }, true);
 
 document.addEventListener('keydown', e => {
@@ -1178,18 +1183,6 @@ window.addEventListener('focus', () => {
 async function openVersoDir() {
   try { await apiRevealVersoDir(); } catch (_) {}
 }
-
-// Adapte les libellés des touches à la plateforme : macOS affiche Cmd/Opt et la
-// touche Images « = » (valeurs par défaut du HTML), Windows affiche Ctrl/Alt et
-// la touche Images « ! ». La position physique de la touche est la même (AZERTY),
-// seul le caractère imprimé diffère.
-(function _localizeShortcutKeys() {
-  const isMac = navigator.userAgent.includes('Mac');
-  if (isMac) return;
-  document.querySelectorAll('.kbd-cmd').forEach(el => { el.textContent = 'Ctrl'; });
-  document.querySelectorAll('.kbd-alt').forEach(el => { el.textContent = 'Alt'; });
-  document.querySelectorAll('.kbd-img').forEach(el => { el.textContent = '!'; });
-})();
 
 /** Affiche le panneau d'aide (raccourcis) au centre de la zone principale. */
 function showHelp() {
