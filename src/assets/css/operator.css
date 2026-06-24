@@ -59,7 +59,14 @@ body {
 /* ── SIDEBARS ──────────────────────────────────────────────────────────────── */
 .sidebar-left {
   display: grid;
-  grid-template-rows: 1fr auto;
+  /* La card monitor (2e piste) prend sa hauteur de contenu quand il y a la
+     place, mais doit pouvoir se comprimer : `auto` la fige à sa hauteur
+     max-content (cadre 16/9 + entête + pied + boutons), si bien que sur un
+     viewport CSS court (fenêtre haute/étroite à dpr 2 : innerHeight devient
+     ~320px) elle déborde sous la sidebar. minmax(0, max-content) autorise la
+     piste à rétrécir ; combinée au flex compressible de .card-monitor, le cadre
+     16/9 se réduit au lieu de laisser la card sortir par le bas. */
+  grid-template-rows: minmax(0, 1fr) minmax(0, max-content);
   gap: 12px;
   min-height: 0;
   /* min-width:0 pour que la sidebar respecte strictement la largeur de sa
@@ -261,7 +268,17 @@ body {
   gap: 6px;
 }
 /* ── CARD MONITOR ──────────────────────────────────────────────────────────── */
-.card-monitor { padding: 12px; }
+/* Colonne flex compressible : sans min-height:0, la card garde sa hauteur
+   intrinsèque (cadre 16/9 + entête + pied + boutons) et déborde sous la sidebar
+   quand la hauteur disponible est faible (fenêtre haute/étroite à fort scale :
+   le viewport CSS devient court, la ligne « recherche » 1fr s'écrase et la card
+   sort par le bas, laissant un vide apparent sous les boutons). */
+.card-monitor {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
 .monitor-head {
   display: flex;
   align-items: center;
@@ -289,6 +306,12 @@ body {
   border: 1px solid var(--line);
   border-radius: 4px;
   overflow: hidden;
+  /* Le cadre 16/9 est l'élément compressible de la card : quand la hauteur
+     disponible est insuffisante, il se réduit (min-height:0) au lieu de forcer
+     la card à déborder. Les autres éléments (entête, pied, boutons) restent
+     visibles. scalePreview() rescale le contenu sur la hauteur réelle du cadre. */
+  flex: 0 1 auto;
+  min-height: 0;
 }
 .monitor-actions {
   margin-top: 8px;
