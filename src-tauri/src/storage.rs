@@ -90,16 +90,17 @@ pub struct AppState {
 
 // ─── Chemins ────────────────────────────────────────────────────────────────
 
-/// Dossier de données : un répertoire « Verso » dans les Documents de l'utilisateur,
-/// pour qu'il puisse y déposer/éditer recueils et bibles facilement. Repli sur le
-/// dossier de données de l'app si les Documents sont indisponibles.
+/// Dossier de données : un répertoire « Verso » sous le dossier de données de
+/// l'app (app data dir). On évite délibérément les Documents de l'utilisateur :
+/// sous macOS ils sont protégés par TCC et provoquent des demandes d'autorisation
+/// répétées tant que l'app n'a pas une signature stable. L'utilisateur ouvre ce
+/// dossier via le bouton dédié (commande `reveal_verso_dir`).
 pub fn data_dir(app: &AppHandle) -> PathBuf {
     let dir = app
         .path()
-        .document_dir()
-        .map(|d| d.join("Verso"))
-        .or_else(|_| app.path().app_data_dir())
-        .expect("dossier de données indisponible");
+        .app_data_dir()
+        .expect("dossier de données indisponible")
+        .join("Verso");
     let _ = fs::create_dir_all(&dir);
     dir
 }
