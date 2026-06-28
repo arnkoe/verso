@@ -1065,6 +1065,14 @@ function _saveScreen(m) {
   _updateMonitorScreen(m);
 }
 
+// Libellé d'un écran, identique dans le sélecteur et dans le retour projection.
+// `index` (optionnel) sert au fallback « Écran N » quand l'OS ne fournit pas de nom.
+function _screenLabel(m, index) {
+  if (m.name) return m.name;
+  if (index != null) return `Écran ${index + 1}`;
+  return (!m.x && !m.y) ? 'Écran principal' : `Écran ${m.width}×${m.height}`;
+}
+
 function _updateMonitorScreen(m) {
   const el = document.getElementById('monitorScreen');
   const resEl = document.getElementById('monitorRes');
@@ -1074,8 +1082,9 @@ function _updateMonitorScreen(m) {
     if (resEl) resEl.textContent = '';
     return;
   }
-  const isPrimary = !m.x && !m.y;
-  el.textContent = m.name || (isPrimary ? 'Écran principal' : `Écran ${m.width}×${m.height}`);
+  // Réutilise le libellé exact choisi dans le sélecteur (cf. _screenLabel),
+  // pour que le nom affiché ici corresponde à celui de la modale de choix.
+  el.textContent = m.label || _screenLabel(m);
   if (resEl) resEl.textContent = `${m.width} × ${m.height}`;
 }
 
@@ -1098,6 +1107,9 @@ async function openProjection() {
       const nonPrimary = monitors.find(m => !m.is_primary);
       target = nonPrimary || (monitors.length > 1 ? await _askScreenChoice(monitors) : monitors[0]);
       if (!target) return;
+      // Si le choix vient du sélecteur, target.label est déjà posé ; sinon on le
+      // calcule avec l'index dans la liste pour rester cohérent avec la modale.
+      if (!target.label) target = { ...target, label: _screenLabel(target, monitors.indexOf(target)) };
       _saveScreen(target);
     }
 
@@ -1140,10 +1152,11 @@ function _askScreenChoice(monitors) {
     monitors.forEach((m, i) => {
       const btn = document.createElement('button');
       btn.className = 'screen-modal__item';
-      const label = m.name || `Écran ${i + 1}`;
+      const label = _screenLabel(m, i);
       const primary = m.is_primary ? ' (principal)' : '';
       btn.innerHTML = `<strong>${esc(label)}${primary}</strong><span class="screen-modal__item-meta">${m.width}×${m.height} — position ${m.x},${m.y}</span>`;
-      btn.onclick = () => { document.body.removeChild(overlay); resolve(m); };
+      // Mémorise le libellé exact pour le retour projection (_updateMonitorScreen).
+      btn.onclick = () => { document.body.removeChild(overlay); resolve({ ...m, label }); };
       list.appendChild(btn);
     });
     box.querySelector('#screenCancel').onclick = () => { document.body.removeChild(overlay); resolve(null); };
