@@ -332,13 +332,13 @@ function findBooks(books, needle, requiresLeadingDigit = false) {
   return contains;
 }
 
+// Résout une saisie « livre chapitre » (l'opérateur cible toujours un chapitre,
+// jamais un verset précis ; un éventuel « :verset » est toléré mais ignoré).
 function resolveRef(q, books) {
-  const m = q.match(/^(\d?\s*[A-Za-zÀ-ÿ]+\.?)\s*(\d+)(?::(\d+)(?:-(\d+))?)?$/u);
+  const m = q.match(/^(\d?\s*[A-Za-zÀ-ÿ]+\.?)\s*(\d+)(?::\d+(?:-\d+)?)?$/u);
   if (!m) return null;
   const bookRaw = m[1].trim();
   const chapter = parseInt(m[2], 10);
-  const vStart  = m[3] ? parseInt(m[3], 10) : null;
-  const vEnd    = m[4] ? parseInt(m[4], 10) : vStart;
 
   const dm = bookRaw.match(/^(\d)\s*(.+)$/u);
   let candidates;
@@ -349,14 +349,64 @@ function resolveRef(q, books) {
     candidates = findBooks(books, bookRaw, false);
   }
   if (!candidates.length) return null;
-  if (candidates.length > 1) return { ambiguous: true, candidates, chapter, vStart, vEnd };
-  return { book: candidates[0], chapter, vStart, vEnd };
+  if (candidates.length > 1) return { ambiguous: true, candidates, chapter };
+  return { book: candidates[0], chapter };
 }
 
 let bibleReqSeq = 0;
+// Verset à reprojeter après un changement de traduction (null = aucun).
+// On retient { num, text } : le numéro sert d'ancre, le texte permet de
+// retrouver le bon verset quand la versification diffère entre traductions.
+let reprojectBibleVerse = null;
 
-function bibleRefAttr(book, chapter, vStart, vEnd) {
-  return esc(JSON.stringify({ book, chapter, vStart, vEnd }));
+// Ensemble de mots-outils français trop fréquents pour discriminer un verset.
+const VERSE_STOPWORDS = new Set(
+  'le la les un une des de du et a au aux en que qui ne se sa son ses ce cette ces il elle ils elles je tu nous vous on y pour par sur dans avec sans est sont fut'
+    .split(' '));
+
+// Tokens significatifs d'un verset (sans accents, sans ponctuation, sans
+// mots-outils, sans mots d'une seule lettre).
+function verseTokens(text) {
+  return foldAccents(text)
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 1 && !VERSE_STOPWORDS.has(w));
+}
+
+// Similarité de Jaccard entre deux ensembles de tokens (0 à 1).
+function tokenSimilarity(aTokens, bSet) {
+  if (!aTokens.length || !bSet.size) return 0;
+  let inter = 0;
+  const seen = new Set();
+  for (const w of aTokens) {
+    if (seen.has(w)) continue;
+    seen.add(w);
+    if (bSet.has(w)) inter++;
+  }
+  const union = seen.size + bSet.size - inter;
+  return union ? inter / union : 0;
+}
+
+// Cherche dans `verses` l'index du verset le plus proche de `srcText`, en se
+// limitant à une fenêtre autour de `num` (±SEARCH). Renvoie -1 si aucun verset
+// ne dépasse le seuil de similarité. Sert à rattraper les décalages de
+// versification entre traductions.
+function bestVerseMatch(verses, num, srcText) {
+  const WINDOW = 2;       // versets de part et d'autre du numéro d'origine
+  const THRESHOLD = 0.2;  // similarité minimale pour accepter une correspondance
+  const src = verseTokens(srcText);
+  if (!src.length) return -1;
+  let bestIdx = -1, bestScore = THRESHOLD;
+  for (let i = 0; i < verses.length; i++) {
+    if (Math.abs(verses[i].verse - num) > WINDOW) continue;
+    const score = tokenSimilarity(src, new Set(verseTokens(verses[i].text)));
+    if (score > bestScore) { bestScore = score; bestIdx = i; }
+  }
+  return bestIdx;
+}
+
+function bibleRefAttr(book, chapter) {
+  return esc(JSON.stringify({ book, chapter }));
 }
 
 // Construit la liste HTML des livres groupés par testament. `entry(book)` retourne
@@ -391,12 +441,12 @@ document.getElementById('bibleSearchInput').addEventListener('input', async e =>
   if (ref) {
     const candidates = ref.ambiguous ? ref.candidates : [ref.book];
     list.innerHTML = renderBibleBookList(books, candidates, b => ({
-      ref: bibleRefAttr(b, ref.chapter, ref.vStart, ref.vEnd),
+      ref: bibleRefAttr(b, ref.chapter),
       title: `${b} ${ref.chapter}`,
     }));
     if (candidates.length === 1) {
       list.querySelector('.content-item').classList.add('active');
-      fetchBibleChapter({ book: candidates[0], chapter: ref.chapter, vStart: ref.vStart, vEnd: ref.vEnd });
+      fetchBibleChapter({ book: candidates[0], chapter: ref.chapter });
     }
     return;
   }
@@ -404,7 +454,7 @@ document.getElementById('bibleSearchInput').addEventListener('input', async e =>
   const matches = findBooks(books, q, false).slice(0, 20);
   if (!matches.length) { list.innerHTML = '<div class="search-empty">Aucun livre trouvé</div>'; return; }
   list.innerHTML = renderBibleBookList(books, matches, b => ({
-    ref: bibleRefAttr(b, 1, null, null),
+    ref: bibleRefAttr(b, 1),
     title: b,
   }));
 });
@@ -424,24 +474,38 @@ async function selectTranslation(btn, t) {
   state.translation = t;
   _saveDefaultBible(t);
   await loadBibleBooks(t);
-  document.getElementById('bibleSearchInput').dispatchEvent(new Event('input'));
+
+  // Aucun chapitre affiché : rien à recharger.
+  const cur = state.bible?.verses[0];
+  if (!cur) return;
+
+  // On recharge le chapitre courant dans la nouvelle traduction depuis l'état
+  // (state.bible), pas depuis le champ de recherche qui ne contient souvent
+  // qu'un nom de livre. Si un verset est en projection, on mémorise son numéro
+  // et son texte pour rebasculer dessus après le rechargement, même en cas de
+  // versification différente (cf. fetchBibleChapter).
+  const liveVerse = state.bible.verses[state.bibleVerse];
+  reprojectBibleVerse =
+    state.projection?.type === 'bible' && liveVerse
+      ? { num: liveVerse.verse, text: liveVerse.text }
+      : null;
+  fetchBibleChapter({ book: cur.book, chapter: cur.chapter });
 }
 
 async function fetchBibleChapter(ref) {
   const seq = ++bibleReqSeq;
-  const q = ref.vStart
-    ? `${ref.book} ${ref.chapter}:${ref.vStart}${ref.vEnd !== ref.vStart ? '-' + ref.vEnd : ''}`
-    : `${ref.book} ${ref.chapter}`;
+  const q = `${ref.book} ${ref.chapter}`;
   let data;
   try {
     data = await apiBibleSearch(q, state.translation);
   } catch (err) {
     if (seq !== bibleReqSeq) return;
+    reprojectBibleVerse = null;
     document.getElementById('bibleList').innerHTML = `<div class="search-empty">${esc(String(err))}</div>`;
     return;
   }
   if (seq !== bibleReqSeq) return;
-  if (!data.verses || !data.verses.length) return;
+  if (!data.verses || !data.verses.length) { reprojectBibleVerse = null; return; }
 
   state.bible = { verses: data.verses, translation: data.translation };
   state.bibleVerse = -1;
@@ -458,6 +522,26 @@ async function fetchBibleChapter(ref) {
   document.getElementById('bibleSubtitle').textContent = 'TRADUCTION ' + (translationNames[data.translation] || data.translation);
   showPanel('panelBible');
   renderBibleVerses(data.verses);
+
+  // Reprojection après changement de traduction. On vise le même numéro de
+  // verset ; si la versification diffère (numéro absent, ou texte trop éloigné),
+  // on cherche le verset le plus proche par similarité de texte. À défaut on
+  // laisse l'ancien verset projeté.
+  if (reprojectBibleVerse) {
+    const { num, text } = reprojectBibleVerse;
+    reprojectBibleVerse = null;
+    const sameNumIdx = data.verses.findIndex(v => v.verse === num);
+    // Si le verset au même numéro ressemble fortement à la source, on le garde
+    // directement (cas aligné, fréquent) ; sinon on élargit la recherche.
+    let idx = sameNumIdx;
+    if (sameNumIdx >= 0) {
+      const sim = tokenSimilarity(verseTokens(text), new Set(verseTokens(data.verses[sameNumIdx].text)));
+      if (sim < 0.34) idx = bestVerseMatch(data.verses, num, text);
+    } else {
+      idx = bestVerseMatch(data.verses, num, text);
+    }
+    if (idx >= 0) projectBibleVerse(idx);
+  }
 }
 
 function renderBibleVerses(verses) {
