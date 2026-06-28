@@ -1055,3 +1055,24 @@ body {
 .settings-update-status.ok { color: var(--live); }
 .settings-update-status.error { color: #c62828; }
 .settings-update-status.available { color: var(--accent); font-weight: 600; }
+
+/* Sélecteur de langue (segmenté) dans la rubrique Langue. */
+.lang-toggle { display: inline-flex; gap: 6px; }
+.lang-btn {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-family: inherit; font-size: 12px;
+  padding: 5px 12px; border-radius: 6px;
+  color: var(--ink-2); cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.lang-btn:hover:not(.active) {
+  background: var(--hover); border-color: #c8c8c8; color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.09);
+}
+.lang-btn.active {
+  background: var(--ink); color: #fff; border-color: var(--ink);
+  box-shadow: none;
+}

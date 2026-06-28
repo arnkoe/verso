@@ -22,14 +22,21 @@ const state = {
   searchCursor: 0,
 };
 
+// Traduit l'interface statique selon la langue stockée (anglais par défaut),
+// avant que le reste du script ne peuple les listes dynamiques.
+applyI18n();
+
 // Pastille « En projection » affichée sur l'item live d'une liste.
-const LIVE_PILL = '<span class="live-pill"><span class="dot"></span><span class="live-pill-text">En projection</span></span>';
+// Construite à la volée car le libellé dépend de la langue active.
+function livePill() {
+  return `<span class="live-pill"><span class="dot"></span><span class="live-pill-text">${esc(t('list.live'))}</span></span>`;
+}
 
 // Marque/démarque un item de liste comme étant en projection (classe + pastille).
 function setLive(el, isLive) {
   el.classList.toggle('active', isLive);
   const action = el.querySelector('.strophe-action');
-  if (action) action.innerHTML = isLive ? LIVE_PILL : '';
+  if (action) action.innerHTML = isLive ? livePill() : '';
 }
 
 // ─── PROJECTION API ──────────────────────────────────────────────────────────
@@ -134,11 +141,11 @@ document.getElementById('songSearchInput').addEventListener('input', async e => 
   }
   if (!songCache) {
     const list = document.getElementById('songList');
-    list.innerHTML = '<div class="search-empty">Chargement…</div>';
+    list.innerHTML = `<div class="search-empty">${esc(t('list.loading'))}</div>`;
     try {
       await loadSongCache();
     } catch (err) {
-      list.innerHTML = `<div class="search-empty">Erreur de chargement des chants : ${esc(String(err))}</div>`;
+      list.innerHTML = `<div class="search-empty">${esc(t('list.songsError', { err: String(err) }))}</div>`;
       return;
     }
     // L'utilisateur a pu continuer à taper pendant le chargement.
@@ -165,7 +172,7 @@ function searchSongs(q) {
   if (songBookFilter) hits = hits.filter(s => s.source_book === songBookFilter);
   const grouped = {};
   for (const s of hits) {
-    const book = s.source_book ?? 'Autre';
+    const book = s.source_book ?? t('book.other');
     (grouped[book] = grouped[book] || []).push(s);
   }
   renderSongList(grouped);
@@ -174,7 +181,7 @@ function searchSongs(q) {
 function renderSongList(grouped) {
   const list = document.getElementById('songList');
   if (!Object.keys(grouped).length) {
-    list.innerHTML = '<div class="search-empty">Aucun résultat</div>';
+    list.innerHTML = `<div class="search-empty">${esc(t('list.noResult'))}</div>`;
     return;
   }
   list.innerHTML = Object.entries(grouped).map(([book, items]) =>
@@ -217,7 +224,7 @@ function renderVerseList() {
   if (!song) return;
   const verseList = document.getElementById('verseList');
   verseList.innerHTML = song.verses.map((verse, i) => {
-    const typeLabel = verse.type === 'R' ? 'Refrain' : 'Strophe';
+    const typeLabel = verse.type === 'R' ? t('verse.refrain') : t('verse.strophe');
     const shortLabel = verse.type === 'R' ? 'R' : 'S' + (verse.number != null ? verse.number : '');
     const label = typeLabel + (verse.number != null ? ' ' + verse.number : '');
     const isLive = i === state.songVerse;
@@ -225,7 +232,7 @@ function renderVerseList() {
       <div class="strophe-number" data-short="${esc(shortLabel)}">${esc(label)}</div>
       <div class="strophe-text">${esc(verse.text)}</div>
       <div class="strophe-action">
-        ${isLive ? LIVE_PILL : ''}
+        ${isLive ? livePill() : ''}
       </div>
     </div>`;
   }).join('');
@@ -287,7 +294,7 @@ async function initBibleTranslations() {
   } catch (_) { /* dossier indisponible : liste vide */ }
 
   if (!translations.length) {
-    wrap.innerHTML = '<span class="search-empty">Aucune bible. Déposez des fichiers JSON dans le dossier Verso.</span>';
+    wrap.innerHTML = `<span class="search-empty">${esc(t('list.noBible'))}</span>`;
     state.translation = null;
     return;
   }
@@ -431,7 +438,7 @@ document.getElementById('bibleSearchInput').addEventListener('input', async e =>
   const list = document.getElementById('bibleList');
   if (!q) { list.innerHTML = ''; return; }
   if (!state.translation) {
-    list.innerHTML = '<div class="search-empty">Aucune bible disponible.</div>';
+    list.innerHTML = `<div class="search-empty">${esc(t('list.noBibleAvailable'))}</div>`;
     return;
   }
 
@@ -452,7 +459,7 @@ document.getElementById('bibleSearchInput').addEventListener('input', async e =>
   }
 
   const matches = findBooks(books, q, false).slice(0, 20);
-  if (!matches.length) { list.innerHTML = '<div class="search-empty">Aucun livre trouvé</div>'; return; }
+  if (!matches.length) { list.innerHTML = `<div class="search-empty">${esc(t('list.noBook'))}</div>`; return; }
   list.innerHTML = renderBibleBookList(books, matches, b => ({
     ref: bibleRefAttr(b, 1),
     title: b,
@@ -552,7 +559,7 @@ function renderBibleVerses(verses) {
       <span class="bible-verse-number" data-short="V${v.verse}">Verset ${v.verse}</span>
       <span class="bible-verse-text">${esc(v.text)}</span>
       <div class="strophe-action">
-        ${isLive ? LIVE_PILL : ''}
+        ${isLive ? livePill() : ''}
       </div>
     </div>`;
   }).join('');
@@ -590,7 +597,7 @@ function filterMedia(files, q) {
 
 function renderPdfList(files) {
   const list = document.getElementById('pdfList');
-  if (!files.length) { list.innerHTML = '<div class="search-empty">Aucun PDF dans le dossier</div>'; return; }
+  if (!files.length) { list.innerHTML = `<div class="search-empty">${esc(t('pdf.empty'))}</div>`; return; }
   list.innerHTML = files.map(f => `
     <div class="content-item" data-pdf-file="${esc(f.filename)}" data-action="selectPdf">
       <span class="item-title">${esc(f.filename)}</span>
@@ -616,7 +623,7 @@ function selectPdf(filename) {
   document.getElementById('pdfTitle').textContent = filename;
   document.getElementById('pdfSubtitle').textContent = '…';
   showPanel('panelPdf');
-  document.getElementById('pdfPageList').innerHTML = '<div class="search-empty">Chargement…</div>';
+  document.getElementById('pdfPageList').innerHTML = `<div class="search-empty">${esc(t('list.loading'))}</div>`;
 
   renderPdfThumbnails(filename);
 }
@@ -696,7 +703,7 @@ async function loadImageList() {
 
 function renderImageList(files) {
   const list = document.getElementById('imageList');
-  if (!files.length) { list.innerHTML = '<div class="search-empty">Aucune image dans le dossier</div>'; return; }
+  if (!files.length) { list.innerHTML = `<div class="search-empty">${esc(t('images.empty'))}</div>`; return; }
   list.innerHTML = files.map(f => `
     <div class="content-item" data-image-file="${esc(f.filename)}" data-action="selectImage">
       <span class="item-title">${esc(f.filename)}</span>
@@ -727,7 +734,7 @@ async function selectImage(filename) {
     <div class="strophe-item image-page-item${isLive ? ' active' : ''}" data-image-preview="${esc(filename)}" data-action="projectImage">
       <div class="strophe-number">Image</div>
       <img src="${esc(url)}" style="max-width:100%;max-height:400px;object-fit:contain;display:block;">
-      <div class="strophe-action">${isLive ? LIVE_PILL : ''}</div>
+      <div class="strophe-action">${isLive ? livePill() : ''}</div>
     </div>
   `;
 }
@@ -1124,7 +1131,7 @@ async function saveSong() {
   const textarea = document.getElementById('songEditTextarea');
   if (!textarea) return;
   const verses = textToVerses(textarea.value);
-  if (!verses.length) { alert('Le chant doit avoir au moins une strophe.'); return; }
+  if (!verses.length) { alert(t('song.minOneVerse')); return; }
 
   const btn = document.getElementById('btnSaveSong');
   btn.disabled = true;
@@ -1138,7 +1145,7 @@ async function saveSong() {
     await loadSongCache();
     await loadSong(id);
   } catch (e) {
-    alert('Erreur : ' + String(e));
+    alert(t('common.error', { err: String(e) }));
     btn.disabled = false;
   }
 }
@@ -1165,8 +1172,8 @@ function _saveScreen(m) {
 // `index` (optionnel) sert au fallback « Écran N » quand l'OS ne fournit pas de nom.
 function _screenLabel(m, index) {
   if (m.name) return m.name;
-  if (index != null) return `Écran ${index + 1}`;
-  return (!m.x && !m.y) ? 'Écran principal' : `Écran ${m.width}×${m.height}`;
+  if (index != null) return t('screen.numbered', { n: index + 1 });
+  return (!m.x && !m.y) ? t('screen.main') : t('screen.numbered', { n: `${m.width}×${m.height}` });
 }
 
 function _updateMonitorScreen(m) {
@@ -1174,7 +1181,7 @@ function _updateMonitorScreen(m) {
   const resEl = document.getElementById('monitorRes');
   if (!el) return;
   if (!m) {
-    el.textContent = 'Aucun écran choisi';
+    el.textContent = t('screen.none');
     if (resEl) resEl.textContent = '';
     return;
   }
@@ -1190,9 +1197,9 @@ async function openProjection() {
   try {
     let monitors;
     try { monitors = await apiListMonitors(); }
-    catch (e) { alert('Impossible de lister les écrans : ' + String(e)); return; }
+    catch (e) { alert(t('screen.listFailed', { err: String(e) })); return; }
 
-    if (!monitors.length) { alert('Aucun écran détecté.'); return; }
+    if (!monitors.length) { alert(t('screen.noneDetected')); return; }
 
     let target = _savedScreen();
     if (target) {
@@ -1222,7 +1229,7 @@ async function pickProjectionScreen() {
   try {
     let monitors;
     try { monitors = await apiListMonitors(); }
-    catch (e) { alert('Impossible de lister les écrans : ' + String(e)); return; }
+    catch (e) { alert(t('screen.listFailed', { err: String(e) })); return; }
     const choice = await _askScreenChoice(monitors);
     if (!choice) return;
     _saveScreen(choice);
@@ -1238,9 +1245,9 @@ function _askScreenChoice(monitors) {
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
     const box = document.createElement('div');
     box.className = 'screen-modal';
-    box.innerHTML = `<h3 class="screen-modal__title">Choisir l'écran de projection</h3>
+    box.innerHTML = `<h3 class="screen-modal__title">${esc(t('screen.pickTitle'))}</h3>
       <div id="screenChoices" class="screen-modal__list"></div>
-      <div class="screen-modal__footer"><button id="screenCancel" class="hdr-btn">Annuler</button></div>`;
+      <div class="screen-modal__footer"><button id="screenCancel" class="hdr-btn">${esc(t('common.cancel'))}</button></div>`;
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 
@@ -1249,8 +1256,8 @@ function _askScreenChoice(monitors) {
       const btn = document.createElement('button');
       btn.className = 'screen-modal__item';
       const label = _screenLabel(m, i);
-      const primary = m.is_primary ? ' (principal)' : '';
-      btn.innerHTML = `<strong>${esc(label)}${primary}</strong><span class="screen-modal__item-meta">${m.width}×${m.height} — position ${m.x},${m.y}</span>`;
+      const primary = m.is_primary ? t('screen.primary') : '';
+      btn.innerHTML = `<strong>${esc(label)}${esc(primary)}</strong><span class="screen-modal__item-meta">${m.width}×${m.height} — ${esc(t('screen.position'))} ${m.x},${m.y}</span>`;
       // Mémorise le libellé exact pour le retour projection (_updateMonitorScreen).
       btn.onclick = () => { document.body.removeChild(overlay); resolve({ ...m, label }); };
       list.appendChild(btn);
@@ -1351,7 +1358,33 @@ function openSettings() {
   if (!modal) return;
   settingsSection('contenus');
   _resetUpdateCheck();
+  _syncLangToggle();
   modal.hidden = false;
+}
+
+// Marque le bouton de langue actif dans la modale Paramètres.
+function _syncLangToggle() {
+  document.querySelectorAll('#langToggle .lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.arg === currentLang());
+  });
+}
+
+// Action du sélecteur de langue : applique, persiste et reconstruit les
+// listes dynamiques de l'onglet courant (libellés traduits à la volée).
+function setUiLang(lang) {
+  setLang(lang, () => {
+    _syncLangToggle();
+    _retranslateDynamic();
+  });
+}
+
+// Recompose les contenus générés par JS qui dépendent de la langue : strophes,
+// boutons de statut de mise à jour et libellé d'écran. Les listes de recherche
+// se reconstruisent à la frappe suivante.
+function _retranslateDynamic() {
+  if (state.song) renderVerseList();
+  _resetUpdateCheck();
+  _updateMonitorScreen(_savedScreen());
 }
 
 function closeSettings() {
@@ -1384,7 +1417,7 @@ function _resetUpdateCheck() {
   if (btn) {
     btn.dataset.action = 'checkUpdate';
     btn.disabled = false;
-    btn.querySelector('.settings-btn-label').textContent = 'Vérifier maintenant';
+    btn.querySelector('.settings-btn-label').textContent = t('settings.checkNow');
   }
   _setUpdateStatus('', '');
 }
@@ -1392,28 +1425,28 @@ function _resetUpdateCheck() {
 async function checkUpdate() {
   const btn = document.getElementById('btnCheckUpdate');
   if (btn) btn.disabled = true;
-  _setUpdateStatus('Recherche…');
+  _setUpdateStatus(t('update.checking'));
   try {
     const update = await apiCheckUpdate();
     if (!update) {
-      _setUpdateStatus('Verso est à jour.', 'ok');
+      _setUpdateStatus(t('update.upToDate'), 'ok');
       if (btn) btn.disabled = false;
       return;
     }
     _pendingUpdate = update;
     _setUpdateStatus(
       update.version
-        ? `Mise à jour disponible : version ${update.version}.`
-        : 'Mise à jour disponible.',
+        ? t('update.availableVersion', { version: update.version })
+        : t('update.available'),
       'available'
     );
     if (btn) {
       btn.dataset.action = 'installUpdate';
       btn.disabled = false;
-      btn.querySelector('.settings-btn-label').textContent = 'Installer et redémarrer';
+      btn.querySelector('.settings-btn-label').textContent = t('settings.installRestart');
     }
   } catch (_) {
-    _setUpdateStatus('Échec de la vérification.', 'error');
+    _setUpdateStatus(t('update.checkFailed'), 'error');
     if (btn) btn.disabled = false;
   }
 }
@@ -1425,16 +1458,16 @@ async function installUpdate() {
   // Deux points d'entrée : le lien du panneau « À propos » et le bouton de la modale.
   const link = document.getElementById('aboutUpdateLink');
   const btn = document.getElementById('btnCheckUpdate');
-  if (link) { link.textContent = 'Installation…'; link.disabled = true; }
+  if (link) { link.textContent = t('update.installing'); link.disabled = true; }
   if (btn) btn.disabled = true;
-  _setUpdateStatus('Installation…');
+  _setUpdateStatus(t('update.installing'));
   try {
     await apiInstallUpdate(_pendingUpdate);
     // relaunch() redémarre l'app ; le code ci-dessous n'est normalement pas atteint.
   } catch (_) {
-    if (link) { link.textContent = 'Échec, réessayer'; link.disabled = false; }
+    if (link) { link.textContent = t('update.installRetry'); link.disabled = false; }
     if (btn) btn.disabled = false;
-    _setUpdateStatus('Échec de l’installation.', 'error');
+    _setUpdateStatus(t('update.installFailed'), 'error');
   }
 }
 
@@ -1452,8 +1485,8 @@ async function installUpdate() {
   const wrap = document.getElementById('aboutUpdate');
   const link = document.getElementById('aboutUpdateLink');
   if (link) link.textContent = update.version
-    ? `Mettre à jour vers la version ${update.version}`
-    : 'Mettre à jour';
+    ? t('update.updateTo', { version: update.version })
+    : t('update.update');
   if (wrap) wrap.hidden = false;
 })();
 
