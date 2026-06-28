@@ -36,11 +36,22 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: lts/*
+          cache: npm
 
       - name: Installer Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      # Cache du registre et des artefacts de compilation Rust. La clé inclut
+      # plateforme + args (target) pour que les trois jobs de la matrice ne se
+      # marchent pas dessus. Économise l'essentiel des minutes de compilation
+      # sur les runs suivants.
+      - name: Cacher Rust/cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: ${{ matrix.platform }}-${{ matrix.args }}
 
       - name: Installer les dépendances npm
         run: npm ci
