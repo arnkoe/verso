@@ -77,7 +77,7 @@ function switchSideTab(tab) {
 }
 
 function showPanel(id) {
-  ['panelCantique', 'panelBible', 'panelPdf', 'panelImages', 'panelHelp', 'panelAbout'].forEach(p => {
+  ['panelCantique', 'panelBible', 'panelPdf', 'panelImages', 'panelHelp', 'panelAbout', 'panelSettings'].forEach(p => {
     document.getElementById(p).classList.toggle('active', p === id);
   });
 }
@@ -1343,40 +1343,64 @@ function showAbout() {
 // Superposition dans la fenêtre opérateur (pas une fenêtre OS séparée) : volet de
 // rubriques à gauche, fermeture au clic sur le fond ou avec Échap.
 
-/** Affiche une rubrique de la modale (data-section sur les entrées du volet). */
-function settingsSection(name) {
-  document.querySelectorAll('#settingsModal .settings-nav-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.arg === name);
-  });
-  document.querySelectorAll('#settingsModal .settings-section').forEach(el => {
-    el.classList.toggle('active', el.dataset.section === name);
-  });
-}
-
+// Affiche le panneau Paramètres dans la zone principale (comme Aide/À propos).
 function openSettings() {
-  const modal = document.getElementById('settingsModal');
-  if (!modal) return;
-  settingsSection('contenus');
+  markContentLoaded();
+  showPanel('panelSettings');
   _resetUpdateCheck();
   _syncLangToggle();
-  modal.hidden = false;
 }
 
-// Marque le bouton de langue actif dans la modale Paramètres.
+// Aligne le menu déroulant de langue sur la langue courante : libellé du bouton
+// et coche de l'option active.
 function _syncLangToggle() {
-  document.querySelectorAll('#langToggle .lang-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.arg === currentLang());
+  const cur = currentLang();
+  const menu = document.getElementById('langMenu');
+  if (!menu) return;
+  let label = '';
+  menu.querySelectorAll('.dropdown-option').forEach(opt => {
+    const active = opt.dataset.arg === cur;
+    opt.classList.toggle('selected', active);
+    opt.setAttribute('aria-selected', active ? 'true' : 'false');
+    if (active) label = opt.querySelector('.dropdown-option-label').textContent;
   });
+  const value = document.getElementById('langValue');
+  if (value && label) value.textContent = label;
 }
 
-// Action du sélecteur de langue : applique, persiste et reconstruit les
-// listes dynamiques de l'onglet courant (libellés traduits à la volée).
+function _closeLangMenu() {
+  const menu = document.getElementById('langMenu');
+  const trigger = document.getElementById('langTrigger');
+  if (menu) menu.hidden = true;
+  if (trigger) trigger.setAttribute('aria-expanded', 'false');
+}
+
+function toggleLangMenu() {
+  const menu = document.getElementById('langMenu');
+  const trigger = document.getElementById('langTrigger');
+  if (!menu) return;
+  const open = menu.hidden;
+  menu.hidden = !open;
+  if (trigger) trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+// Action d'une option de langue : applique, persiste, ferme le menu et
+// reconstruit les contenus dynamiques (libellés traduits à la volée).
 function setUiLang(lang) {
+  _closeLangMenu();
   setLang(lang, () => {
     _syncLangToggle();
     _retranslateDynamic();
   });
 }
+
+// Ferme le menu de langue au clic extérieur et avec Échap.
+document.addEventListener('click', e => {
+  if (!e.target.closest('#langDropdown')) _closeLangMenu();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') _closeLangMenu();
+}, true);
 
 // Recompose les contenus générés par JS qui dépendent de la langue : strophes,
 // boutons de statut de mise à jour et libellé d'écran. Les listes de recherche
@@ -1387,19 +1411,192 @@ function _retranslateDynamic() {
   _updateMonitorScreen(_savedScreen());
 }
 
-function closeSettings() {
-  const modal = document.getElementById('settingsModal');
-  if (modal) modal.hidden = true;
+// ─── GESTION DES CONTENUS (modale dédiée par type) ────────────────────────────
+// Quatre types : recueils (songbooks), bibles, pdf, images. Le panneau Paramètres
+// ouvre, pour chaque type, une modale unique réutilisée (liste + ajout + drop +
+// suppression avec confirmation en ligne). Après chaque changement, on recharge
+// la liste de la modale ET la liste correspondante de l'interface principale.
+
+const CONTENT_KINDS = ['songbooks', 'bibles', 'pdf', 'images'];
+
+// Extensions proposées par le sélecteur natif, par type.
+const CONTENT_FILTERS = {
+  songbooks: { name: 'Recueils', extensions: ['json'] },
+  bibles:    { name: 'Bibles',   extensions: ['json'] },
+  pdf:       { name: 'PDF',      extensions: ['pdf'] },
+  images:    { name: 'Images',   extensions: ['jpg', 'jpeg', 'png', 'webp'] },
+};
+
+// Clé i18n du titre de la modale selon le type.
+const CONTENT_TITLE_KEY = {
+  songbooks: 'settings.songbooks',
+  bibles:    'settings.bibles',
+  pdf:       'settings.pdfs',
+  images:    'settings.images',
+};
+
+// Type actuellement géré par la modale (null = fermée).
+let _contentKind = null;
+
+function _setContentStatus(text, kind) {
+  const el = document.getElementById('contentStatus');
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'settings-update-status' + (kind ? ' ' + kind : '');
 }
 
-// Fermeture au clic sur le fond grisé (hors du panneau) et avec Échap.
+// Ouvre la modale de gestion pour un type donné (bouton « Gérer »).
+async function manageContent(kind) {
+  if (!CONTENT_KINDS.includes(kind)) return;
+  _contentKind = kind;
+  const modal = document.getElementById('contentModal');
+  if (!modal) return;
+  document.getElementById('contentModalTitle').textContent = t(CONTENT_TITLE_KEY[kind]);
+  _setContentStatus('', '');
+  await refreshContentList();
+  modal.hidden = false;
+}
+
+function closeContentManager() {
+  const modal = document.getElementById('contentModal');
+  if (modal) modal.hidden = true;
+  _contentKind = null;
+}
+
+// Recharge la liste affichée dans la modale (type courant).
+async function refreshContentList() {
+  const ul = document.getElementById('contentModalList');
+  if (!ul || !_contentKind) return;
+  const kind = _contentKind;
+  let items;
+  try {
+    items = await apiListContent(kind);
+  } catch (_) {
+    ul.innerHTML = `<li class="content-mgr-empty">${esc(t('settings.contentError'))}</li>`;
+    return;
+  }
+  if (!items.length) {
+    ul.innerHTML = `<li class="content-mgr-empty">${esc(t('settings.contentEmpty'))}</li>`;
+    return;
+  }
+  ul.innerHTML = items.map(it => `
+    <li class="content-mgr-item" data-file="${esc(it.filename)}">
+      <span class="content-mgr-name">${esc(it.label)}</span>
+      <span class="content-mgr-actions">
+        <button class="hdr-btn content-mgr-del" data-del-file="${esc(it.filename)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span>${esc(t('settings.delete'))}</span>
+        </button>
+      </span>
+    </li>`).join('');
+}
+
+// Recharge la liste de l'interface principale impactée par le type courant.
+function _reloadMainAfterContent(kind) {
+  if (kind === 'songbooks') {
+    songCache = null;
+    songCachePromise = null;
+    loadSongCache().catch(() => {});
+  } else if (kind === 'bibles') {
+    initBibleTranslations();
+  } else if (kind === 'pdf') {
+    loadPdfList();
+  } else if (kind === 'images') {
+    loadImageList();
+  }
+}
+
+// Importe une liste de chemins source pour le type courant.
+async function _importPaths(paths) {
+  const kind = _contentKind;
+  if (!kind || !paths || !paths.length) return;
+  let ok = 0;
+  let lastErr = '';
+  for (const p of paths) {
+    try { await apiImportContent(kind, p); ok++; }
+    catch (err) { lastErr = String(err); }
+  }
+  if (ok) {
+    await refreshContentList();
+    _reloadMainAfterContent(kind);
+  }
+  if (lastErr && ok < paths.length) {
+    _setContentStatus(t('settings.importError', { err: lastErr }), 'error');
+  } else if (ok) {
+    _setContentStatus(t('settings.imported', { count: String(ok) }), 'ok');
+  }
+}
+
+// Bouton « Ajouter » de la modale : ouvre le sélecteur de fichiers natif.
+async function addCurrentContent() {
+  if (!_contentKind) return;
+  let selected;
+  try {
+    selected = await window.__TAURI__.dialog.open({
+      multiple: true,
+      filters: [CONTENT_FILTERS[_contentKind]],
+    });
+  } catch (_) { return; }
+  if (!selected) return;
+  const paths = Array.isArray(selected) ? selected : [selected];
+  await _importPaths(paths);
+}
+
+// Suppression effective d'un contenu (après confirmation en ligne).
+async function _deleteContent(filename) {
+  const kind = _contentKind;
+  if (!kind) return;
+  try {
+    await apiDeleteContent(kind, filename);
+  } catch (err) {
+    _setContentStatus(t('settings.deleteError', { err: String(err) }), 'error');
+    return;
+  }
+  await refreshContentList();
+  _reloadMainAfterContent(kind);
+  _setContentStatus('', '');
+}
+
+// Affiche la confirmation en ligne (Annuler / Supprimer) sur une entrée. Évite
+// les suppressions accidentelles : le premier clic ne fait que demander confirmation.
+function _askDeleteConfirm(item, filename) {
+  if (item.querySelector('.content-mgr-confirm')) return; // déjà en confirmation
+  const actions = item.querySelector('.content-mgr-actions');
+  if (!actions) return;
+  actions.innerHTML = `
+    <span class="content-mgr-confirm">
+      <button class="hdr-btn content-mgr-cancel" data-confirm="cancel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        <span>${esc(t('common.cancel'))}</span>
+      </button>
+      <button class="hdr-btn content-mgr-confirm-del" data-confirm="delete" data-del-file="${esc(filename)}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        <span>${esc(t('settings.delete'))}</span>
+      </button>
+    </span>`;
+}
+
+// Délégation des clics dans la liste : corbeille → confirmation, puis Annuler /
+// Supprimer.
+document.getElementById('contentModalList')?.addEventListener('click', e => {
+  const cancel = e.target.closest('[data-confirm="cancel"]');
+  if (cancel) { refreshContentList(); return; }
+  const confirm = e.target.closest('[data-confirm="delete"]');
+  if (confirm) { _deleteContent(confirm.dataset.delFile); return; }
+  const del = e.target.closest('.content-mgr-del');
+  if (del) {
+    _askDeleteConfirm(del.closest('.content-mgr-item'), del.dataset.delFile);
+  }
+});
+
+// Fermeture de la modale de contenu au clic sur le fond et avec Échap.
 document.addEventListener('click', e => {
-  if (e.target.id === 'settingsModal') closeSettings();
+  if (e.target.id === 'contentModal') closeContentManager();
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    const modal = document.getElementById('settingsModal');
-    if (modal && !modal.hidden) { e.stopPropagation(); closeSettings(); }
+    const modal = document.getElementById('contentModal');
+    if (modal && !modal.hidden) { e.stopPropagation(); closeContentManager(); }
   }
 }, true);
 

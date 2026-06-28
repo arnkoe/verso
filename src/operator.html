@@ -252,81 +252,132 @@
         </div>
       </div>
 
+      <!-- Panel Paramètres : page déroulante (Contenus, Langue, Mises à jour). -->
+      <div class="panel" id="panelSettings">
+        <div class="info-pane info-pane-settings">
+          <h2 class="info-title" data-i18n="settings.title">Paramètres</h2>
+
+          <!-- Section Contenus : un bouton « Gérer » par type, ouvrant une modale dédiée. -->
+          <h3 class="info-h" data-i18n="settings.contentTitle">Contenus</h3>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="settings.songbooks">Recueils</div>
+              <div class="settings-row-desc" data-i18n="settings.songbooksDesc">Recueils de chants (fichiers JSON).</div>
+            </div>
+            <button class="hdr-btn" data-action="manageContent" data-arg="songbooks">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              <span data-i18n="settings.manage">Gérer</span>
+            </button>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="settings.bibles">Bibles</div>
+              <div class="settings-row-desc" data-i18n="settings.biblesDesc">Traductions de la Bible (fichiers JSON).</div>
+            </div>
+            <button class="hdr-btn" data-action="manageContent" data-arg="bibles">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              <span data-i18n="settings.manage">Gérer</span>
+            </button>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="settings.pdfs">PDF</div>
+              <div class="settings-row-desc" data-i18n="settings.pdfsDesc">Documents PDF à projeter.</div>
+            </div>
+            <button class="hdr-btn" data-action="manageContent" data-arg="pdf">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              <span data-i18n="settings.manage">Gérer</span>
+            </button>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="settings.images">Images</div>
+              <div class="settings-row-desc" data-i18n="settings.imagesDesc">Images à projeter.</div>
+            </div>
+            <button class="hdr-btn" data-action="manageContent" data-arg="images">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              <span data-i18n="settings.manage">Gérer</span>
+            </button>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="settings.versoFolder">Dossier Verso</div>
+              <div class="settings-row-desc" data-i18n="settings.versoFolderDesc">Recueils, bibles et médias.</div>
+            </div>
+            <button class="hdr-btn" data-action="openVersoDir" title="Ouvrir le dossier Verso" data-i18n-title="settings.openVersoTitle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+              <span data-i18n="settings.open">Ouvrir</span>
+            </button>
+          </div>
+
+          <!-- Section Langue -->
+          <h3 class="info-h" data-i18n="settings.langTitle">Langue</h3>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="settings.langLabel">Langue de l'interface</div>
+              <div class="settings-row-desc" data-i18n="settings.langDesc">Français ou anglais.</div>
+            </div>
+            <div class="dropdown" id="langDropdown">
+              <button class="dropdown-trigger" id="langTrigger" type="button" data-action="toggleLangMenu" aria-haspopup="listbox" aria-expanded="false" data-i18n-aria-label="settings.langLabel">
+                <span class="dropdown-value" id="langValue">Français</span>
+                <svg class="dropdown-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown-menu" id="langMenu" role="listbox" hidden>
+                <button class="dropdown-option" type="button" role="option" data-action="setUiLang" data-arg="en">
+                  <span class="dropdown-option-label">English</span>
+                  <svg class="dropdown-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </button>
+                <button class="dropdown-option" type="button" role="option" data-action="setUiLang" data-arg="fr">
+                  <span class="dropdown-option-label">Français</span>
+                  <svg class="dropdown-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section Mises à jour -->
+          <h3 class="info-h" data-i18n="settings.updatesTitle">Mises à jour</h3>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="settings.checkUpdates">Vérifier les mises à jour</div>
+              <div class="settings-row-desc" data-i18n="settings.checkUpdatesDesc">Recherche une nouvelle version de Verso.</div>
+            </div>
+            <button class="hdr-btn" id="btnCheckUpdate" data-action="checkUpdate" title="Vérifier maintenant" data-i18n-title="settings.checkNow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+              <span class="settings-btn-label" data-i18n="settings.checkNow">Vérifier maintenant</span>
+            </button>
+          </div>
+          <div class="settings-update-status" id="settingsUpdateStatus" aria-live="polite"></div>
+        </div>
+      </div>
+
     </main>
 
   </div>
 </div>
 
-<!-- Modale Paramètres : superposition avec volet de rubriques à gauche.
-     Fermeture au clic sur le fond (#settingsModal) ou avec Échap. -->
-<div class="settings-modal" id="settingsModal" role="dialog" aria-modal="true" aria-label="Paramètres" data-i18n-aria-label="settings.title" hidden>
-  <div class="settings-dialog">
-    <nav class="settings-nav" aria-label="Rubriques" data-i18n-aria-label="settings.sections">
-      <div class="settings-nav-title" data-i18n="settings.title">Paramètres</div>
-      <button class="settings-nav-item active" data-action="settingsSection" data-arg="contenus">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
-        <span data-i18n="settings.navContent">Contenus</span>
-      </button>
-      <button class="settings-nav-item" data-action="settingsSection" data-arg="langue">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        <span data-i18n="settings.navLang">Langue</span>
-      </button>
-      <button class="settings-nav-item" data-action="settingsSection" data-arg="maj">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
-        <span data-i18n="settings.navUpdates">Mises à jour</span>
-      </button>
-    </nav>
-
-    <div class="settings-body">
-      <button class="settings-close" data-action="closeSettings" title="Fermer" aria-label="Fermer" data-i18n-title="settings.close" data-i18n-aria-label="settings.close">
+<!-- Modale de gestion d'un type de contenu (recueils, bibles, PDF, images).
+     Réutilisée pour les quatre types ; ouverte depuis le panneau Paramètres.
+     Fermeture au clic sur le fond (#contentModal) ou avec Échap. -->
+<div class="content-modal" id="contentModal" role="dialog" aria-modal="true" aria-labelledby="contentModalTitle" hidden>
+  <div class="content-modal-dialog">
+    <div class="content-modal-head">
+      <h2 class="content-modal-title" id="contentModalTitle">Contenus</h2>
+      <button class="settings-close" data-action="closeContentManager" title="Fermer" aria-label="Fermer" data-i18n-title="settings.close" data-i18n-aria-label="settings.close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
+    </div>
 
-      <!-- Rubrique Contenus -->
-      <section class="settings-section active" data-section="contenus">
-        <h2 class="settings-h" data-i18n="settings.contentTitle">Contenus</h2>
-        <div class="settings-row">
-          <div>
-            <div class="settings-row-label" data-i18n="settings.versoFolder">Dossier Verso</div>
-            <div class="settings-row-desc" data-i18n="settings.versoFolderDesc">Recueils, bibles et médias.</div>
-          </div>
-          <button class="hdr-btn" data-action="openVersoDir" title="Ouvrir le dossier Verso" data-i18n-title="settings.openVersoTitle">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
-            <span data-i18n="settings.open">Ouvrir</span>
-          </button>
-        </div>
-      </section>
+    <div class="content-modal-body">
+      <ul class="content-mgr-list" id="contentModalList"></ul>
+    </div>
 
-      <!-- Rubrique Langue -->
-      <section class="settings-section" data-section="langue">
-        <h2 class="settings-h" data-i18n="settings.langTitle">Langue</h2>
-        <div class="settings-row">
-          <div>
-            <div class="settings-row-label" data-i18n="settings.langLabel">Langue de l'interface</div>
-            <div class="settings-row-desc" data-i18n="settings.langDesc">Français ou anglais.</div>
-          </div>
-          <div class="lang-toggle" id="langToggle" role="group">
-            <button class="lang-btn" data-action="setUiLang" data-arg="en">English</button>
-            <button class="lang-btn" data-action="setUiLang" data-arg="fr">Français</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Rubrique Mises à jour -->
-      <section class="settings-section" data-section="maj">
-        <h2 class="settings-h" data-i18n="settings.updatesTitle">Mises à jour</h2>
-        <div class="settings-row">
-          <div>
-            <div class="settings-row-label" data-i18n="settings.checkUpdates">Vérifier les mises à jour</div>
-            <div class="settings-row-desc" data-i18n="settings.checkUpdatesDesc">Recherche une nouvelle version de Verso.</div>
-          </div>
-          <button class="hdr-btn" id="btnCheckUpdate" data-action="checkUpdate" title="Vérifier maintenant" data-i18n-title="settings.checkNow">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
-            <span class="settings-btn-label" data-i18n="settings.checkNow">Vérifier maintenant</span>
-          </button>
-        </div>
-        <div class="settings-update-status" id="settingsUpdateStatus" aria-live="polite"></div>
-      </section>
+    <div class="content-modal-foot">
+      <div class="settings-update-status" id="contentStatus" aria-live="polite"></div>
+      <button class="hdr-btn" id="contentAddBtn" data-action="addCurrentContent">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        <span data-i18n="settings.add">Ajouter</span>
+      </button>
     </div>
   </div>
 </div>

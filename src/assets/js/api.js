@@ -53,6 +53,23 @@ async function apiListImages() {
   return await invoke('list_images');
 }
 
+// ─── GESTION DES CONTENUS (modale Paramètres) ─────────────────────────────────
+
+/** Liste les contenus d'un type pour la modale : [{filename, label}]. */
+async function apiListContent(kind) {
+  return await invoke('list_content', { kind });
+}
+
+/** Importe un fichier (chemin source absolu) dans le dossier du type. */
+async function apiImportContent(kind, source) {
+  return await invoke('import_content', { kind, source });
+}
+
+/** Supprime un contenu (par nom de fichier) du dossier du type. */
+async function apiDeleteContent(kind, filename) {
+  return await invoke('delete_content', { kind, filename });
+}
+
 
 /**
  * URL `asset://` utilisable dans <img src> ou pdf.js, pour un média stocké.

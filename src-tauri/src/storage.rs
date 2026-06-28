@@ -347,6 +347,158 @@ pub fn list_bibles(app: &AppHandle) -> Vec<String> {
     out
 }
 
+// ─── Gestion des contenus (ajout / suppression depuis la modale) ─────────────
+
+/// Type de contenu géré par la modale Paramètres → (sous-dossier, extensions
+/// autorisées). `songbooks` et `bibles` sont des JSON ; `pdf` et `images` sont
+/// des fichiers loose.
+fn content_kind(kind: &str) -> Option<(&'static str, &'static [&'static str])> {
+    match kind {
+        "songbooks" => Some(("songbooks", &[".json"])),
+        "bibles" => Some(("bibles", &[".json"])),
+        "pdf" => Some(("pdf", &[".pdf"])),
+        "images" => Some(("images", &[".jpg", ".jpeg", ".png", ".webp"])),
+        _ => None,
+    }
+}
+
+/// Dossier cible d'un type de contenu (créé au besoin).
+fn content_dir(app: &AppHandle, kind: &str) -> PathBuf {
+    let dir = data_dir(app).join(kind);
+    let _ = fs::create_dir_all(&dir);
+    dir
+}
+
+/// Vide les caches mémoire impactés par un changement de contenu, pour que les
+/// listes reflètent l'ajout/suppression au prochain accès.
+fn invalidate_caches(state: &AppState, kind: &str) {
+    match kind {
+        "songbooks" => *state.songs.lock().unwrap() = None,
+        "bibles" => state.bibles.lock().unwrap().clear(),
+        _ => {}
+    }
+}
+
+/// Description d'un contenu listé dans la modale.
+#[derive(Debug, Clone, Serialize)]
+pub struct ContentEntry {
+    /// Nom de fichier (identifiant pour la suppression).
+    pub filename: String,
+    /// Libellé affiché (recueil : nom lisible ; bible : traduction ; sinon le nom).
+    pub label: String,
+}
+
+/// Liste les contenus d'un type donné pour la modale (triés par libellé).
+pub fn list_content(app: &AppHandle, kind: &str) -> Result<Vec<ContentEntry>, String> {
+    let (sub, exts) = content_kind(kind).ok_or("Type de contenu invalide")?;
+    let dir = content_dir(app, sub);
+    let mut out: Vec<ContentEntry> = Vec::new();
+    if let Ok(rd) = fs::read_dir(&dir) {
+        for entry in rd.flatten() {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if is_hidden(&name) {
+                continue;
+            }
+            let lower = name.to_lowercase();
+            if !exts.iter().any(|e| lower.ends_with(e)) {
+                continue;
+            }
+            let label = match kind {
+                "songbooks" => songbook_label(&entry.path()).unwrap_or_else(|| name.clone()),
+                "bibles" => name.strip_suffix(".json").unwrap_or(&name).to_string(),
+                _ => name.clone(),
+            };
+            out.push(ContentEntry { filename: name, label });
+        }
+    }
+    out.sort_by(|a, b| a.label.to_lowercase().cmp(&b.label.to_lowercase()));
+    Ok(out)
+}
+
+/// Nom lisible d'un recueil : `source_book` du premier chant du fichier.
+fn songbook_label(path: &Path) -> Option<String> {
+    let bytes = fs::read(path).ok()?;
+    let songs: Vec<Song> = serde_json::from_slice(&bytes).ok()?;
+    songs
+        .first()
+        .and_then(|s| s.source_book.clone())
+        .filter(|s| !s.is_empty())
+}
+
+/// Importe un fichier (chemin source absolu) dans le sous-dossier du type donné.
+/// L'extension doit correspondre au type. Le nom de fichier est assaini ; pour
+/// les recueils, on génère un nom canonique `songbook-<slug>.json`.
+pub fn import_content(
+    app: &AppHandle,
+    state: &AppState,
+    kind: &str,
+    source: &str,
+) -> Result<(), String> {
+    let (sub, exts) = content_kind(kind).ok_or("Type de contenu invalide")?;
+    let src = Path::new(source);
+    let orig = src
+        .file_name()
+        .and_then(|n| n.to_str())
+        .ok_or("Chemin source invalide")?;
+    let lower = orig.to_lowercase();
+    if !exts.iter().any(|e| lower.ends_with(e)) {
+        return Err("Extension de fichier non autorisée".into());
+    }
+
+    let dest_name = if kind == "songbooks" {
+        // Nom canonique d'après le recueil contenu dans le fichier (cohérent
+        // avec le découpage des ressources et `save_songs`).
+        let bytes = fs::read(src).map_err(|e| format!("Lecture : {e}"))?;
+        let songs: Vec<Song> =
+            serde_json::from_slice(&bytes).map_err(|e| format!("Recueil invalide : {e}"))?;
+        let book = songs
+            .first()
+            .map(|s| song_book(s))
+            .filter(|s| !s.is_empty())
+            .unwrap_or("sans-recueil");
+        format!("songbook-{}.json", book_slug(book))
+    } else {
+        sanitize_filename(orig).ok_or("Nom de fichier invalide")?
+    };
+
+    if kind == "bibles" {
+        // Valide la structure avant de copier (évite une traduction illisible).
+        let bytes = fs::read(src).map_err(|e| format!("Lecture : {e}"))?;
+        serde_json::from_slice::<Bible>(&bytes).map_err(|e| format!("Bible invalide : {e}"))?;
+    }
+
+    let dest = content_dir(app, sub).join(&dest_name);
+    fs::copy(src, &dest).map_err(|e| format!("Copie : {e}"))?;
+    invalidate_caches(state, kind);
+    Ok(())
+}
+
+/// Supprime un contenu de son sous-dossier (nom de fichier assaini).
+pub fn delete_content(
+    app: &AppHandle,
+    state: &AppState,
+    kind: &str,
+    filename: &str,
+) -> Result<(), String> {
+    let (sub, _) = content_kind(kind).ok_or("Type de contenu invalide")?;
+    let name = sanitize_filename(filename).ok_or("Nom de fichier invalide")?;
+    let path = content_dir(app, sub).join(&name);
+    if !path.exists() {
+        return Err("Fichier introuvable".into());
+    }
+    // Soft delete : on archive le fichier en .bak plutôt que de le supprimer,
+    // pour pouvoir le restaurer en cas d'erreur.
+    let mut backup = path.clone();
+    let backup_name = format!(
+        "{}.bak",
+        path.file_name().and_then(|n| n.to_str()).unwrap_or(&name)
+    );
+    backup.set_file_name(&backup_name);
+    fs::rename(&path, &backup).map_err(|e| format!("Suppression : {e}"))?;
+    invalidate_caches(state, kind);
+    Ok(())
+}
+
 // ─── État de projection ─────────────────────────────────────────────────────
 
 pub fn read_projection_state(app: &AppHandle) -> serde_json::Value {

@@ -840,7 +840,7 @@ body {
 
 /* ─── Panneaux d'information (Aide, À propos) ────────────────────────────────── */
 /* Centrage vertical des panneaux Aide / À propos dans la main card. */
-#panelHelp, #panelAbout {
+#panelHelp, #panelAbout, #panelSettings {
   grid-row: 1 / -1;
   justify-content: center;
   align-items: center;
@@ -937,78 +937,16 @@ body {
 }
 .about-meta a { color: var(--mute); }
 
-/* ─── MODALE PARAMÈTRES ──────────────────────────────────────────────────────
-   Superposition centrée avec volet de rubriques à gauche (style app desktop). */
-.settings-modal[hidden] { display: none; }
-.settings-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.35);
+/* ─── PANNEAU PARAMÈTRES ─────────────────────────────────────────────────────
+   Page déroulante dans la zone principale (comme Aide/À propos). */
+.info-pane-settings .info-h {
+  margin: 36px 0 4px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line-2);
 }
-
-.settings-dialog {
-  display: flex;
-  width: min(760px, 90vw);
-  height: min(420px, 86vh);
-  background: var(--panel);
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-}
-
-.settings-nav {
-  flex: none;
-  width: 220px;
-  padding: 16px 12px;
-  background: var(--bg);
-  border-right: 1px solid var(--line);
-  overflow-y: auto;
-}
-
-.settings-nav-title {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--mute);
-  padding: 4px 10px 10px;
-}
-
-.settings-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 9px 10px;
-  margin-bottom: 2px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--ink-2);
-  font: inherit;
-  font-size: 14px;
-  text-align: left;
-  cursor: pointer;
-}
-.settings-nav-item:hover { background: var(--hover); }
-.settings-nav-item.active { background: var(--sel); color: var(--ink); font-weight: 500; }
-.settings-nav-item svg { width: 18px; height: 18px; flex: none; }
-
-.settings-body {
-  position: relative;
-  flex: 1;
-  padding: 28px 32px;
-  overflow-y: auto;
-}
+.info-pane-settings .info-h:first-of-type { margin-top: 28px; }
 
 .settings-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
   width: 32px;
   height: 32px;
   display: flex;
@@ -1023,14 +961,58 @@ body {
 .settings-close:hover { background: var(--hover); color: var(--ink); }
 .settings-close svg { width: 18px; height: 18px; }
 
-.settings-section { display: none; }
-.settings-section.active { display: block; }
-
-.settings-h {
-  margin: 0 0 20px;
-  font-size: 18px;
+/* ─── MODALE DE GESTION D'UN CONTENU ─────────────────────────────────────────
+   Superposition centrée, réutilisée pour chaque type (recueils, bibles, …). */
+.content-modal[hidden] { display: none; }
+.content-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+}
+.content-modal-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(480px, 90vw);
+  height: min(560px, 85vh);
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+.content-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line-2);
+}
+.content-modal-title {
+  margin: 0;
+  font-size: 15px;
   font-weight: 600;
   color: var(--ink);
+}
+.content-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 14px;
+  min-height: 0;
+}
+.content-modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--line-2);
+}
+.content-modal-foot .settings-update-status {
+  margin: 0;
+  flex: 1;
 }
 
 .settings-row {
@@ -1042,6 +1024,9 @@ body {
   border-top: 1px solid var(--line-2);
 }
 .settings-row:first-of-type { border-top: none; }
+/* La row qui suit un en-tête de section : pas de border-top, sinon il double
+   le border-bottom de l'en-tête. */
+.info-h + .settings-row { border-top: none; }
 
 .settings-row-label { font-size: 14px; color: var(--ink); }
 .settings-row-desc { font-size: 12px; color: var(--mute); margin-top: 2px; }
@@ -1056,23 +1041,90 @@ body {
 .settings-update-status.error { color: #c62828; }
 .settings-update-status.available { color: var(--accent); font-weight: 600; }
 
-/* Sélecteur de langue (segmenté) dans la rubrique Langue. */
-.lang-toggle { display: inline-flex; gap: 6px; }
-.lang-btn {
+/* Gestion des contenus (liste dans la modale dédiée). */
+.content-mgr-list { list-style: none; margin: 0; padding: 0; }
+.content-mgr-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 8px;
+  font-size: 13px;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line-2);
+}
+.content-mgr-item:last-child { border-bottom: none; }
+.content-mgr-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.content-mgr-empty {
+  padding: 28px 8px;
+  font-size: 13px;
+  color: var(--mute);
+  text-align: center;
+}
+.content-mgr-actions { flex: none; display: inline-flex; align-items: center; gap: 6px; }
+
+/* Boutons de suppression : .hdr-btn standard, teinte rouge pour l'action destructive. */
+.content-mgr-del,
+.content-mgr-confirm-del { color: #c62828; }
+.content-mgr-del:hover,
+.content-mgr-confirm-del:hover { color: #c62828; border-color: #e3b4b4; background: #fdeaea; }
+.content-mgr-confirm { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Menu déroulant custom (langue) — aligné sur le style des boutons (.hdr-btn). */
+.dropdown { position: relative; }
+.dropdown-trigger {
   appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 130px;
+  height: 28px;
+  padding: 0 8px 0 12px;
   border: 1px solid var(--line);
+  border-radius: 6px;
   background: #fff;
-  font-family: inherit; font-size: 12px;
-  padding: 5px 12px; border-radius: 6px;
-  color: var(--ink-2); cursor: pointer;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  transition: border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
-.lang-btn:hover:not(.active) {
-  background: var(--hover); border-color: #c8c8c8; color: var(--ink);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.09);
+.dropdown-trigger:hover { border-color: #c8c8c8; background: var(--hover); }
+.dropdown-trigger[aria-expanded="true"] { border-color: #c8c8c8; box-shadow: 0 1px 3px rgba(0,0,0,0.09); }
+.dropdown-value { flex: 1; text-align: left; }
+.dropdown-caret { width: 14px; height: 14px; flex: none; color: var(--mute); }
+
+.dropdown-menu[hidden] { display: none; }
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 100%;
+  z-index: 50;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
 }
-.lang-btn.active {
-  background: var(--ink); color: #fff; border-color: var(--ink);
-  box-shadow: none;
+.dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
 }
+.dropdown-option:hover { background: var(--hover); }
+.dropdown-option-label { flex: 1; }
+.dropdown-check { width: 15px; height: 15px; flex: none; color: var(--accent); visibility: hidden; }
+.dropdown-option.selected .dropdown-check { visibility: visible; }

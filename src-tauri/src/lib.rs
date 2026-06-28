@@ -194,6 +194,37 @@ fn media_path(app: AppHandle, kind: String, filename: String) -> Result<String, 
     Ok(path.to_string_lossy().to_string())
 }
 
+// ─── GESTION DES CONTENUS (modale Paramètres) ─────────────────────────────────
+
+/// Liste les contenus d'un type (`songbooks`, `bibles`, `pdf`, `images`) pour la
+/// modale : nom de fichier + libellé affichable.
+#[tauri::command]
+fn list_content(app: AppHandle, kind: String) -> Result<Vec<storage::ContentEntry>, String> {
+    storage::list_content(&app, &kind)
+}
+
+/// Importe un fichier (chemin source absolu) dans le dossier du type donné.
+#[tauri::command]
+fn import_content(
+    app: AppHandle,
+    state: tauri::State<AppState>,
+    kind: String,
+    source: String,
+) -> Result<(), String> {
+    storage::import_content(&app, &state, &kind, &source)
+}
+
+/// Supprime un contenu (par nom de fichier) du dossier du type donné.
+#[tauri::command]
+fn delete_content(
+    app: AppHandle,
+    state: tauri::State<AppState>,
+    kind: String,
+    filename: String,
+) -> Result<(), String> {
+    storage::delete_content(&app, &state, &kind, &filename)
+}
+
 // ─── PROJECTION ─────────────────────────────────────────────────────────────
 
 /// État de projection : lu par la fenêtre projection à son ouverture (reprise).
@@ -486,6 +517,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_dialog::init())
         .manage(AppState::default())
         .setup(|app| {
             // Premier lancement : dépose les recueils et bibles libres de droits
@@ -502,6 +534,9 @@ pub fn run() {
             bible_search,
             list_pdfs,
             list_images,
+            list_content,
+            import_content,
+            delete_content,
             reveal_verso_dir,
             media_path,
             get_projection_state,
