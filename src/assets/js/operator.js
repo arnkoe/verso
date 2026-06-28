@@ -1332,17 +1332,109 @@ function showAbout() {
 // rouge sur le bouton « À propos », et un lien cliquable dans le panneau À propos
 // pour l'installer et relancer. En cas d'échec réseau, rien ne change.
 
+// ─── PARAMÈTRES (modale) ────────────────────────────────────────────────────────
+// Superposition dans la fenêtre opérateur (pas une fenêtre OS séparée) : volet de
+// rubriques à gauche, fermeture au clic sur le fond ou avec Échap.
+
+/** Affiche une rubrique de la modale (data-section sur les entrées du volet). */
+function settingsSection(name) {
+  document.querySelectorAll('#settingsModal .settings-nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.arg === name);
+  });
+  document.querySelectorAll('#settingsModal .settings-section').forEach(el => {
+    el.classList.toggle('active', el.dataset.section === name);
+  });
+}
+
+function openSettings() {
+  const modal = document.getElementById('settingsModal');
+  if (!modal) return;
+  settingsSection('contenus');
+  _resetUpdateCheck();
+  modal.hidden = false;
+}
+
+function closeSettings() {
+  const modal = document.getElementById('settingsModal');
+  if (modal) modal.hidden = true;
+}
+
+// Fermeture au clic sur le fond grisé (hors du panneau) et avec Échap.
+document.addEventListener('click', e => {
+  if (e.target.id === 'settingsModal') closeSettings();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('settingsModal');
+    if (modal && !modal.hidden) { e.stopPropagation(); closeSettings(); }
+  }
+}, true);
+
+// ─── VÉRIFICATION MANUELLE DES MISES À JOUR (depuis la modale) ──────────────────
+
+function _setUpdateStatus(text, kind) {
+  const el = document.getElementById('settingsUpdateStatus');
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'settings-update-status' + (kind ? ' ' + kind : '');
+}
+
+function _resetUpdateCheck() {
+  const btn = document.getElementById('btnCheckUpdate');
+  if (btn) {
+    btn.dataset.action = 'checkUpdate';
+    btn.disabled = false;
+    btn.querySelector('.settings-btn-label').textContent = 'Vérifier maintenant';
+  }
+  _setUpdateStatus('', '');
+}
+
+async function checkUpdate() {
+  const btn = document.getElementById('btnCheckUpdate');
+  if (btn) btn.disabled = true;
+  _setUpdateStatus('Recherche…');
+  try {
+    const update = await apiCheckUpdate();
+    if (!update) {
+      _setUpdateStatus('Verso est à jour.', 'ok');
+      if (btn) btn.disabled = false;
+      return;
+    }
+    _pendingUpdate = update;
+    _setUpdateStatus(
+      update.version
+        ? `Mise à jour disponible : version ${update.version}.`
+        : 'Mise à jour disponible.',
+      'available'
+    );
+    if (btn) {
+      btn.dataset.action = 'installUpdate';
+      btn.disabled = false;
+      btn.querySelector('.settings-btn-label').textContent = 'Installer et redémarrer';
+    }
+  } catch (_) {
+    _setUpdateStatus('Échec de la vérification.', 'error');
+    if (btn) btn.disabled = false;
+  }
+}
+
 let _pendingUpdate = null;
 
 async function installUpdate() {
   if (!_pendingUpdate) return;
+  // Deux points d'entrée : le lien du panneau « À propos » et le bouton de la modale.
   const link = document.getElementById('aboutUpdateLink');
+  const btn = document.getElementById('btnCheckUpdate');
   if (link) { link.textContent = 'Installation…'; link.disabled = true; }
+  if (btn) btn.disabled = true;
+  _setUpdateStatus('Installation…');
   try {
     await apiInstallUpdate(_pendingUpdate);
     // relaunch() redémarre l'app ; le code ci-dessous n'est normalement pas atteint.
   } catch (_) {
     if (link) { link.textContent = 'Échec, réessayer'; link.disabled = false; }
+    if (btn) btn.disabled = false;
+    _setUpdateStatus('Échec de l’installation.', 'error');
   }
 }
 

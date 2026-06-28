@@ -936,3 +936,122 @@ body {
   margin-top: 14px;
 }
 .about-meta a { color: var(--mute); }
+
+/* ─── MODALE PARAMÈTRES ──────────────────────────────────────────────────────
+   Superposition centrée avec volet de rubriques à gauche (style app desktop). */
+.settings-modal[hidden] { display: none; }
+.settings-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.settings-dialog {
+  display: flex;
+  width: min(760px, 90vw);
+  height: min(420px, 86vh);
+  background: var(--panel);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.settings-nav {
+  flex: none;
+  width: 220px;
+  padding: 16px 12px;
+  background: var(--bg);
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+}
+
+.settings-nav-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mute);
+  padding: 4px 10px 10px;
+}
+
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  margin-bottom: 2px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.settings-nav-item:hover { background: var(--hover); }
+.settings-nav-item.active { background: var(--sel); color: var(--ink); font-weight: 500; }
+.settings-nav-item svg { width: 18px; height: 18px; flex: none; }
+
+.settings-body {
+  position: relative;
+  flex: 1;
+  padding: 28px 32px;
+  overflow-y: auto;
+}
+
+.settings-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--mute);
+  cursor: pointer;
+}
+.settings-close:hover { background: var(--hover); color: var(--ink); }
+.settings-close svg { width: 18px; height: 18px; }
+
+.settings-section { display: none; }
+.settings-section.active { display: block; }
+
+.settings-h {
+  margin: 0 0 20px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line-2);
+}
+.settings-row:first-of-type { border-top: none; }
+
+.settings-row-label { font-size: 14px; color: var(--ink); }
+.settings-row-desc { font-size: 12px; color: var(--mute); margin-top: 2px; }
+
+.settings-update-status {
+  font-size: 13px;
+  margin-top: 10px;
+  min-height: 1.2em;
+  color: var(--mute);
+}
+.settings-update-status.ok { color: var(--live); }
+.settings-update-status.error { color: #c62828; }
+.settings-update-status.available { color: var(--accent); font-weight: 600; }
