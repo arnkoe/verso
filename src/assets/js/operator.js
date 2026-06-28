@@ -451,7 +451,7 @@ function tokenSimilarity(aTokens, bSet) {
 // versification entre traductions.
 function bestVerseMatch(verses, num, srcText) {
   const WINDOW = 2;       // versets de part et d'autre du numéro d'origine
-  const THRESHOLD = 0.2;  // similarité minimale pour accepter une correspondance
+  const THRESHOLD = 0.1;  // similarité minimale pour accepter une correspondance
   const src = verseTokens(srcText);
   if (!src.length) return -1;
   let bestIdx = -1, bestScore = THRESHOLD;
@@ -595,7 +595,7 @@ async function fetchBibleChapter(ref) {
     let idx = sameNumIdx;
     if (sameNumIdx >= 0) {
       const sim = tokenSimilarity(verseTokens(text), new Set(verseTokens(data.verses[sameNumIdx].text)));
-      if (sim < 0.34) idx = bestVerseMatch(data.verses, num, text);
+      if (sim < 0.2) idx = bestVerseMatch(data.verses, num, text);
     } else {
       idx = bestVerseMatch(data.verses, num, text);
     }
