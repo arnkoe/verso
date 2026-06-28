@@ -1187,9 +1187,24 @@ window.addEventListener('focus', () => {
   else if (state.activeTab === 'images') loadImageList();
 });
 
-(function _initProjectionUI() {
-  _updateMonitorScreen(_savedScreen());
+(async function _initProjectionUI() {
   document.getElementById('btnPickScreen').style.display = '';
+  const saved = _savedScreen();
+  // Affiche d'abord la valeur stockée (instantané), puis la réconcilie avec la
+  // liste live : un écran sauvegardé par une ancienne version peut contenir un
+  // nom obsolète ("Monitor #<N>") que le back-end sait désormais résoudre en nom
+  // lisible. On rejoue le même match par géométrie que openProjection().
+  _updateMonitorScreen(saved);
+  if (!saved) return;
+  try {
+    const monitors = await apiListMonitors();
+    const live = monitors.find(m =>
+      m.x === saved.x && m.y === saved.y && m.width === saved.width && m.height === saved.height);
+    if (live && live.name && live.name !== saved.name) {
+      const refreshed = { ...saved, name: live.name, label: live.name };
+      _saveScreen(refreshed);
+    }
+  } catch (_) {}
 })();
 
 // Place le curseur dans le champ de recherche des chants au lancement.
