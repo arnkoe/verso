@@ -151,15 +151,17 @@ function searchSongs(q) {
   if (!songCache) return;
   const isNumeric = /^\d+$/.test(q.trim());
   const num       = isNumeric ? parseInt(q, 10) : NaN;
-  // Recherche multi-mots insensible aux accents : tous les termes doivent être
-  // présents dans le titre, dans n'importe quel ordre.
-  const terms = foldAccents(q).split(/\s+/).filter(Boolean);
+  // Recherche par phrase insensible aux accents : la requête (espaces normalisés)
+  // doit apparaître telle quelle dans le titre OU dans la 1re ligne d'une strophe.
+  // Chaque candidat est testé séparément pour éviter un match à cheval.
+  const needle = foldAccents(q).replace(/\s+/g, ' ').trim();
+  const norm = s => foldAccents(s).replace(/\s+/g, ' ').trim();
   let hits = isNumeric
     ? songCache.filter(s => s.source_number === num)
-    : songCache.filter(s => {
-        const title = foldAccents(s.title);
-        return terms.every(t => title.includes(t));
-      });
+    : songCache.filter(s =>
+        norm(s.title).includes(needle) ||
+        (s.incipits || []).some(line => norm(line).includes(needle))
+      );
   if (songBookFilter) hits = hits.filter(s => s.source_book === songBookFilter);
   const grouped = {};
   for (const s of hits) {
@@ -306,7 +308,9 @@ initBibleTranslations();
 // références bibliques ("1 chr" → "1chr") mais pas aux titres.
 function foldAccents(s) {
   return s.toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '');
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    // Unifie les apostrophes typographiques (’ ‘ ʼ) avec l'apostrophe droite.
+    .replace(/[’‘ʼ]/g, "'");
 }
 
 function stripAccents(s) {

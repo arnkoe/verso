@@ -23,6 +23,13 @@ fn list_songs(app: AppHandle, state: tauri::State<AppState>) -> Result<Vec<SongS
             source_book: s.source_book.clone(),
             source_number: s.source_number,
             verse_count: s.verses.len(),
+            incipits: s
+                .verses
+                .iter()
+                .filter_map(|v| v.text.lines().next())
+                .map(|l| l.trim().to_string())
+                .filter(|l| !l.is_empty())
+                .collect(),
         })
         .collect())
 }

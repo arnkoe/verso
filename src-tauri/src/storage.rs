@@ -61,6 +61,8 @@ pub struct SongSummary {
     pub source_book: Option<String>,
     pub source_number: Option<i64>,
     pub verse_count: usize,
+    /// Première ligne de chaque couplet (incipits), pour la recherche.
+    pub incipits: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
