@@ -73,8 +73,13 @@ struct BooksResponse {
 }
 
 #[tauri::command]
-fn list_bibles(app: AppHandle) -> Vec<String> {
-    storage::list_bibles(&app)
+fn list_bibles(app: AppHandle) -> Vec<storage::ContentName> {
+    storage::list_bibles_named(&app)
+}
+
+#[tauri::command]
+fn list_songbooks(app: AppHandle) -> Vec<storage::ContentName> {
+    storage::list_songbooks(&app)
 }
 
 #[tauri::command]
@@ -530,6 +535,7 @@ pub fn run() {
             get_song,
             update_song,
             list_bibles,
+            list_songbooks,
             bible_books,
             bible_search,
             list_pdfs,

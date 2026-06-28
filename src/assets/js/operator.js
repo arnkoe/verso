@@ -113,13 +113,29 @@ let songBookFilter = '';
 
 let songCachePromise = null;
 
+// Map code de recueil → nom lisible (issu des données via `list_songbooks`).
+// Sert à afficher les noms lisibles tout en filtrant/groupant par code.
+const songbookNames = new Map();
+
+function songbookName(code) {
+  return (code && songbookNames.get(code)) || code || '';
+}
+
+async function loadSongbookNames() {
+  try {
+    const list = await apiListSongbooks();
+    songbookNames.clear();
+    for (const { code, name } of list) songbookNames.set(code, name);
+  } catch (_) { /* liste indisponible : on retombe sur les codes */ }
+}
+
 async function loadSongCache() {
   if (songCache) return songCache;
   // Réutilise la promesse en cours et la réinitialise en cas d'échec
   // pour permettre une nouvelle tentative au prochain appel.
   if (!songCachePromise) {
-    songCachePromise = apiListSongs()
-      .then(s => { songCache = s; buildSongBookButtons(s); return s; })
+    songCachePromise = Promise.all([apiListSongs(), loadSongbookNames()])
+      .then(([s]) => { songCache = s; buildSongBookButtons(s); return s; })
       .catch(err => { songCachePromise = null; throw err; });
   }
   return songCachePromise;
@@ -129,7 +145,10 @@ async function loadSongCache() {
 // (le bouton « Tous » fixe reste en tête).
 function buildSongBookButtons(songs) {
   const wrap = document.getElementById('songBookFilter');
-  const books = [...new Set(songs.map(s => s.source_book).filter(Boolean))].sort();
+  // Le filtre se fait sur le code (source_book) ; le bouton affiche le code,
+  // le nom lisible résolu via `songbookNames` servant d'infobulle.
+  const books = [...new Set(songs.map(s => s.source_book).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b));
   wrap.querySelectorAll('.translation-btn[data-arg]:not([data-arg=""])').forEach(b => b.remove());
   for (const book of books) {
     const btn = document.createElement('button');
@@ -137,6 +156,7 @@ function buildSongBookButtons(songs) {
     btn.dataset.action = 'selectSongBook';
     btn.dataset.arg = book;
     btn.textContent = book;
+    btn.title = songbookName(book);
     wrap.appendChild(btn);
   }
   // S'assure que le filtre courant (« Tous » par défaut) reste visuellement sélectionné.
@@ -190,9 +210,10 @@ function searchSongs(q) {
         (s.incipits || []).some(line => norm(line).includes(needle))
       );
   if (songBookFilter) hits = hits.filter(s => s.source_book === songBookFilter);
+  // Groupé par code de recueil ; le nom lisible est résolu au rendu.
   const grouped = {};
   for (const s of hits) {
-    const book = s.source_book ?? t('book.other');
+    const book = s.source_book || '';
     (grouped[book] = grouped[book] || []).push(s);
   }
   renderSongList(grouped);
@@ -205,7 +226,7 @@ function renderSongList(grouped) {
     return;
   }
   list.innerHTML = Object.entries(grouped).map(([book, items]) =>
-    `<div class="source-group">${esc(book)}</div>` +
+    `<div class="source-group">${esc(book ? songbookName(book) : t('book.other'))}</div>` +
     items.map(s => `
       <div class="content-item" data-song-id="${s.id}" data-action="loadSong">
         <span class="item-number">${s.source_number ?? ''}</span>
@@ -226,10 +247,9 @@ async function loadSong(id) {
 
   document.getElementById('songHeader').style.display = '';
   markContentLoaded();
-  const bookNames = { HEC: 'HYMNES ET CANTIQUES', Reflets: 'REFLETS' };
-  const kicker = bookNames[song.source_book] || (song.source_book ?? '');
-  const bookAbbr = { HEC: 'HEC', Reflets: 'REF' };
-  const abbr = bookAbbr[song.source_book] || song.source_book;
+  // Kicker = nom lisible du recueil (résolu via songbookNames) ; abrév = code.
+  const kicker = songbookName(song.source_book).toUpperCase();
+  const abbr = song.source_book || '';
   const prefix = song.source_book && song.source_number ? `${abbr} ${song.source_number} – ` : '';
   document.getElementById('songSubtitle').textContent = kicker;
   document.getElementById('songTitle').textContent = prefix + song.title;
@@ -304,6 +324,13 @@ async function loadBibleBooks(translation) {
   return bibleBooksCache[translation];
 }
 
+// Map code de traduction → nom lisible (issu des données via `list_bibles`).
+const bibleNames = new Map();
+
+function bibleName(code) {
+  return (code && bibleNames.get(code)) || code || '';
+}
+
 // Construit les boutons de traduction à partir des bibles présentes dans le
 // dossier utilisateur. Si aucune bible n'est trouvée, affiche un message.
 async function initBibleTranslations() {
@@ -313,17 +340,21 @@ async function initBibleTranslations() {
     translations = await apiListBibles();
   } catch (_) { /* dossier indisponible : liste vide */ }
 
+  bibleNames.clear();
+  for (const { code, name } of translations) bibleNames.set(code, name);
+
   if (!translations.length) {
     wrap.innerHTML = `<span class="search-empty">${esc(t('list.noBible'))}</span>`;
     state.translation = null;
     return;
   }
 
+  const codes = translations.map(x => x.code);
   const saved = _savedDefaultBible();
-  state.translation = translations.includes(saved) ? saved : translations[0];
+  state.translation = codes.includes(saved) ? saved : codes[0];
   wrap.innerHTML = translations
-    .map(t =>
-      `<button class="translation-btn${t === state.translation ? ' active' : ''}" data-action="selectTranslation" data-arg="${esc(t)}">${esc(t)}</button>`)
+    .map(({ code, name }) =>
+      `<button class="translation-btn${code === state.translation ? ' active' : ''}" data-action="selectTranslation" data-arg="${esc(code)}" title="${esc(name)}">${esc(code)}</button>`)
     .join('');
   loadBibleBooks(state.translation);
 }
@@ -420,7 +451,7 @@ function tokenSimilarity(aTokens, bSet) {
 // versification entre traductions.
 function bestVerseMatch(verses, num, srcText) {
   const WINDOW = 2;       // versets de part et d'autre du numéro d'origine
-  const THRESHOLD = 0.2;  // similarité minimale pour accepter une correspondance
+  const THRESHOLD = 0.1;  // similarité minimale pour accepter une correspondance
   const src = verseTokens(srcText);
   if (!src.length) return -1;
   let bestIdx = -1, bestScore = THRESHOLD;
@@ -496,7 +527,7 @@ document.getElementById('bibleList').addEventListener('click', e => {
 });
 
 async function selectTranslation(btn, t) {
-  document.querySelectorAll('.translation-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#bibleTranslations .translation-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   state.translation = t;
   _saveDefaultBible(t);
@@ -542,11 +573,12 @@ async function fetchBibleChapter(ref) {
   const title = first.verse === last.verse
     ? `${first.book} ${first.chapter}:${first.verse}`
     : `${first.book} ${first.chapter}:${first.verse}–${last.verse}`;
-  const translationNames = { S21: 'SEGOND 21', BDS: 'BIBLE DU SEMEUR', NBS: 'NOUVELLE BIBLE SEGOND', DRB: 'DARBY' };
+  // Sous-titre = nom lisible de la traduction (résolu via bibleNames), sinon le code.
+  const translationLabel = bibleName(data.translation).toUpperCase();
   document.getElementById('bibleHeader').style.display = '';
   markContentLoaded();
   document.getElementById('bibleTitle').textContent = title;
-  document.getElementById('bibleSubtitle').textContent = 'TRADUCTION ' + (translationNames[data.translation] || data.translation);
+  document.getElementById('bibleSubtitle').textContent = 'TRADUCTION ' + translationLabel;
   showPanel('panelBible');
   renderBibleVerses(data.verses);
 
@@ -563,7 +595,7 @@ async function fetchBibleChapter(ref) {
     let idx = sameNumIdx;
     if (sameNumIdx >= 0) {
       const sim = tokenSimilarity(verseTokens(text), new Set(verseTokens(data.verses[sameNumIdx].text)));
-      if (sim < 0.34) idx = bestVerseMatch(data.verses, num, text);
+      if (sim < 0.2) idx = bestVerseMatch(data.verses, num, text);
     } else {
       idx = bestVerseMatch(data.verses, num, text);
     }

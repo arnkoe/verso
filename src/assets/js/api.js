@@ -27,10 +27,15 @@ async function apiUpdateSong(id, verses) {
   return await invoke('update_song', { id, verses });
 }
 
+async function apiListSongbooks() {
+  // Recueils présents : [{code, name}] (name = nom lisible, sinon code).
+  return await invoke('list_songbooks');
+}
+
 // ─── BIBLE ───────────────────────────────────────────────────────────────────
 
 async function apiListBibles() {
-  // Liste des traductions présentes dans le dossier utilisateur.
+  // Traductions présentes : [{code, name}] (name = nom lisible, sinon code).
   return await invoke('list_bibles');
 }
 

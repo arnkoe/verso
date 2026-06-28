@@ -840,7 +840,16 @@ body {
 
 /* ─── Panneaux d'information (Aide, À propos) ────────────────────────────────── */
 /* Centrage vertical des panneaux Aide / À propos dans la main card. */
-#panelHelp, #panelAbout, #panelSettings {
+#panelHelp, #panelSettings {
+  grid-row: 1 / -1;
+  justify-content: flex-start;
+  align-items: center;
+  overflow-y: auto;
+}
+#panelHelp .info-pane, #panelSettings .info-pane {
+  padding-top: 56px;
+}
+#panelAbout {
   grid-row: 1 / -1;
   justify-content: center;
   align-items: center;
@@ -887,6 +896,44 @@ body {
   border-radius: 5px;
   background: #fafafa;
   color: var(--ink);
+}
+
+/* Aide (raccourcis) : même aération que le panneau Paramètres. */
+.info-pane-help .info-h {
+  margin: 20px 0 2px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--line-2);
+}
+.info-pane-help .info-h:first-of-type { margin-top: 28px; }
+
+.info-pane-help .info-keys {
+  gap: 0;
+}
+.info-pane-help .info-keys li {
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 0;
+  border-top: 1px solid var(--line-2);
+  font-size: 14px;
+  color: var(--ink);
+}
+.info-pane-help .info-keys li:first-child { border-top: none; }
+/* Les touches (kbd) regroupées et poussées à droite, comme les boutons des
+   réglages. Le texte descriptif reste à gauche. */
+.info-pane-help .info-keys .keys {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+/* Touches à la même hauteur que les boutons des réglages (.hdr-btn). */
+.info-pane-help .info-keys kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
 }
 
 /* À propos */
