@@ -149,15 +149,17 @@ document.getElementById('songSearchInput').addEventListener('input', async e => 
 
 function searchSongs(q) {
   if (!songCache) return;
-  const lower     = q.toLowerCase();
   const isNumeric = /^\d+$/.test(q.trim());
   const num       = isNumeric ? parseInt(q, 10) : NaN;
+  // Recherche multi-mots insensible aux accents : tous les termes doivent être
+  // présents dans le titre, dans n'importe quel ordre.
+  const terms = foldAccents(q).split(/\s+/).filter(Boolean);
   let hits = isNumeric
     ? songCache.filter(s => s.source_number === num)
-    : songCache.filter(s =>
-        s.title.toLowerCase().includes(lower) ||
-        (s.author && s.author.toLowerCase().includes(lower))
-      );
+    : songCache.filter(s => {
+        const title = foldAccents(s.title);
+        return terms.every(t => title.includes(t));
+      });
   if (songBookFilter) hits = hits.filter(s => s.source_book === songBookFilter);
   const grouped = {};
   for (const s of hits) {
@@ -299,10 +301,16 @@ async function initBibleTranslations() {
 
 initBibleTranslations();
 
-function stripAccents(s) {
+// Retire les accents en conservant les espaces (pour la recherche multi-mots,
+// titres de chants…). La variante `stripAccents` colle les espaces : adaptée aux
+// références bibliques ("1 chr" → "1chr") mais pas aux titres.
+function foldAccents(s) {
   return s.toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
-    .replace(/\s+/g, '');
+    .normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+function stripAccents(s) {
+  return foldAccents(s).replace(/\s+/g, '');
 }
 
 function findBooks(books, needle, requiresLeadingDigit = false) {
