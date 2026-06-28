@@ -270,6 +270,7 @@ mod tests {
     fn fixture() -> Bible {
         Bible {
             translation: "TST".into(),
+            name: None,
             books: vec![
                 BibleBook {
                     name: "Genèse".into(),

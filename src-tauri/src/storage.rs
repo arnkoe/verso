@@ -52,6 +52,18 @@ pub struct Song {
     pub verses: Vec<Verse>,
 }
 
+/// Fichier de recueil : enveloppe portant le nom lisible une seule fois, plus
+/// la liste des chants. Le code (`source_book`) et le nom (`source_book_name`)
+/// sont propagés sur chaque `Song` à la lecture pour rester disponibles à plat.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Songbook {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_book: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_book_name: Option<String>,
+    pub songs: Vec<Song>,
+}
+
 /// Vue allégée pour la liste de recherche (sans le corps des strophes).
 #[derive(Debug, Clone, Serialize)]
 pub struct SongSummary {
@@ -75,6 +87,10 @@ pub struct BibleBook {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bible {
     pub translation: String,
+    /// Nom lisible de la traduction (ex. « Bible du Semeur »). Optionnel ; à
+    /// défaut on retombe sur le code `translation`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
     pub books: Vec<BibleBook>,
 }
 
@@ -162,7 +178,7 @@ pub fn media_dir(app: &AppHandle, kind: &str) -> PathBuf {
 /// dossier de données au premier lancement. Le chemin source est relatif au
 /// dossier `resources/` du bundle ; la destination est relative à `data_dir`.
 const SEED_FILES: &[(&str, &str)] = &[
-    ("resources/songbooks/songbook-reflets.json", "songbooks/songbook-reflets.json"),
+    ("resources/songbooks/songbook-ref.json", "songbooks/songbook-ref.json"),
     ("resources/songbooks/songbook-hec.json", "songbooks/songbook-hec.json"),
     ("resources/bibles/DRB.json", "bibles/DRB.json"),
     ("resources/bibles/LSG.json", "bibles/LSG.json"),
@@ -239,13 +255,35 @@ fn songbook_files(dir: &Path, prefix: &str) -> Vec<PathBuf> {
     files
 }
 
+/// Parse un fichier de recueil en acceptant deux formats : le format wrapper
+/// actuel (`{ source_book, source_book_name, songs: [...] }`) et l'ancien format
+/// (tableau de chants nu) encore présent dans les installations existantes.
+fn parse_songbook(bytes: &[u8]) -> Result<Songbook, serde_json::Error> {
+    match serde_json::from_slice::<Songbook>(bytes) {
+        Ok(book) => Ok(book),
+        Err(_) => serde_json::from_slice::<Vec<Song>>(bytes).map(|songs| Songbook {
+            source_book: None,
+            source_book_name: None,
+            songs,
+        }),
+    }
+}
+
 fn read_songbook_files(files: &[PathBuf]) -> Result<Vec<Song>, String> {
     let mut songs: Vec<Song> = Vec::new();
     for path in files {
         let bytes = fs::read(path).map_err(|e| format!("Lecture {} : {e}", path.display()))?;
-        let part: Vec<Song> =
-            serde_json::from_slice(&bytes).map_err(|e| format!("Parse {} : {e}", path.display()))?;
-        songs.extend(part);
+        let book: Songbook =
+            parse_songbook(&bytes).map_err(|e| format!("Parse {} : {e}", path.display()))?;
+        // Propage le code du recueil (wrapper) vers chaque chant qui ne le porte
+        // pas, pour que le filtrage/groupement par code fonctionne. Le nom
+        // lisible n'est pas propagé : il se résout via `list_songbooks`.
+        for mut s in book.songs {
+            if s.source_book.is_none() {
+                s.source_book = book.source_book.clone();
+            }
+            songs.push(s);
+        }
     }
     Ok(songs)
 }
@@ -277,12 +315,28 @@ pub fn save_songs(app: &AppHandle, state: &AppState, songs: &[Song]) -> Result<(
         by_book.entry(book_slug(song_book(s))).or_default().push(s);
     }
 
-    // Réécrit chaque fichier de recueil présent.
+    // Réécrit chaque fichier de recueil présent, au format wrapper : le code et
+    // le nom lisible du recueil en tête, puis les chants. Le nom lisible n'est
+    // pas porté par les chants : on le préserve en relisant le wrapper existant.
     let mut written: std::collections::HashSet<String> = std::collections::HashSet::new();
     for (slug, items) in &by_book {
         let fname = format!("songbook-{slug}.json");
         let path = dir.join(&fname);
-        let json = serde_json::to_vec(items).map_err(|e| format!("Sérialisation : {e}"))?;
+        let code = items
+            .iter()
+            .find_map(|s| s.source_book.clone())
+            .filter(|s| !s.is_empty());
+        let existing_name = fs::read(&path)
+            .ok()
+            .and_then(|b| parse_songbook(&b).ok())
+            .and_then(|b| b.source_book_name)
+            .filter(|s| !s.is_empty());
+        let book = Songbook {
+            source_book: code,
+            source_book_name: existing_name,
+            songs: items.iter().map(|s| (*s).clone()).collect(),
+        };
+        let json = serde_json::to_vec(&book).map_err(|e| format!("Sérialisation : {e}"))?;
         write_atomic(&path, &json)?;
         written.insert(fname);
     }
@@ -405,7 +459,8 @@ pub fn list_content(app: &AppHandle, kind: &str) -> Result<Vec<ContentEntry>, St
             }
             let label = match kind {
                 "songbooks" => songbook_label(&entry.path()).unwrap_or_else(|| name.clone()),
-                "bibles" => name.strip_suffix(".json").unwrap_or(&name).to_string(),
+                "bibles" => bible_label(&entry.path())
+                    .unwrap_or_else(|| name.strip_suffix(".json").unwrap_or(&name).to_string()),
                 _ => name.clone(),
             };
             out.push(ContentEntry { filename: name, label });
@@ -415,14 +470,78 @@ pub fn list_content(app: &AppHandle, kind: &str) -> Result<Vec<ContentEntry>, St
     Ok(out)
 }
 
-/// Nom lisible d'un recueil : `source_book` du premier chant du fichier.
+/// Nom lisible d'un recueil : `source_book_name` du wrapper si présent, sinon le
+/// code `source_book`.
 fn songbook_label(path: &Path) -> Option<String> {
     let bytes = fs::read(path).ok()?;
-    let songs: Vec<Song> = serde_json::from_slice(&bytes).ok()?;
-    songs
-        .first()
-        .and_then(|s| s.source_book.clone())
+    let book = parse_songbook(&bytes).ok()?;
+    book.source_book_name
+        .or_else(|| book.source_book.clone())
+        .or_else(|| book.songs.first().and_then(|s| s.source_book.clone()))
         .filter(|s| !s.is_empty())
+}
+
+/// Nom lisible d'une bible : champ `name` du fichier si présent.
+fn bible_label(path: &Path) -> Option<String> {
+    let bytes = fs::read(path).ok()?;
+    let bible: Bible = serde_json::from_slice(&bytes).ok()?;
+    bible.name.filter(|s| !s.is_empty())
+}
+
+/// Code interne d'un recueil (`source_book` du wrapper, ou du premier chant).
+fn songbook_code(path: &Path) -> Option<String> {
+    let bytes = fs::read(path).ok()?;
+    let book = parse_songbook(&bytes).ok()?;
+    book.source_book
+        .or_else(|| book.songs.first().and_then(|s| s.source_book.clone()))
+        .filter(|s| !s.is_empty())
+}
+
+/// Code et nom lisible d'un contenu, pour la résolution côté front (filtres,
+/// en-têtes, boutons). `name` retombe sur `code` si aucun nom lisible.
+#[derive(Debug, Clone, Serialize)]
+pub struct ContentName {
+    pub code: String,
+    pub name: String,
+}
+
+/// Recueils présents : `{ code, nom lisible }`, triés par nom.
+pub fn list_songbooks(app: &AppHandle) -> Vec<ContentName> {
+    let dir = songbooks_dir(app);
+    let mut out: Vec<ContentName> = songbook_files(&dir, "songbook-")
+        .into_iter()
+        .filter_map(|p| {
+            let code = songbook_code(&p)?;
+            let name = songbook_label(&p).unwrap_or_else(|| code.clone());
+            Some(ContentName { code, name })
+        })
+        .collect();
+    out.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+    out
+}
+
+/// Traductions de bible présentes : `{ code, nom lisible }`, triées par nom.
+pub fn list_bibles_named(app: &AppHandle) -> Vec<ContentName> {
+    let dir = bibles_dir(app);
+    let mut out: Vec<ContentName> = Vec::new();
+    if let Ok(rd) = fs::read_dir(&dir) {
+        for e in rd.flatten() {
+            let fname = e.file_name().to_string_lossy().to_string();
+            if is_hidden(&fname) {
+                continue;
+            }
+            let Some(code) = fname.strip_suffix(".json") else {
+                continue;
+            };
+            let name = bible_label(&e.path()).unwrap_or_else(|| code.to_string());
+            out.push(ContentName {
+                code: code.to_string(),
+                name,
+            });
+        }
+    }
+    out.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+    out
 }
 
 /// Importe un fichier (chemin source absolu) dans le sous-dossier du type donné.
@@ -449,14 +568,15 @@ pub fn import_content(
         // Nom canonique d'après le recueil contenu dans le fichier (cohérent
         // avec le découpage des ressources et `save_songs`).
         let bytes = fs::read(src).map_err(|e| format!("Lecture : {e}"))?;
-        let songs: Vec<Song> =
+        let book: Songbook =
             serde_json::from_slice(&bytes).map_err(|e| format!("Recueil invalide : {e}"))?;
-        let book = songs
-            .first()
-            .map(|s| song_book(s))
+        let code = book
+            .source_book
+            .as_deref()
+            .or_else(|| book.songs.first().and_then(|s| s.source_book.as_deref()))
             .filter(|s| !s.is_empty())
             .unwrap_or("sans-recueil");
-        format!("songbook-{}.json", book_slug(book))
+        format!("songbook-{}.json", book_slug(code))
     } else {
         sanitize_filename(orig).ok_or("Nom de fichier invalide")?
     };
