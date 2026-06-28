@@ -889,6 +889,44 @@ body {
   color: var(--ink);
 }
 
+/* Aide (raccourcis) : même aération que le panneau Paramètres. */
+.info-pane-help .info-h {
+  margin: 36px 0 4px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line-2);
+}
+.info-pane-help .info-h:first-of-type { margin-top: 28px; }
+
+.info-pane-help .info-keys {
+  gap: 0;
+}
+.info-pane-help .info-keys li {
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line-2);
+  font-size: 14px;
+  color: var(--ink);
+}
+.info-pane-help .info-keys li:first-child { border-top: none; }
+/* Les touches (kbd) regroupées et poussées à droite, comme les boutons des
+   réglages. Le texte descriptif reste à gauche. */
+.info-pane-help .info-keys .keys {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+/* Touches à la même hauteur que les boutons des réglages (.hdr-btn). */
+.info-pane-help .info-keys kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+}
+
 /* À propos */
 .info-pane-about {
   text-align: center;
