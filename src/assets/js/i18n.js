@@ -111,6 +111,8 @@ const I18N = {
     'settings.imported': '{count} fichier(s) ajouté(s).',
     'settings.importError': "Échec de l'ajout : {err}",
     'settings.deleteError': 'Échec de la suppression : {err}',
+    'settings.deleteConfirmWord': 'SUPPRIMER',
+    'settings.deleteConfirmPrompt': 'Tapez {word} pour confirmer',
     // Statuts de mise à jour
     'update.checking': 'Recherche…',
     'update.upToDate': 'Verso est à jour.',
@@ -235,6 +237,8 @@ const I18N = {
     'settings.imported': '{count} file(s) added.',
     'settings.importError': 'Add failed: {err}',
     'settings.deleteError': 'Delete failed: {err}',
+    'settings.deleteConfirmWord': 'DELETE',
+    'settings.deleteConfirmPrompt': 'Type {word} to confirm',
     'update.checking': 'Checking…',
     'update.upToDate': 'Verso is up to date.',
     'update.available': 'Update available.',

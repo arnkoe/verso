@@ -1577,35 +1577,83 @@ async function _deleteContent(filename) {
   _setContentStatus('', '');
 }
 
-// Affiche la confirmation en ligne (Annuler / Supprimer) sur une entrée. Évite
-// les suppressions accidentelles : le premier clic ne fait que demander confirmation.
+// Affiche la confirmation en ligne sur une entrée. Pour éviter toute suppression
+// accidentelle, l'opérateur doit saisir le mot de confirmation au clavier : le
+// bouton Supprimer reste désactivé tant que le texte saisi ne correspond pas.
 function _askDeleteConfirm(item, filename) {
   if (item.querySelector('.content-mgr-confirm')) return; // déjà en confirmation
   const actions = item.querySelector('.content-mgr-actions');
   if (!actions) return;
+  const word = t('settings.deleteConfirmWord');
   actions.innerHTML = `
     <span class="content-mgr-confirm">
-      <button class="hdr-btn content-mgr-cancel" data-confirm="cancel">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        <span>${esc(t('common.cancel'))}</span>
-      </button>
-      <button class="hdr-btn content-mgr-confirm-del" data-confirm="delete" data-del-file="${esc(filename)}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-        <span>${esc(t('settings.delete'))}</span>
-      </button>
+      <span class="content-mgr-confirm-btns">
+        <button class="hdr-btn content-mgr-cancel" data-confirm="cancel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          <span>${esc(t('common.cancel'))}</span>
+        </button>
+        <button class="hdr-btn content-mgr-confirm-del" data-confirm="delete" data-del-file="${esc(filename)}" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span>${esc(t('settings.delete'))}</span>
+        </button>
+      </span>
+      <span class="content-mgr-confirm-hint">${esc(t('settings.deleteConfirmPrompt', { word }))}</span>
+      <input type="text" class="content-mgr-confirm-input" data-confirm-word="${esc(word)}"
+        placeholder="${esc(word)}"
+        autocomplete="off" autocapitalize="characters" spellcheck="false" />
     </span>`;
+  actions.querySelector('.content-mgr-confirm-input')?.focus();
 }
 
 // Délégation des clics dans la liste : corbeille → confirmation, puis Annuler /
 // Supprimer.
-document.getElementById('contentModalList')?.addEventListener('click', e => {
+// Le mot de confirmation correspond-il (sans tenir compte de la casse ni des
+// espaces) au mot attendu ? Conditionne l'activation du bouton Supprimer.
+function _confirmMatches(input) {
+  if (!input) return false;
+  const expected = (input.dataset.confirmWord || '').trim().toLowerCase();
+  return input.value.trim().toLowerCase() === expected && expected !== '';
+}
+
+const _contentModalList = document.getElementById('contentModalList');
+
+_contentModalList?.addEventListener('click', e => {
   const cancel = e.target.closest('[data-confirm="cancel"]');
   if (cancel) { refreshContentList(); return; }
   const confirm = e.target.closest('[data-confirm="delete"]');
-  if (confirm) { _deleteContent(confirm.dataset.delFile); return; }
+  if (confirm) {
+    if (confirm.disabled) return;
+    _deleteContent(confirm.dataset.delFile);
+    return;
+  }
   const del = e.target.closest('.content-mgr-del');
   if (del) {
     _askDeleteConfirm(del.closest('.content-mgr-item'), del.dataset.delFile);
+  }
+});
+
+// Active le bouton Supprimer dès que le mot saisi correspond.
+_contentModalList?.addEventListener('input', e => {
+  const input = e.target.closest('.content-mgr-confirm-input');
+  if (!input) return;
+  const btn = input.closest('.content-mgr-confirm')?.querySelector('[data-confirm="delete"]');
+  if (btn) btn.disabled = !_confirmMatches(input);
+});
+
+// Entrée valide la suppression si le mot correspond ; Échap annule.
+_contentModalList?.addEventListener('keydown', e => {
+  const input = e.target.closest('.content-mgr-confirm-input');
+  if (!input) return;
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (_confirmMatches(input)) {
+      const btn = input.closest('.content-mgr-confirm')?.querySelector('[data-confirm="delete"]');
+      if (btn) _deleteContent(btn.dataset.delFile);
+    }
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    e.stopPropagation();
+    refreshContentList();
   }
 });
 

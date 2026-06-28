@@ -1054,6 +1054,10 @@ body {
   border-bottom: 1px solid var(--line-2);
 }
 .content-mgr-item:last-child { border-bottom: none; }
+/* Pendant la confirmation, le bloc d'actions grandit : on aligne en haut pour
+   que le titre du contenu reste à sa place au lieu d'être recentré. */
+.content-mgr-item:has(.content-mgr-confirm) { align-items: flex-start; }
+.content-mgr-item:has(.content-mgr-confirm) .content-mgr-name { line-height: 28px; }
 .content-mgr-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .content-mgr-empty {
   padding: 28px 8px;
@@ -1068,7 +1072,21 @@ body {
 .content-mgr-confirm-del { color: #c62828; }
 .content-mgr-del:hover,
 .content-mgr-confirm-del:hover { color: #c62828; border-color: #e3b4b4; background: #fdeaea; }
-.content-mgr-confirm { display: inline-flex; align-items: center; gap: 6px; }
+.content-mgr-confirm { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.content-mgr-confirm-btns { display: inline-flex; align-items: center; gap: 6px; }
+.content-mgr-confirm-hint { font-size: 12px; color: var(--mute-2); text-align: right; }
+.content-mgr-confirm-input {
+  width: 140px; height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-family: inherit; font-size: 12.5px;
+  color: var(--ink); background: #fff; outline: none;
+}
+.content-mgr-confirm-input:focus { border-color: #c62828; }
+.content-mgr-confirm-input::placeholder { color: var(--mute-2); }
+.content-mgr-confirm-del:disabled { opacity: 0.45; cursor: not-allowed; }
+.content-mgr-confirm-del:disabled:hover { color: #c62828; border-color: var(--line); background: none; }
 
 /* Menu déroulant custom (langue) — aligné sur le style des boutons (.hdr-btn). */
 .dropdown { position: relative; }
