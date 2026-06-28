@@ -180,6 +180,7 @@ A translation is a file kept in `bibles`, named `<code>.json` (for example `S21.
 ```json
 {
   "translation": "S21",
+  "name": "Segond 21",
   "books": [
     {
       "name": "Genesis",
@@ -208,6 +209,7 @@ A translation is a file kept in `bibles`, named `<code>.json` (for example `S21.
 A complete file is available in [`examples/bible-exemple.json`](examples/bible-exemple.json): you can copy it and fill it with your translation.
 
 - `translation` — the translation code (ideally identical to the file name).
+- `name` — *(optional)* the readable translation name (for example `Segond 21`); shown in the operator and in the content manager. Falls back to the code if absent.
 - `books` — the **ordered** list of books.
   - `name` — the book name (used for reference search).
   - `chapters` — an array of chapters; each chapter is an array of verses (texts).

@@ -354,7 +354,7 @@ async function initBibleTranslations() {
   state.translation = codes.includes(saved) ? saved : codes[0];
   wrap.innerHTML = translations
     .map(({ code, name }) =>
-      `<button class="translation-btn${code === state.translation ? ' active' : ''}" data-action="selectTranslation" data-arg="${esc(code)}">${esc(name)}</button>`)
+      `<button class="translation-btn${code === state.translation ? ' active' : ''}" data-action="selectTranslation" data-arg="${esc(code)}" title="${esc(name)}">${esc(code)}</button>`)
     .join('');
   loadBibleBooks(state.translation);
 }
