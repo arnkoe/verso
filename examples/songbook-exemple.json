@@ -3,39 +3,37 @@
   "source_book_name": "Mon recueil",
   "songs": [
     {
-      "id": 1,
       "title": "Titre du premier chant",
       "author": "Auteur (ou null si inconnu)",
       "source_number": 1,
       "verses": [
         {
-          "type": "S",
+          "type": "verse",
           "number": 1,
           "text": "Première ligne de la strophe 1.\nDeuxième ligne de la strophe 1.\nUn saut de ligne se note avec \\n dans le texte."
         },
         {
-          "type": "R",
+          "type": "chorus",
           "text": "Texte du refrain.\nIl n'a pas besoin de numéro."
         },
         {
-          "type": "S",
+          "type": "verse",
           "number": 2,
           "text": "Première ligne de la strophe 2.\nDeuxième ligne de la strophe 2."
         },
         {
-          "type": "P",
+          "type": "bridge",
           "text": "Texte du pont (facultatif)."
         }
       ]
     },
     {
-      "id": 2,
       "title": "Titre du second chant",
       "author": null,
       "source_number": 2,
       "verses": [
         {
-          "type": "S",
+          "type": "verse",
           "number": 1,
           "text": "Un chant peut n'avoir que des strophes,\nsans refrain ni pont."
         }

@@ -140,32 +140,35 @@ Cette section s'adresse aux personnes à l'aise avec les fichiers JSON ou le cod
 
 Un recueil est un fichier rangé dans `songbooks`, dont le nom commence par `songbook-` et finit par `.json` (par exemple `songbook-monrecueil.json`).
 
-Le fichier contient un **tableau** de chants :
+Le fichier est un objet portant le nom du recueil une seule fois, puis la liste des chants :
 
 ```json
-[
-  {
-    "id": 1,
-    "title": "Titre du chant",
-    "author": "Auteur ou null",
-    "source_book": "Mon recueil",
-    "source_number": 1,
-    "verses": [
-      { "type": "S", "number": 1, "text": "Strophe 1, ligne 1.\nLigne 2." },
-      { "type": "R", "text": "Texte du refrain." },
-      { "type": "S", "number": 2, "text": "Strophe 2." }
-    ]
-  }
-]
+{
+  "source_book": "MR",
+  "source_book_name": "Mon recueil",
+  "songs": [
+    {
+      "title": "Titre du chant",
+      "author": "Auteur ou null",
+      "source_number": 1,
+      "verses": [
+        { "type": "verse", "number": 1, "text": "Strophe 1, ligne 1.\nLigne 2." },
+        { "type": "chorus", "text": "Texte du refrain." },
+        { "type": "verse", "number": 2, "text": "Strophe 2." }
+      ]
+    }
+  ]
+}
 ```
 
-- `id` — entier **unique** dans le recueil (identifiant interne).
+- `source_book` — code du recueil, répété sur chaque fichier du recueil.
+- `source_book_name` — nom lisible du recueil.
+- `songs` — la liste des chants. Chaque chant a :
 - `title` — titre affiché et recherché.
 - `author` — texte, ou `null` si inconnu.
-- `source_book` — nom du recueil ; sert à grouper les chants dans la recherche.
 - `source_number` — numéro du chant dans le recueil (ou `null`).
 - `verses` — liste **ordonnée** des couplets. Chaque couplet a :
-  - `type` — `"S"` pour une strophe, `"R"` pour un refrain. Absent → strophe (`"S"`). Les refrains sont étiquetés « Refrain » ; tout autre type est affiché comme une strophe.
+  - `type` — type de section. Valeurs courantes : `"verse"`, `"chorus"`, `"bridge"`, `"intro"`, `"outro"`, `"prechorus"`. Absent → strophe. Les refrains sont étiquetés « Refrain » ; tout autre type est affiché comme une strophe.
   - `number` — numéro de strophe (facultatif).
   - `text` — le texte ; les sauts de ligne se notent `\n`.
 

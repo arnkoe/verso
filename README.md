@@ -140,32 +140,35 @@ This section is for people comfortable with JSON files or code. You do **not** n
 
 A collection is a file kept in `songbooks`, whose name starts with `songbook-` and ends with `.json` (for example `songbook-mycollection.json`).
 
-The file contains an **array** of songs:
+The file is an object carrying the collection name once, then the list of songs:
 
 ```json
-[
-  {
-    "id": 1,
-    "title": "Song title",
-    "author": "Author or null",
-    "source_book": "My collection",
-    "source_number": 1,
-    "verses": [
-      { "type": "S", "number": 1, "text": "Verse 1, line 1.\nLine 2." },
-      { "type": "R", "text": "Chorus text." },
-      { "type": "S", "number": 2, "text": "Verse 2." }
-    ]
-  }
-]
+{
+  "source_book": "MR",
+  "source_book_name": "My collection",
+  "songs": [
+    {
+      "title": "Song title",
+      "author": "Author or null",
+      "source_number": 1,
+      "verses": [
+        { "type": "verse", "number": 1, "text": "Verse 1, line 1.\nLine 2." },
+        { "type": "chorus", "text": "Chorus text." },
+        { "type": "verse", "number": 2, "text": "Verse 2." }
+      ]
+    }
+  ]
+}
 ```
 
-- `id` — integer that is **unique** within the collection (internal identifier).
+- `source_book` — collection code, repeated on every file of the collection.
+- `source_book_name` — the collection's human-readable name.
+- `songs` — the list of songs. Each song has:
 - `title` — title shown and searched.
 - `author` — text, or `null` if unknown.
-- `source_book` — collection name; used to group songs in the search.
 - `source_number` — the song's number within the collection (or `null`).
 - `verses` — the **ordered** list of stanzas. Each stanza has:
-  - `type` — `"S"` for a verse, `"R"` for a chorus. Absent → verse (`"S"`). Choruses are labelled "Chorus"; any other type is shown as a verse.
+  - `type` — section type. Common values: `"verse"`, `"chorus"`, `"bridge"`, `"intro"`, `"outro"`, `"prechorus"`. Absent → verse. Choruses are labelled "Chorus"; any other type is shown as a verse.
   - `number` — stanza number (optional).
   - `text` — the text; line breaks are written `\n`.
 
