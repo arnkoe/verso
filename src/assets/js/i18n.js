@@ -29,6 +29,7 @@ const I18N = {
     'images.empty': 'Aucune image dans le dossier',
     // Barre d'outils
     'tools.settings': 'Paramètres',
+    'tools.settingsShort': 'Param.',
     'tools.settingsTitle': 'Ouvrir les paramètres',
     'tools.shortcuts': 'Raccourcis',
     'tools.shortcutsShort': 'Racc.',
@@ -160,6 +161,7 @@ const I18N = {
     'pdf.empty': 'No PDF in the folder',
     'images.empty': 'No image in the folder',
     'tools.settings': 'Settings',
+    'tools.settingsShort': 'Settings',
     'tools.settingsTitle': 'Open settings',
     'tools.shortcuts': 'Shortcuts',
     'tools.shortcutsShort': 'Shrt.',
