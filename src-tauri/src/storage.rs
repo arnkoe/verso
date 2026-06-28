@@ -58,6 +58,13 @@ pub fn canonical_vtype(raw: &str) -> &'static str {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Song {
+    /// Identifiant de session : assigné séquentiellement à la lecture des
+    /// recueils (`read_songbook_files`), il n'est ni lu ni écrit dans les
+    /// fichiers. Sert uniquement de clé de lookup en mémoire pour
+    /// `get_song`/`update_song`. Les recueils déposés par l'utilisateur n'ont
+    /// donc pas à fournir d'`id` ; un champ `id` présent dans un ancien fichier
+    /// est ignoré.
+    #[serde(default, skip_serializing)]
     pub id: i64,
     pub title: String,
     #[serde(default)]
@@ -288,6 +295,11 @@ fn parse_songbook(bytes: &[u8]) -> Result<Songbook, serde_json::Error> {
 
 fn read_songbook_files(files: &[PathBuf]) -> Result<Vec<Song>, String> {
     let mut songs: Vec<Song> = Vec::new();
+    // Compteur d'id de session. Les fichiers sont lus dans un ordre déterministe
+    // (`songbook_files` trie), donc la même installation reproduit les mêmes id à
+    // chaque chargement, ce qui suffit à la stabilité intra-session attendue par
+    // `get_song`/`update_song`. Aucun id n'est attendu dans les fichiers.
+    let mut next_id: i64 = 0;
     for path in files {
         let bytes = fs::read(path).map_err(|e| format!("Lecture {} : {e}", path.display()))?;
         let book: Songbook =
@@ -296,6 +308,8 @@ fn read_songbook_files(files: &[PathBuf]) -> Result<Vec<Song>, String> {
         // pas, pour que le filtrage/groupement par code fonctionne. Le nom
         // lisible n'est pas propagé : il se résout via `list_songbooks`.
         for mut s in book.songs {
+            s.id = next_id;
+            next_id += 1;
             if s.source_book.is_none() {
                 s.source_book = book.source_book.clone();
             }
