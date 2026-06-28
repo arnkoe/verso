@@ -264,9 +264,10 @@ function renderVerseList() {
   if (!song) return;
   const verseList = document.getElementById('verseList');
   verseList.innerHTML = song.verses.map((verse, i) => {
-    const typeLabel = verse.type === 'R' ? t('verse.refrain') : t('verse.strophe');
-    const shortLabel = verse.type === 'R' ? 'R' : 'S' + (verse.number != null ? verse.number : '');
-    const label = typeLabel + (verse.number != null ? ' ' + verse.number : '');
+    const typeLabel = verseTypeLabel(verse.type);
+    const shortLabel = verseShortLabel(verse.type, verse.number);
+    const label = typeLabel +
+      (verse.type === 'verse' && verse.number != null ? ' ' + verse.number : '');
     const isLive = i === state.songVerse;
     return `<div class="strophe-item${isLive ? ' active' : ''}" data-verse="${i}" data-action="projectVerse">
       <div class="strophe-number" data-short="${esc(shortLabel)}">${esc(label)}</div>
@@ -295,7 +296,7 @@ function projectVerse(i) {
     source_book: state.song.source_book,
     source_number: state.song.source_number,
     verseText: state.song.verses[i].text,
-    verseLabels: state.song.verses.map(v => v.type + (v.number != null ? v.number : '')),
+    verseLabels: state.song.verses.map(v => verseShortLabel(v.type, v.number)),
   });
 }
 
@@ -1116,29 +1117,72 @@ document.addEventListener('keydown', e => {
 
 // ─── ÉDITION DE STROPHES ─────────────────────────────────────────────────────
 
+// Types de section canoniques (stockés tels quels dans les recueils). Le choix
+// est international et indépendant de la langue : l'affichage est traduit, mais
+// la donnée ne l'est pas.
+const VERSE_TYPES = ['verse', 'chorus', 'bridge', 'intro', 'outro', 'prechorus'];
+
+// Alias acceptés en saisie -> type canonique. Insensible à la casse. Couvre les
+// lettres courtes (FR + EN) et les mots entiers, sans collision : `C` est
+// réservé à Chorus (jamais Couplet), le couplet/strophe s'écrit `S`, `V`,
+// « strophe », « couplet » ou « verse ».
+const VERSE_TYPE_ALIASES = {
+  v: 'verse', s: 'verse', verse: 'verse', strophe: 'verse', couplet: 'verse',
+  c: 'chorus', r: 'chorus', chorus: 'chorus', refrain: 'chorus',
+  b: 'bridge', p: 'bridge', bridge: 'bridge', pont: 'bridge',
+  i: 'intro', intro: 'intro', introduction: 'intro',
+  o: 'outro', outro: 'outro', final: 'outro', coda: 'outro',
+  pc: 'prechorus', prechorus: 'prechorus', 'pre-chorus': 'prechorus',
+  'pré-refrain': 'prechorus', 'pre-refrain': 'prechorus',
+};
+
+// Normalise un type canonique : retombe sur `verse` pour toute valeur inconnue.
+function canonVerseType(type) {
+  return VERSE_TYPES.includes(type) ? type : 'verse';
+}
+
+// Libellé traduit complet d'un type canonique (« Refrain », « Chorus »...).
+function verseTypeLabel(type) {
+  return t('verse.' + canonVerseType(type));
+}
+
+// Libellé court traduit (badge dans la liste et la projection). Tiré d'une clé
+// i18n dédiée par type, pour éviter les collisions d'initiales (ex. en français
+// « Pont » et « Pré-refrain » commencent tous deux par P). Pour `verse`, on
+// suffixe le numéro.
+function verseShortLabel(type, number) {
+  const canon = canonVerseType(type);
+  const head = t('verse.short.' + canon);
+  return canon === 'verse' && number != null ? head + number : head;
+}
+
 function versesToText(verses) {
   return verses.map(v => {
-    const label = v.type + (v.number != null ? v.number : '');
+    const label = verseTypeLabel(v.type) +
+      (v.type === 'verse' && v.number != null ? ' ' + v.number : '');
     return label + '\n' + v.text;
   }).join('\n\n');
 }
 
 function textToVerses(text) {
   const blocks = text.trim().split(/\n{2,}/);
-  const labelRe = /^([SRPIO])(\d*)$/i;
+  // En-tête de bloc : un mot (lettres/accents/tiret) suivi d'un numéro
+  // optionnel, ex. « Refrain », « Strophe 2 », « V1 », « PC ».
+  const labelRe = /^([\p{L}-]+)\s*(\d*)$/u;
   const verses = [];
   let sNum = 0;
   for (const block of blocks) {
     const lines = block.trim().split('\n');
     if (!lines.length) continue;
-    let type = 'S', number = null, bodyLines = lines;
+    let type = 'verse', number = null, bodyLines = lines;
     const m = lines[0].trim().match(labelRe);
-    if (m) {
-      type = m[1].toUpperCase();
+    const alias = m ? VERSE_TYPE_ALIASES[m[1].toLowerCase()] : undefined;
+    if (alias) {
+      type = alias;
       number = m[2] ? parseInt(m[2], 10) : null;
       bodyLines = lines.slice(1);
     }
-    if (type === 'S' && number === null) {
+    if (type === 'verse' && number === null) {
       sNum++;
       number = sNum;
     }

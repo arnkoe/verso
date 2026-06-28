@@ -26,7 +26,7 @@ function renderProjectionContent(state, container) {
     const bookPart = [state.source_book, state.source_number ?? ''].filter(Boolean).join(' ');
     const labels = state.verseLabels && state.verseLabels.length
       ? state.verseLabels
-      : ['S' + (state.verse + 1)];
+      : [String(state.verse + 1)];
     const labelsHtml = labels.map((l, i) =>
       i === state.verse
         ? `<span class="reference-current">${esc(l)}</span>`

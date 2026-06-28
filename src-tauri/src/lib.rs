@@ -528,6 +528,9 @@ pub fn run() {
             // Premier lancement : dépose les recueils et bibles libres de droits
             // empaquetés dans le dossier de données de l'utilisateur.
             storage::seed_defaults(app.handle());
+            // Migre une fois les anciens codes de section français (S/R/P/I/O)
+            // vers la forme canonique internationale (verse/chorus/bridge...).
+            storage::migrate_vtypes(app.handle());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

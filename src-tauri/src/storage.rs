@@ -33,10 +33,27 @@ pub struct Verse {
     pub text: String,
 }
 
-/// Type de couplet par défaut (strophe) si le champ `type` est absent du JSON,
-/// pour éviter qu'un seul couplet mal formé n'empêche le parsing de tout le recueil.
+/// Type de section par défaut (strophe) si le champ `type` est absent du JSON,
+/// pour éviter qu'une seule section mal formée n'empêche le parsing de tout le recueil.
 fn default_verse_type() -> String {
-    "S".to_string()
+    "verse".to_string()
+}
+
+/// Normalise un code de type de section vers la forme canonique internationale
+/// (`verse`, `chorus`, `bridge`, `intro`, `outro`, `prechorus`). Accepte aussi
+/// les anciens codes français (`S`, `R`, `P`, `I`, `O`) des recueils existants
+/// ainsi que les alias longs FR/EN, pour une lecture rétrocompatible. Tout code
+/// inconnu retombe sur `verse`.
+pub fn canonical_vtype(raw: &str) -> &'static str {
+    match raw.trim().to_ascii_lowercase().as_str() {
+        "v" | "s" | "verse" | "strophe" | "couplet" => "verse",
+        "c" | "r" | "chorus" | "refrain" => "chorus",
+        "b" | "p" | "bridge" | "pont" => "bridge",
+        "i" | "intro" | "introduction" => "intro",
+        "o" | "outro" | "final" | "coda" => "outro",
+        "pc" | "prechorus" | "pre-chorus" | "pré-refrain" | "pre-refrain" => "prechorus",
+        _ => "verse",
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -282,10 +299,45 @@ fn read_songbook_files(files: &[PathBuf]) -> Result<Vec<Song>, String> {
             if s.source_book.is_none() {
                 s.source_book = book.source_book.clone();
             }
+            // Normalise les types de section en mémoire : les anciens codes
+            // français restent lisibles même si le fichier n'a pas été migré.
+            for v in &mut s.verses {
+                v.vtype = canonical_vtype(&v.vtype).to_string();
+            }
             songs.push(s);
         }
     }
     Ok(songs)
+}
+
+/// Migration de masse : réécrit chaque fichier de recueil dont au moins une
+/// section utilise encore un ancien code de type, en le convertissant vers la
+/// forme canonique internationale. Les fichiers déjà canoniques ne sont pas
+/// touchés. Appelée une fois au démarrage ; les erreurs ponctuelles sont
+/// ignorées pour ne jamais empêcher le lancement de l'application.
+pub fn migrate_vtypes(app: &AppHandle) {
+    let dir = songbooks_dir(app);
+    for path in songbook_files(&dir, "songbook-") {
+        let Ok(bytes) = fs::read(&path) else { continue };
+        let Ok(mut book) = parse_songbook(&bytes) else {
+            continue;
+        };
+        let mut changed = false;
+        for song in &mut book.songs {
+            for v in &mut song.verses {
+                let canon = canonical_vtype(&v.vtype);
+                if v.vtype != canon {
+                    v.vtype = canon.to_string();
+                    changed = true;
+                }
+            }
+        }
+        if changed {
+            if let Ok(json) = serde_json::to_vec(&book) {
+                let _ = write_atomic(&path, &json);
+            }
+        }
+    }
 }
 
 pub fn load_songs(app: &AppHandle, state: &AppState) -> Result<Vec<Song>, String> {
