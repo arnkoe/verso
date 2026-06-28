@@ -22,6 +22,26 @@ const state = {
   searchCursor: 0,
 };
 
+// Le libellé du bouton « Ouvrir le dossier Verso » dépend de la plateforme :
+// « Finder » sur macOS, « explorateur » sur Windows. On remplace les clés i18n
+// des éléments concernés avant applyI18n() pour que les changements de langue
+// (qui réappliquent les clés) restent corrects.
+(function localizeOpenVersoButton() {
+  const isMac = /Mac/i.test(navigator.platform || navigator.userAgent || '');
+  const isWin = /Win/i.test(navigator.platform || navigator.userAgent || '');
+  if (!isMac && !isWin) return;
+  const label = document.getElementById('btnOpenVersoDirLabel');
+  const btn = document.getElementById('btnOpenVersoDir');
+  if (label) {
+    label.dataset.i18n = isMac ? 'settings.openInFinder' : 'settings.openInExplorer';
+  }
+  if (btn) {
+    btn.dataset.i18nTitle = isMac
+      ? 'settings.openVersoFinderTitle'
+      : 'settings.openVersoExplorerTitle';
+  }
+})();
+
 // Traduit l'interface statique selon la langue stockée (anglais par défaut),
 // avant que le reste du script ne peuple les listes dynamiques.
 applyI18n();
