@@ -1,227 +1,246 @@
 # Verso
 
-Verso est un logiciel pour projeter des chants et des textes de la Bible sur un grand écran ou un vidéoprojecteur pendant un culte.
+*[Français](README.fr.md)*
 
-Vous travaillez sur une fenêtre (la fenêtre **opérateur**, sur votre ordinateur) et ce que vous choisissez s'affiche sur une deuxième fenêtre, en plein écran, sur le vidéoprojecteur.
+Verso is software for projecting songs and Bible texts onto a large screen or a video projector during a church service.
+
+You work in one window (the **operator** window, on your computer) and what you choose appears in a second window, full screen, on the projector.
+
+The interface is available in **English** (the default) and **French**. You can switch language at any time from the Settings.
 
 ---
 
-## Installer Verso
+## Installing Verso
 
-1. Allez sur la page des **versions** (« Releases ») du projet.
-2. Téléchargez le fichier qui correspond à votre ordinateur :
-   - **Windows** : le fichier dont le nom finit par `setup.exe`.
-   - **Mac récent (puce Apple, depuis 2020)** : le fichier `.dmg` qui contient `aarch64`.
-   - **Mac plus ancien (puce Intel)** : le fichier `.dmg` qui contient `x64`.
+1. Go to the project's **Releases** page.
+2. Download the file that matches your computer:
+   - **Windows**: the file whose name ends in `setup.exe`.
+   - **Recent Mac (Apple Silicon, since 2020)**: the `.dmg` file that contains `aarch64`.
+   - **Older Mac (Intel chip)**: the `.dmg` file that contains `x64`.
 
-   Si vous ne savez pas quel Mac vous avez : menu Pomme  (en haut à gauche) → **À propos de ce Mac**. La ligne « Puce » ou « Processeur » vous le dit.
+   If you are not sure which Mac you have: Apple menu  (top left) → **About This Mac**. The "Chip" or "Processor" line tells you.
 
-3. Ouvrez le fichier téléchargé et suivez les indications ci-dessous selon votre système.
+3. Open the downloaded file and follow the instructions below for your system.
 
-> Au tout premier lancement, votre ordinateur va afficher un message qui fait peur. **C'est normal et ce n'est pas un virus.** Cela arrive parce que Verso est un petit logiciel gratuit qui n'a pas payé les certificats coûteux de Microsoft et d'Apple. Voici comment passer cette étape, une seule fois.
+> The very first time you launch it, your computer will show a scary-looking message. **This is normal and it is not a virus.** It happens because Verso is a small, free program that has not paid for the expensive Microsoft and Apple certificates. Here is how to get past this step, once.
 
-### Sur Windows
+### On Windows
 
-Quand vous lancez le fichier `setup.exe`, Windows peut afficher un **écran bleu** : « Windows a protégé votre ordinateur ».
+When you run the `setup.exe` file, Windows may show a **blue screen**: "Windows protected your PC".
 
-Pour continuer :
+To continue:
 
-1. Cliquez sur le petit texte **« Informations complémentaires »**.
-2. Un bouton **« Exécuter quand même »** apparaît. Cliquez dessus.
+1. Click the small text **"More info"**.
+2. A **"Run anyway"** button appears. Click it.
 
-L'installation se poursuit normalement. Vous n'aurez plus jamais à faire cela : les prochaines mises à jour s'installeront toutes seules.
+Installation continues normally. You will never have to do this again: future updates install by themselves.
 
-### Sur Mac
+### On Mac
 
-1. Ouvrez le fichier `.dmg` que vous avez téléchargé.
-2. Une fenêtre s'ouvre. **Glissez l'icône de Verso sur le dossier Applications** affiché à côté.
-3. Si, en essayant d'ouvrir Verso, le Mac affiche « "Verso" est endommagé et ne peut pas être ouvert », il faut faire une petite manipulation, **une seule fois** :
+1. Open the `.dmg` file you downloaded.
+2. A window opens. **Drag the Verso icon onto the Applications folder** shown next to it.
+3. If, when you try to open Verso, the Mac says "Verso" is damaged and can't be opened", you need a small one-time fix:
 
-   a. Ouvrez l'application **Terminal**. Pour la trouver : appuyez sur les touches **Cmd () + Espace**, tapez `Terminal`, puis appuyez sur **Entrée**.
+   a. Open the **Terminal** app. To find it: press **Cmd () + Space**, type `Terminal`, then press **Enter**.
 
-   b. Dans la fenêtre noire qui s'ouvre, copiez-collez exactement la ligne suivante :
+   b. In the black window that opens, copy and paste exactly the following line:
 
    ```
    xattr -dr com.apple.quarantine /Applications/Verso.app
    ```
 
-   c. Appuyez sur **Entrée**. (Rien ne s'affiche : c'est bon signe.)
+   c. Press **Enter**. (Nothing is displayed: that's a good sign.)
 
-   d. Fermez le Terminal et ouvrez Verso normalement.
+   d. Close the Terminal and open Verso normally.
 
-Vous n'aurez plus jamais à refaire cela : les prochaines mises à jour s'installeront toutes seules.
-
----
-
-## Mettre à jour Verso
-
-Vous n'avez rien à surveiller. À chaque démarrage, Verso regarde tout seul si une version plus récente existe.
-
-Si c'est le cas, un petit **point** apparaît sur le bouton **« À propos »**. Cliquez sur ce bouton : un lien vous propose d'installer la mise à jour, puis Verso redémarre. C'est tout.
+You will never have to do this again: future updates install by themselves.
 
 ---
 
-## Vos chants, vos bibles, vos documents
+## Updating Verso
 
-Verso range tout dans un dossier nommé **`Verso`**, à l'intérieur de vos **Documents**. Le bouton **« Dossier »** dans la barre d'outils de Verso ouvre directement ce dossier.
+You have nothing to monitor. Every time it starts, Verso checks on its own whether a newer version exists.
 
-À l'intérieur, vous trouverez :
+If one is available, a small **dot** appears on the **"About"** button. Click that button: a link offers to install the update, then Verso restarts. That's all.
 
-- **`songbooks`** — vos recueils de chants (un fichier par recueil).
-- **`bibles`** — vos traductions de la Bible (un fichier par traduction).
-- **`pdf`** — les documents PDF que vous voulez projeter.
-- **`images`** — les images que vous voulez projeter.
-
-Pour ajouter vos propres PDF ou images, déposez simplement vos fichiers dans le dossier `pdf` ou `images`.
-
-La première fois que vous lancez Verso, si le dossier est vide, Verso y dépose automatiquement quelques contenus gratuits pour commencer : les recueils **Reflets** et **HEC**, et les bibles **Darby** et **Louis Segond**. Vous pouvez les garder, les modifier ou les supprimer comme vous voulez. Verso ne touche jamais à vos fichiers si vous en avez déjà mis.
-
-Verso se souvient aussi de ce qui était projeté la dernière fois et le reprend à la réouverture.
+You can also check for updates manually from **Settings → Updates**.
 
 ---
 
-## Se servir de Verso
+## Your songs, bibles and documents
 
-La fenêtre opérateur a quatre onglets : **Chants**, **Bible**, **PDF** et **Images**.
+Verso keeps everything in a folder named **`Verso`** inside the application data folder for your account. You don't need to know its exact location: open **Settings** (the gear button in the toolbar), then under **Content** click **Open** next to "Verso folder" to open it directly.
 
-Le principe est toujours le même : vous cherchez ce que vous voulez, vous le sélectionnez, et il s'affiche sur le vidéoprojecteur.
+Inside, you will find:
 
-### Les raccourcis clavier qui font gagner du temps
+- **`songbooks`** — your song collections (one file per collection).
+- **`bibles`** — your Bible translations (one file per translation).
+- **`pdf`** — the PDF documents you want to project.
+- **`images`** — the images you want to project.
 
-Ces raccourcis fonctionnent dans la fenêtre opérateur (celle sur votre ordinateur).
+To add your own PDFs or images, simply drop your files into the `pdf` or `images` folder.
 
-**Changer d'onglet**
+The first time you launch Verso, if the folder is empty, Verso automatically adds some free content to get you started: the **Reflets** and **HEC** collections, and the **Darby** and **Louis Segond** bibles. You can keep, edit or delete them as you wish. Verso never touches your files if you have already added some.
 
-- **Tab** : passer à l'onglet suivant (Chants → Bible → PDF → Images).
-- **Maj + Tab** : revenir à l'onglet précédent.
-
-**Chercher**
-
-- **/** (la touche slash) : aller directement dans le champ de recherche.
-- **Flèches haut / bas** : se déplacer dans la liste des résultats.
-- **Entrée** : valider le résultat sélectionné.
-
-**Projeter et avancer**
-
-- **Flèche bas** ou **flèche droite** : élément suivant (strophe suivante, verset suivant, page suivante).
-- **Flèche haut** ou **flèche gauche** : élément précédent.
-- **Entrée** : projeter l'élément suivant (ou le premier si rien n'est encore projeté).
-- **Échap** : effacer la projection (écran neutre).
-
-**Dans la fenêtre de projection**
-
-- **Échap** : fermer la fenêtre de projection.
+Verso also remembers what was being projected last time and brings it back when you reopen it.
 
 ---
 
-## Pour aller plus loin (partie technique)
+## Using Verso
 
-Cette section s'adresse aux personnes à l'aise avec les fichiers JSON ou le code. Vous n'en avez **pas besoin** pour utiliser Verso au quotidien.
+The operator window has four tabs: **Songs**, **Bible**, **PDF** and **Images**.
 
-### Ajouter un recueil de chants
+The principle is always the same: you search for what you want, you select it, and it appears on the projector.
 
-Un recueil est un fichier rangé dans `songbooks`, dont le nom commence par `songbook-` et finit par `.json` (par exemple `songbook-monrecueil.json`).
+Song search is forgiving: it ignores accents and apostrophes, accepts several words, and matches both the song number and the opening words (incipit).
 
-Le fichier contient un **tableau** de chants :
+### The keyboard shortcuts that save time
+
+These shortcuts work in the operator window (the one on your computer).
+
+**Switching tabs**
+
+- **Tab**: move to the next tab (Songs → Bible → PDF → Images).
+- **Shift + Tab**: go back to the previous tab.
+
+**Searching**
+
+- **/** (the slash key): jump straight to the search field.
+- **Up / Down arrows**: move through the list of results.
+- **Enter**: confirm the selected result.
+
+**Projecting and moving forward**
+
+- **Down arrow** or **right arrow**: next item (next verse, next Bible verse, next page).
+- **Up arrow** or **left arrow**: previous item.
+- **Enter**: project the next item (or the first one if nothing is projected yet).
+- **Esc**: clear the projection (blank screen).
+
+**In the projection window**
+
+- **Esc**: close the projection window.
+
+### Settings
+
+The **Settings** button (gear icon) in the toolbar opens a panel with sections:
+
+- **Content** — open the Verso folder where your collections, bibles and media live.
+- **Language** — switch the interface between English and French.
+- **Updates** — check manually for a new version and install it.
+
+You can close Settings by clicking the background or pressing **Esc**.
+
+---
+
+## Going further (technical section)
+
+This section is for people comfortable with JSON files or code. You do **not** need it for everyday use of Verso.
+
+### Adding a song collection
+
+A collection is a file kept in `songbooks`, whose name starts with `songbook-` and ends with `.json` (for example `songbook-mycollection.json`).
+
+The file contains an **array** of songs:
 
 ```json
 [
   {
     "id": 1,
-    "title": "Titre du chant",
-    "author": "Auteur ou null",
-    "source_book": "Mon recueil",
+    "title": "Song title",
+    "author": "Author or null",
+    "source_book": "My collection",
     "source_number": 1,
     "verses": [
-      { "type": "S", "number": 1, "text": "Strophe 1, ligne 1.\nLigne 2." },
-      { "type": "R", "text": "Texte du refrain." },
-      { "type": "S", "number": 2, "text": "Strophe 2." }
+      { "type": "S", "number": 1, "text": "Verse 1, line 1.\nLine 2." },
+      { "type": "R", "text": "Chorus text." },
+      { "type": "S", "number": 2, "text": "Verse 2." }
     ]
   }
 ]
 ```
 
-- `id` — entier **unique** dans le recueil (identifiant interne).
-- `title` — titre affiché et recherché.
-- `author` — texte, ou `null` si inconnu.
-- `source_book` — nom du recueil ; sert à grouper les chants dans la recherche.
-- `source_number` — numéro du chant dans le recueil (ou `null`).
-- `verses` — liste **ordonnée** des couplets. Chaque couplet a :
-  - `type` — `"S"` pour une strophe, `"R"` pour un refrain. Absent → strophe (`"S"`). Les refrains sont étiquetés « Refrain » ; tout autre type est affiché comme une strophe.
-  - `number` — numéro de strophe (facultatif).
-  - `text` — le texte ; les sauts de ligne se notent `\n`.
+- `id` — integer that is **unique** within the collection (internal identifier).
+- `title` — title shown and searched.
+- `author` — text, or `null` if unknown.
+- `source_book` — collection name; used to group songs in the search.
+- `source_number` — the song's number within the collection (or `null`).
+- `verses` — the **ordered** list of stanzas. Each stanza has:
+  - `type` — `"S"` for a verse, `"R"` for a chorus. Absent → verse (`"S"`). Choruses are labelled "Chorus"; any other type is shown as a verse.
+  - `number` — stanza number (optional).
+  - `text` — the text; line breaks are written `\n`.
 
-Le format JSON n'autorise pas de vrai retour à la ligne à l'intérieur d'un texte : écrivez `\n` pour chaque saut de ligne dans `text`.
+JSON does not allow a real line break inside a text value: write `\n` for each line break in `text`.
 
-Un fichier complet est disponible dans [`examples/songbook-exemple.json`](examples/songbook-exemple.json) : vous pouvez le copier et le remplir avec vos chants.
+A complete file is available in [`examples/songbook-exemple.json`](examples/songbook-exemple.json): you can copy it and fill it with your own songs.
 
-### Ajouter une bible
+### Adding a bible
 
-Une traduction est un fichier rangé dans `bibles`, nommé `<code>.json` (par exemple `S21.json`).
+A translation is a file kept in `bibles`, named `<code>.json` (for example `S21.json`).
 
 ```json
 {
   "translation": "S21",
   "books": [
     {
-      "name": "Genèse",
+      "name": "Genesis",
       "chapters": [
         [
-          "Au commencement, Dieu créa le ciel et la terre.",
-          "La terre était informe et vide ; les ténèbres couvraient l'abîme.",
-          "Dieu dit : « Que la lumière soit ! » et la lumière fut."
+          "In the beginning God created the heavens and the earth.",
+          "The earth was without form and void, and darkness was over the deep.",
+          "And God said, \"Let there be light,\" and there was light."
         ],
         [
-          "Premier verset du chapitre 2.",
-          "Deuxième verset du chapitre 2."
+          "First verse of chapter 2.",
+          "Second verse of chapter 2."
         ]
       ]
     },
     {
-      "name": "Jean",
+      "name": "John",
       "chapters": [
-        ["Au commencement était la Parole, et la Parole était avec Dieu, et la Parole était Dieu."]
+        ["In the beginning was the Word, and the Word was with God, and the Word was God."]
       ]
     }
   ]
 }
 ```
 
-Un fichier complet est disponible dans [`examples/bible-exemple.json`](examples/bible-exemple.json) : vous pouvez le copier et le remplir avec votre traduction.
+A complete file is available in [`examples/bible-exemple.json`](examples/bible-exemple.json): you can copy it and fill it with your translation.
 
-- `translation` — code de la traduction (idéalement identique au nom du fichier).
-- `books` — liste **ordonnée** des livres.
-  - `name` — nom du livre (utilisé pour la recherche de référence).
-  - `chapters` — tableau de chapitres ; chaque chapitre est un tableau de versets (textes).
-  - L'ordre fait foi : `chapters[0]` est le chapitre 1, et `chapters[0][0]` le verset 1.
+- `translation` — the translation code (ideally identical to the file name).
+- `books` — the **ordered** list of books.
+  - `name` — the book name (used for reference search).
+  - `chapters` — an array of chapters; each chapter is an array of verses (texts).
+  - Order is authoritative: `chapters[0]` is chapter 1, and `chapters[0][0]` is verse 1.
 
-### Développement
+### Development
 
 ```bash
 npm install
-npm run dev      # lance l'app en mode dev
-npm run build    # build de production + installeurs
+npm run dev      # run the app in dev mode
+npm run build    # production build + installers
 ```
 
-Tests Rust :
+Rust tests:
 
 ```bash
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-### Structure du code
+### Code structure
 
 ```
-src/                       frontend (HTML/JS, pas d'étape de build)
-  operator.html            fenêtre opérateur
-  projection.html          fenêtre de projection
-  assets/js/               logique opérateur, rendu, accès aux données
-  vendor/pdfjs/            pdf.js embarqué localement
+src/                       frontend (HTML/JS, no build step)
+  operator.html            operator window
+  projection.html          projection window
+  assets/js/               operator logic, rendering, data access
+  assets/js/i18n.js        interface translations (English/French)
+  vendor/pdfjs/            pdf.js bundled locally
 
-src-tauri/                 backend Rust
-  src/lib.rs               commandes Tauri + fenêtres
-  src/storage.rs           stockage fichiers + amorçage initial
-  src/bible_search.rs      résolution de référence biblique
-  resources/               recueils + bibles libres de droits empaquetés (seed)
-  tauri.conf.json          config (fenêtres, CSP, bundle)
+src-tauri/                 Rust backend
+  src/lib.rs               Tauri commands + windows
+  src/storage.rs           file storage + initial seeding
+  src/bible_search.rs      Bible reference resolution
+  resources/               royalty-free collections + bibles bundled (seed)
+  tauri.conf.json          config (windows, CSP, bundle)
 ```
