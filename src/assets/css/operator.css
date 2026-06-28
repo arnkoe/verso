@@ -840,7 +840,16 @@ body {
 
 /* ─── Panneaux d'information (Aide, À propos) ────────────────────────────────── */
 /* Centrage vertical des panneaux Aide / À propos dans la main card. */
-#panelHelp, #panelAbout, #panelSettings {
+#panelHelp, #panelSettings {
+  grid-row: 1 / -1;
+  justify-content: flex-start;
+  align-items: center;
+  overflow-y: auto;
+}
+#panelHelp .info-pane, #panelSettings .info-pane {
+  padding-top: 56px;
+}
+#panelAbout {
   grid-row: 1 / -1;
   justify-content: center;
   align-items: center;
@@ -891,8 +900,8 @@ body {
 
 /* Aide (raccourcis) : même aération que le panneau Paramètres. */
 .info-pane-help .info-h {
-  margin: 36px 0 4px;
-  padding-bottom: 6px;
+  margin: 20px 0 2px;
+  padding-bottom: 4px;
   border-bottom: 1px solid var(--line-2);
 }
 .info-pane-help .info-h:first-of-type { margin-top: 28px; }
@@ -903,7 +912,7 @@ body {
 .info-pane-help .info-keys li {
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 0;
+  padding: 7px 0;
   border-top: 1px solid var(--line-2);
   font-size: 14px;
   color: var(--ink);
