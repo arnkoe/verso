@@ -527,7 +527,7 @@ document.getElementById('bibleList').addEventListener('click', e => {
 });
 
 async function selectTranslation(btn, t) {
-  document.querySelectorAll('.translation-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#bibleTranslations .translation-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   state.translation = t;
   _saveDefaultBible(t);
