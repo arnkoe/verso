@@ -214,12 +214,23 @@ body {
 .content-item.active::after {
   content: "";
   position: absolute;
-  right: 15px;
+  right: 11px;
   top: 50%;
   transform: translateY(-50%);
-  width: 7px; height: 7px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--live-weak);
+}
+.content-item.active::before {
+  content: "";
+  position: absolute;
+  right: 17px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--live);
+  z-index: 1;
 }
 .content-item.cursor:not(.active) { background: var(--sel); border-left-color: var(--ink); }
 .content-list:has(.content-item.active) .content-item:not(.active) { cursor: default; }
@@ -278,25 +289,6 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 0;
-}
-.monitor-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-.monitor-label {
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--mute);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.monitor-label .dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--live);
 }
 .monitor-screen {
   position: relative;
