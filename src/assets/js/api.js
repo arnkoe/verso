@@ -121,6 +121,21 @@ async function apiRevealVersoDir() {
   return await invoke('reveal_verso_dir');
 }
 
+/** Vrai si ce poste est configuré pour la synchronisation des recueils (sync.json présent). */
+async function apiSyncStatus() {
+  return await invoke('sync_status');
+}
+
+/** Récupère la dernière version distante des recueils. Renvoie un message de statut. */
+async function apiSyncPull() {
+  return await invoke('sync_pull');
+}
+
+/** Publie l'état local des recueils vers le dépôt de données. Renvoie un message de statut. */
+async function apiSyncPush() {
+  return await invoke('sync_push');
+}
+
 /**
  * Vérifie en silence si une mise à jour est disponible.
  * Renvoie l'objet `update` (avec .version) si oui, sinon null. N'échoue jamais

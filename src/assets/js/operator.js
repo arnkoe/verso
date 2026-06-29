@@ -10,6 +10,7 @@
 const state = {
   activeTab: 'cantiques',
   song: null,
+  songId: null,   // id de session du chant chargé (non sérialisé dans song)
   songVerse: -1,
   bible: null,
   bibleVerse: -1,
@@ -239,6 +240,10 @@ function renderSongList(grouped) {
 async function loadSong(id) {
   const song = await apiGetSong(id);
   state.song      = song;
+  // L'id n'est pas sérialisé dans l'objet Song (skip_serializing côté Rust) :
+  // on conserve donc l'id de session passé ici pour les opérations ultérieures
+  // (sauvegarde). Sans ça, state.song.id serait undefined.
+  state.songId    = id;
   state.songVerse = -1;
 
   document.querySelectorAll('#songList .content-item').forEach(el => {
@@ -290,7 +295,7 @@ function projectVerse(i) {
   clearProjectionModeButtons();
   project({
     type: 'song',
-    id: state.song.id,
+    id: state.songId,
     verse: i,
     title: state.song.title,
     songbook_code: state.song.songbook_code,
@@ -1230,19 +1235,22 @@ async function saveSong() {
   if (!verses.length) { alert(t('song.minOneVerse')); return; }
 
   const btn = document.getElementById('btnSaveSong');
-  btn.disabled = true;
+  if (btn) btn.disabled = true;
 
   try {
-    await apiUpdateSong(state.song.id, verses);
-    const id = state.song.id;
+    const id = state.songId;
+    await apiUpdateSong(id, verses);
     state.song = null;
     // Invalide le cache liste (verse_count peut changer).
     songCache = null;
     await loadSongCache();
     await loadSong(id);
+    // Publication automatique différée vers le dépôt partagé (no-op si le poste
+    // n'est pas configuré pour la synchronisation). Non bloquant pour l'UI.
+    _scheduleSyncPush();
   } catch (e) {
     alert(t('common.error', { err: String(e) }));
-    btn.disabled = false;
+    if (btn) btn.disabled = false;
   }
 }
 
@@ -1811,6 +1819,77 @@ async function installUpdate() {
     _setUpdateStatus(t('update.installFailed'), 'error');
   }
 }
+
+// ─── SYNCHRONISATION DES RECUEILS (superutilisateurs) ──────────────────────────
+// Synchronisation automatique, sans bouton : sur les postes configurés
+// (sync.json présent), on récupère les recueils au lancement et on publie en
+// arrière-plan, de façon différée et regroupée, après chaque sauvegarde de
+// chant. Stratégie « dernier qui écrit gagne ». Les échecs (réseau, git absent,
+// auth) sont silencieux : seul un point d'état discret dans la barre d'outils
+// les signale, l'app restant pleinement utilisable en local.
+
+let _syncEnabled = false;        // résolu une fois au démarrage via apiSyncStatus
+let _syncPushTimer = null;
+const SYNC_PUSH_DEBOUNCE_MS = 3000;
+
+// Met à jour l'indicateur textuel discret (syncing | ok | error). Masqué tant
+// que le poste n'est pas un superutilisateur configuré. L'état « ok » s'efface
+// tout seul après quelques secondes pour garder le pied propre ; « error » reste
+// affiché jusqu'à la prochaine tentative.
+let _syncOkHideTimer = null;
+function _setSyncIndicator(state) {
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  clearTimeout(_syncOkHideTimer);
+  el.hidden = !_syncEnabled || !state;
+  el.className = 'sync-status' + (state ? ' ' + state : '');
+  el.textContent = state ? t('sync.' + state) : '';
+  if (state === 'ok') {
+    _syncOkHideTimer = setTimeout(() => { el.hidden = true; }, 4000);
+  }
+}
+
+// Publication différée : regroupe les sauvegardes rapprochées en un seul push.
+function _scheduleSyncPush() {
+  if (!_syncEnabled) return;
+  clearTimeout(_syncPushTimer);
+  _syncPushTimer = setTimeout(_runSyncPush, SYNC_PUSH_DEBOUNCE_MS);
+}
+
+async function _runSyncPush() {
+  _setSyncIndicator('syncing');
+  try {
+    await apiSyncPush();
+    _setSyncIndicator('ok');
+  } catch (_) {
+    _setSyncIndicator('error'); // silencieux, pas de pop-up
+  }
+}
+
+// Récupération au lancement : le distant gagne toujours. En arrière-plan, sans
+// bloquer le préchargement local ; au succès on rafraîchit la liste des chants.
+async function _runSyncPullOnLaunch() {
+  _setSyncIndicator('syncing');
+  try {
+    await apiSyncPull();
+    songCache = null;
+    songCachePromise = null;
+    await loadSongCache();
+    _setSyncIndicator('ok');
+  } catch (_) {
+    _setSyncIndicator('error'); // silencieux
+  }
+}
+
+(async function _initSync() {
+  try {
+    _syncEnabled = await apiSyncStatus();
+  } catch (_) {
+    _syncEnabled = false;
+  }
+  if (!_syncEnabled) return;
+  _runSyncPullOnLaunch();
+})();
 
 (async function _initAbout() {
   document.getElementById('aboutYear').textContent = new Date().getFullYear();

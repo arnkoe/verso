@@ -1,5 +1,6 @@
 mod bible_search;
 mod storage;
+mod sync;
 
 use std::fs;
 
@@ -228,6 +229,29 @@ fn delete_content(
     filename: String,
 ) -> Result<(), String> {
     storage::delete_content(&app, &state, &kind, &filename)
+}
+
+// ─── SYNCHRONISATION ────────────────────────────────────────────────────────
+
+/// Vrai si ce poste est configuré pour la synchronisation des recueils
+/// (présence de `sync.json`). L'UI s'en sert pour afficher ou masquer le bloc
+/// de synchronisation : seuls les superutilisateurs configurés le voient.
+#[tauri::command]
+fn sync_status(app: AppHandle) -> bool {
+    sync::is_configured(&app)
+}
+
+/// Récupère la dernière version distante des recueils et l'applique localement
+/// (invalide le cache). L'UI recharge ensuite la liste des chants.
+#[tauri::command]
+fn sync_pull(app: AppHandle, state: tauri::State<AppState>) -> Result<String, String> {
+    sync::pull(&app, &state)
+}
+
+/// Publie l'état local des recueils vers le dépôt de données.
+#[tauri::command]
+fn sync_push(app: AppHandle) -> Result<String, String> {
+    sync::push(&app)
 }
 
 // ─── PROJECTION ─────────────────────────────────────────────────────────────
@@ -546,6 +570,9 @@ pub fn run() {
             list_content,
             import_content,
             delete_content,
+            sync_status,
+            sync_pull,
+            sync_push,
             reveal_verso_dir,
             media_path,
             get_projection_state,

@@ -146,8 +146,10 @@ pub fn data_dir(app: &AppHandle) -> PathBuf {
     dir
 }
 
-/// Dossier contenant un fichier JSON par recueil de chants.
-fn songbooks_dir(app: &AppHandle) -> PathBuf {
+/// Dossier contenant un fichier JSON par recueil de chants. Public pour que le
+/// module `sync` puisse y recopier les recueils tirés du dépôt de données et en
+/// extraire ceux à publier.
+pub fn songbooks_dir(app: &AppHandle) -> PathBuf {
     let dir = data_dir(app).join("songbooks");
     let _ = fs::create_dir_all(&dir);
     dir
@@ -298,8 +300,10 @@ fn prefixed_json_files(dir: &Path, prefix: &str) -> Vec<PathBuf> {
     files
 }
 
-/// Liste les fichiers `songbook-*.json` d'un dossier, triés par nom.
-fn songbook_files(dir: &Path) -> Vec<PathBuf> {
+/// Liste les fichiers `songbook-*.json` d'un dossier, triés par nom. Public pour
+/// que le module `sync` partage exactement le même critère (préfixe + extension)
+/// lors de la copie des recueils entre le dossier de données et le clone Git.
+pub fn songbook_files(dir: &Path) -> Vec<PathBuf> {
     prefixed_json_files(dir, "songbook-")
 }
 
@@ -394,6 +398,13 @@ pub fn load_songs(app: &AppHandle, state: &AppState) -> Result<Vec<Song>, String
 
     *state.songs.lock().unwrap() = Some(songs.clone());
     Ok(songs)
+}
+
+/// Invalide le cache mémoire des chants : le prochain `load_songs` relira le
+/// dossier `songbooks/`. Utilisé après une synchronisation (pull) qui a remplacé
+/// les fichiers de recueils sous les pieds du cache.
+pub fn invalidate_songs_cache(state: &AppState) {
+    *state.songs.lock().unwrap() = None;
 }
 
 pub fn save_songs(app: &AppHandle, state: &AppState, songs: &[Song]) -> Result<(), String> {

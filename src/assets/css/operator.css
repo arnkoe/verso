@@ -1088,6 +1088,20 @@ body {
 .settings-update-status.error { color: #c62828; }
 .settings-update-status.available { color: var(--accent); font-weight: 600; }
 
+/* Indicateur textuel de synchronisation des recueils, au-dessus de la barre
+   d'outils. Même mise en forme et même espacement que le nom d'écran du pied de
+   la card monitor (.monitor-foot). L'état « échec » reçoit une teinte rouge
+   atténuée, sans vert (réservé à la projection active). Masqué hors
+   superutilisateur ou sans état. */
+.sync-status {
+  margin-top: 6px;
+  font-size: 10.5px;
+  color: var(--mute-2);
+  text-align: center;
+}
+.sync-status[hidden] { display: none; }
+.sync-status.error { color: #b06b6b; }
+
 /* Gestion des contenus (liste dans la modale dédiée). */
 .content-mgr-list { list-style: none; margin: 0; padding: 0; }
 .content-mgr-item {

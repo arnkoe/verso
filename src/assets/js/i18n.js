@@ -125,6 +125,10 @@ const I18N = {
     'update.installRetry': 'Échec, réessayer',
     'update.updateTo': 'Mettre à jour vers la version {version}',
     'update.update': 'Mettre à jour',
+    // Synchronisation des recueils (superutilisateurs) : indicateur discret.
+    'sync.syncing': 'Synchronisation des recueils…',
+    'sync.ok': 'Recueils synchronisés',
+    'sync.error': 'Échec de la synchronisation des recueils',
     // Libellés divers
     'verse.verse': 'Strophe',
     'verse.chorus': 'Refrain',
@@ -261,6 +265,10 @@ const I18N = {
     'update.installRetry': 'Failed, retry',
     'update.updateTo': 'Update to version {version}',
     'update.update': 'Update',
+    // Songbook synchronization (super users): discreet status indicator.
+    'sync.syncing': 'Synchronizing songbooks…',
+    'sync.ok': 'Songbooks synchronized',
+    'sync.error': 'Songbook synchronization failed',
     'verse.verse': 'Verse',
     'verse.chorus': 'Chorus',
     'verse.bridge': 'Bridge',
