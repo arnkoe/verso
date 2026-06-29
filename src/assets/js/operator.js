@@ -1832,7 +1832,8 @@ let _syncEnabled = false;        // résolu une fois au démarrage via apiSyncSt
 let _syncPushTimer = null;
 const SYNC_PUSH_DEBOUNCE_MS = 3000;
 
-// Met à jour l'indicateur textuel discret (syncing | ok | error). Masqué tant
+// Met à jour l'indicateur textuel discret (ok | error). On n'affiche jamais
+// d'état transitoire (la synchro est trop brève pour être lue). Masqué tant
 // que le poste n'est pas un superutilisateur configuré. L'état « ok » s'efface
 // tout seul après quelques secondes pour garder le pied propre ; « error » reste
 // affiché jusqu'à la prochaine tentative.
@@ -1857,7 +1858,6 @@ function _scheduleSyncPush() {
 }
 
 async function _runSyncPush() {
-  _setSyncIndicator('syncing');
   try {
     await apiSyncPush();
     _setSyncIndicator('ok');
@@ -1869,7 +1869,6 @@ async function _runSyncPush() {
 // Récupération au lancement : le distant gagne toujours. En arrière-plan, sans
 // bloquer le préchargement local ; au succès on rafraîchit la liste des chants.
 async function _runSyncPullOnLaunch() {
-  _setSyncIndicator('syncing');
   try {
     await apiSyncPull();
     songCache = null;

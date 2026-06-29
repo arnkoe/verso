@@ -126,7 +126,6 @@ const I18N = {
     'update.updateTo': 'Mettre à jour vers la version {version}',
     'update.update': 'Mettre à jour',
     // Synchronisation des recueils (superutilisateurs) : indicateur discret.
-    'sync.syncing': 'Synchronisation des recueils…',
     'sync.ok': 'Recueils synchronisés',
     'sync.error': 'Échec de la synchronisation des recueils',
     // Libellés divers
@@ -266,7 +265,6 @@ const I18N = {
     'update.updateTo': 'Update to version {version}',
     'update.update': 'Update',
     // Songbook synchronization (super users): discreet status indicator.
-    'sync.syncing': 'Synchronizing songbooks…',
     'sync.ok': 'Songbooks synchronized',
     'sync.error': 'Songbook synchronization failed',
     'verse.verse': 'Verse',
