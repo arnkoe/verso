@@ -178,7 +178,7 @@ Un fichier complet est disponible dans [`examples/songbook-exemple.json`](exampl
 
 ### Ajouter une bible
 
-Une traduction est un fichier rangé dans `bibles`, nommé `<code>.json` (par exemple `S21.json`).
+Une traduction est un fichier rangé dans `bibles`, dont le nom commence par `bible-` et finit par `.json` (par exemple `bible-s21.json`).
 
 ```json
 {

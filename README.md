@@ -178,7 +178,7 @@ A complete file is available in [`examples/songbook-exemple.json`](examples/song
 
 ### Adding a bible
 
-A translation is a file kept in `bibles`, named `<code>.json` (for example `S21.json`).
+A translation is a file kept in `bibles`, whose name starts with `bible-` and ends with `.json` (for example `bible-s21.json`).
 
 ```json
 {

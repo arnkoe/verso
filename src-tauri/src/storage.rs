@@ -6,7 +6,7 @@
 //!
 //! Arborescence (sous app_data_dir) :
 //!   songbooks/songbook-<recueil>.json — un fichier par recueil (déposés/édités par l'utilisateur)
-//!   bibles/<traduction>.json — une bible par traduction (déposées par l'utilisateur)
+//!   bibles/bible-<traduction>.json — une bible par traduction (déposées par l'utilisateur)
 //!   projection_state.json   — dernier état projeté (repris à l'ouverture de la projection)
 //!   pdf/<fichier>           — PDFs déposés par l'utilisateur
 //!   images/<fichier>        — images déposées par l'utilisateur
@@ -179,6 +179,24 @@ fn book_slug(book: &str) -> String {
     }
 }
 
+/// Code de bible → slug ASCII utilisé dans le nom de fichier `bible-<slug>.json`.
+/// Même normalisation que `book_slug`, avec un repli neutre.
+fn bible_slug(code: &str) -> String {
+    let mut s = String::new();
+    for c in code.trim().to_lowercase().chars() {
+        if c.is_ascii_alphanumeric() {
+            s.push(c);
+        } else if c == ' ' || c == '-' || c == '_' {
+            s.push('-');
+        }
+    }
+    if s.is_empty() {
+        "sans-bible".to_string()
+    } else {
+        s
+    }
+}
+
 /// Étiquette de recueil pour un chant (vide → groupe « Sans recueil »).
 fn song_book(s: &Song) -> &str {
     s.songbook_code.as_deref().filter(|s| !s.is_empty()).unwrap_or("Sans recueil")
@@ -205,15 +223,15 @@ pub fn media_dir(app: &AppHandle, kind: &str) -> PathBuf {
 const SEED_FILES: &[(&str, &str)] = &[
     ("resources/songbooks/songbook-ref.json", "songbooks/songbook-ref.json"),
     ("resources/songbooks/songbook-hec.json", "songbooks/songbook-hec.json"),
-    ("resources/bibles/DRB.json", "bibles/DRB.json"),
-    ("resources/bibles/LSG.json", "bibles/LSG.json"),
+    ("resources/bibles/bible-drb.json", "bibles/bible-drb.json"),
+    ("resources/bibles/bible-lsg.json", "bibles/bible-lsg.json"),
 ];
 
 /// Vrai si le dossier de données contient déjà au moins un recueil ou une bible,
 /// signe d'une installation existante (utilisateur antérieur à cette
 /// fonctionnalité) qu'il ne faut surtout pas réamorcer.
 fn has_existing_data(app: &AppHandle) -> bool {
-    !songbook_files(&songbooks_dir(app), "songbook-").is_empty() || !list_bibles(app).is_empty()
+    !songbook_files(&songbooks_dir(app)).is_empty() || !list_bibles(app).is_empty()
 }
 
 /// Copie les recueils et bibles libres de droits empaquetés dans le dossier de
@@ -261,8 +279,8 @@ fn is_hidden(name: &str) -> bool {
     name.starts_with('.')
 }
 
-/// Liste les fichiers `<prefix>-*.json` d'un dossier, triés par nom.
-fn songbook_files(dir: &Path, prefix: &str) -> Vec<PathBuf> {
+/// Liste les fichiers `<prefix>*.json` d'un dossier, triés par nom.
+fn prefixed_json_files(dir: &Path, prefix: &str) -> Vec<PathBuf> {
     let mut files: Vec<PathBuf> = fs::read_dir(dir)
         .map(|it| {
             it.flatten()
@@ -278,6 +296,11 @@ fn songbook_files(dir: &Path, prefix: &str) -> Vec<PathBuf> {
         .unwrap_or_default();
     files.sort();
     files
+}
+
+/// Liste les fichiers `songbook-*.json` d'un dossier, triés par nom.
+fn songbook_files(dir: &Path) -> Vec<PathBuf> {
+    prefixed_json_files(dir, "songbook-")
 }
 
 /// Parse un fichier de recueil en acceptant deux formats : le format wrapper
@@ -333,7 +356,7 @@ fn read_songbook_files(files: &[PathBuf]) -> Result<Vec<Song>, String> {
 /// ignorées pour ne jamais empêcher le lancement de l'application.
 pub fn migrate_vtypes(app: &AppHandle) {
     let dir = songbooks_dir(app);
-    for path in songbook_files(&dir, "songbook-") {
+    for path in songbook_files(&dir) {
         let Ok(bytes) = fs::read(&path) else { continue };
         let Ok(mut book) = parse_songbook(&bytes) else {
             continue;
@@ -366,7 +389,7 @@ pub fn load_songs(app: &AppHandle, state: &AppState) -> Result<Vec<Song>, String
 
     // Lecture du dossier `songbooks/` : un fichier par recueil.
     let dir = songbooks_dir(app);
-    let files = songbook_files(&dir, "songbook-");
+    let files = songbook_files(&dir);
     let songs = read_songbook_files(&files)?;
 
     *state.songs.lock().unwrap() = Some(songs.clone());
@@ -433,10 +456,8 @@ pub fn load_bible(app: &AppHandle, state: &AppState, bible_code: &str) -> Result
             return Ok(b.clone());
         }
     }
-    // Nom de fichier sécurisé : le code de bible sert directement de nom de fichier.
-    let fname = sanitize_filename(bible_code)
-        .ok_or_else(|| format!("Bible « {bible_code} » invalide"))?;
-    let path = bibles_dir(app).join(format!("{fname}.json"));
+    // Nom de fichier canonique `bible-<slug>.json`, cohérent avec les recueils.
+    let path = bibles_dir(app).join(format!("bible-{}.json", bible_slug(bible_code)));
     let bytes = fs::read(&path).map_err(|_| format!("Bible « {bible_code} » introuvable"))?;
     let bible: Bible =
         serde_json::from_slice(&bytes).map_err(|e| format!("Parse {bible_code} : {e}"))?;
@@ -448,23 +469,15 @@ pub fn load_bible(app: &AppHandle, state: &AppState, bible_code: &str) -> Result
     Ok(bible)
 }
 
-/// Liste les traductions de bible présentes dans le dossier `bibles/`
-/// (nom de fichier sans l'extension `.json`), triées alphabétiquement.
+/// Liste les codes des traductions de bible présentes dans le dossier `bibles/`,
+/// triés alphabétiquement. Le code provient du champ `bible_code` du fichier (le
+/// nom de fichier `bible-<slug>.json` n'est qu'un identifiant cosmétique).
 pub fn list_bibles(app: &AppHandle) -> Vec<String> {
     let dir = bibles_dir(app);
-    let mut out: Vec<String> = fs::read_dir(&dir)
-        .map(|it| {
-            it.flatten()
-                .filter_map(|e| {
-                    let name = e.file_name().to_string_lossy().to_string();
-                    if is_hidden(&name) {
-                        return None;
-                    }
-                    name.strip_suffix(".json").map(|s| s.to_string())
-                })
-                .collect()
-        })
-        .unwrap_or_default();
+    let mut out: Vec<String> = bible_files(&dir)
+        .iter()
+        .filter_map(|p| bible_code(p))
+        .collect();
     out.sort();
     out
 }
@@ -528,6 +541,7 @@ pub fn list_content(app: &AppHandle, kind: &str) -> Result<Vec<ContentEntry>, St
             let label = match kind {
                 "songbooks" => songbook_label(&entry.path()).unwrap_or_else(|| name.clone()),
                 "bibles" => bible_label(&entry.path())
+                    .or_else(|| bible_code(&entry.path()))
                     .unwrap_or_else(|| name.strip_suffix(".json").unwrap_or(&name).to_string()),
                 _ => name.clone(),
             };
@@ -556,6 +570,18 @@ fn bible_label(path: &Path) -> Option<String> {
     bible.bible_name.filter(|s| !s.is_empty())
 }
 
+/// Code interne d'une bible (`bible_code` du fichier).
+fn bible_code(path: &Path) -> Option<String> {
+    let bytes = fs::read(path).ok()?;
+    let bible: Bible = serde_json::from_slice(&bytes).ok()?;
+    Some(bible.bible_code).filter(|s| !s.is_empty())
+}
+
+/// Liste les fichiers `bible-*.json` d'un dossier, triés par nom.
+fn bible_files(dir: &Path) -> Vec<PathBuf> {
+    prefixed_json_files(dir, "bible-")
+}
+
 /// Code interne d'un recueil (`songbook_code` du wrapper, ou du premier chant).
 fn songbook_code(path: &Path) -> Option<String> {
     let bytes = fs::read(path).ok()?;
@@ -576,7 +602,7 @@ pub struct ContentName {
 /// Recueils présents : `{ code, nom lisible }`, triés par nom.
 pub fn list_songbooks(app: &AppHandle) -> Vec<ContentName> {
     let dir = songbooks_dir(app);
-    let mut out: Vec<ContentName> = songbook_files(&dir, "songbook-")
+    let mut out: Vec<ContentName> = songbook_files(&dir)
         .into_iter()
         .filter_map(|p| {
             let code = songbook_code(&p)?;
@@ -588,33 +614,26 @@ pub fn list_songbooks(app: &AppHandle) -> Vec<ContentName> {
     out
 }
 
-/// Traductions de bible présentes : `{ code, nom lisible }`, triées par nom.
+/// Traductions de bible présentes : `{ code, nom lisible }`, triées par nom. Le
+/// code provient du champ `bible_code` du fichier, le nom lisible de `bible_name`.
 pub fn list_bibles_named(app: &AppHandle) -> Vec<ContentName> {
     let dir = bibles_dir(app);
-    let mut out: Vec<ContentName> = Vec::new();
-    if let Ok(rd) = fs::read_dir(&dir) {
-        for e in rd.flatten() {
-            let fname = e.file_name().to_string_lossy().to_string();
-            if is_hidden(&fname) {
-                continue;
-            }
-            let Some(code) = fname.strip_suffix(".json") else {
-                continue;
-            };
-            let name = bible_label(&e.path()).unwrap_or_else(|| code.to_string());
-            out.push(ContentName {
-                code: code.to_string(),
-                name,
-            });
-        }
-    }
+    let mut out: Vec<ContentName> = bible_files(&dir)
+        .into_iter()
+        .filter_map(|p| {
+            let code = bible_code(&p)?;
+            let name = bible_label(&p).unwrap_or_else(|| code.clone());
+            Some(ContentName { code, name })
+        })
+        .collect();
     out.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     out
 }
 
 /// Importe un fichier (chemin source absolu) dans le sous-dossier du type donné.
 /// L'extension doit correspondre au type. Le nom de fichier est assaini ; pour
-/// les recueils, on génère un nom canonique `songbook-<slug>.json`.
+/// les recueils et les bibles, on génère un nom canonique `songbook-<slug>.json`
+/// ou `bible-<slug>.json` d'après le contenu du fichier.
 pub fn import_content(
     app: &AppHandle,
     state: &AppState,
@@ -632,28 +651,31 @@ pub fn import_content(
         return Err("Extension de fichier non autorisée".into());
     }
 
-    let dest_name = if kind == "songbooks" {
-        // Nom canonique d'après le recueil contenu dans le fichier (cohérent
-        // avec le découpage des ressources et `save_songs`).
-        let bytes = fs::read(src).map_err(|e| format!("Lecture : {e}"))?;
-        let book: Songbook =
-            serde_json::from_slice(&bytes).map_err(|e| format!("Recueil invalide : {e}"))?;
-        let code = book
-            .songbook_code
-            .as_deref()
-            .or_else(|| book.songs.first().and_then(|s| s.songbook_code.as_deref()))
-            .filter(|s| !s.is_empty())
-            .unwrap_or("sans-recueil");
-        format!("songbook-{}.json", book_slug(code))
-    } else {
-        sanitize_filename(orig).ok_or("Nom de fichier invalide")?
+    let dest_name = match kind {
+        "songbooks" => {
+            // Nom canonique d'après le recueil contenu dans le fichier (cohérent
+            // avec le découpage des ressources et `save_songs`).
+            let bytes = fs::read(src).map_err(|e| format!("Lecture : {e}"))?;
+            let book: Songbook =
+                serde_json::from_slice(&bytes).map_err(|e| format!("Recueil invalide : {e}"))?;
+            let code = book
+                .songbook_code
+                .as_deref()
+                .or_else(|| book.songs.first().and_then(|s| s.songbook_code.as_deref()))
+                .filter(|s| !s.is_empty())
+                .unwrap_or("sans-recueil");
+            format!("songbook-{}.json", book_slug(code))
+        }
+        "bibles" => {
+            // Nom canonique d'après le code de bible contenu dans le fichier ; le
+            // parse valide aussi la structure (évite une traduction illisible).
+            let bytes = fs::read(src).map_err(|e| format!("Lecture : {e}"))?;
+            let bible: Bible =
+                serde_json::from_slice(&bytes).map_err(|e| format!("Bible invalide : {e}"))?;
+            format!("bible-{}.json", bible_slug(&bible.bible_code))
+        }
+        _ => sanitize_filename(orig).ok_or("Nom de fichier invalide")?,
     };
-
-    if kind == "bibles" {
-        // Valide la structure avant de copier (évite une traduction illisible).
-        let bytes = fs::read(src).map_err(|e| format!("Lecture : {e}"))?;
-        serde_json::from_slice::<Bible>(&bytes).map_err(|e| format!("Bible invalide : {e}"))?;
-    }
 
     let dest = content_dir(app, sub).join(&dest_name);
     fs::copy(src, &dest).map_err(|e| format!("Copie : {e}"))?;
