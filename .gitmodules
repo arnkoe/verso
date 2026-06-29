@@ -1,0 +1,3 @@
+[submodule "src-tauri/resources/songbooks"]
+	path = src-tauri/resources/songbooks
+	url = https://github.com/arnkoe/verso-songbooks.git
