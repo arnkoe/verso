@@ -37,7 +37,6 @@ const I18N = {
     'tools.about': 'À propos',
     'tools.aboutTitle': 'À propos de Verso',
     // Retour projection + contrôles
-    'monitor.label': 'Retour projection',
     'monitor.controls': 'Contrôles de projection',
     'monitor.screen': 'Écran',
     'monitor.screenTitle': "Choisir l'écran de projection",
@@ -181,7 +180,6 @@ const I18N = {
     'tools.shortcutsTitle': 'Keyboard shortcuts',
     'tools.about': 'About',
     'tools.aboutTitle': 'About Verso',
-    'monitor.label': 'Projection preview',
     'monitor.controls': 'Projection controls',
     'monitor.screen': 'Screen',
     'monitor.screenTitle': 'Choose the projection screen',
