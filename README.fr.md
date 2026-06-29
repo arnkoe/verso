@@ -182,8 +182,8 @@ Une traduction est un fichier rangé dans `bibles`, nommé `<code>.json` (par ex
 
 ```json
 {
-  "translation": "S21",
-  "name": "Segond 21",
+  "bible_code": "S21",
+  "bible_name": "Segond 21",
   "books": [
     {
       "name": "Genèse",
@@ -211,8 +211,8 @@ Une traduction est un fichier rangé dans `bibles`, nommé `<code>.json` (par ex
 
 Un fichier complet est disponible dans [`examples/bible-exemple.json`](examples/bible-exemple.json) : vous pouvez le copier et le remplir avec votre traduction.
 
-- `translation` — code de la traduction (idéalement identique au nom du fichier).
-- `name` — *(optionnel)* nom lisible de la traduction (par exemple `Segond 21`) ; affiché dans l'opérateur et dans la gestion des contenus. À défaut, on retombe sur le code.
+- `bible_code` — code de la traduction (idéalement identique au nom du fichier).
+- `bible_name` — *(optionnel)* nom lisible de la traduction (par exemple `Segond 21`) ; affiché dans l'opérateur et dans la gestion des contenus. À défaut, on retombe sur le code.
 - `books` — liste **ordonnée** des livres.
   - `name` — nom du livre (utilisé pour la recherche de référence).
   - `chapters` — tableau de chapitres ; chaque chapitre est un tableau de versets (textes).
