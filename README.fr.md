@@ -144,8 +144,8 @@ Le fichier est un objet portant le nom du recueil une seule fois, puis la liste 
 
 ```json
 {
-  "source_book": "MR",
-  "source_book_name": "Mon recueil",
+  "songbook_code": "MR",
+  "songbook_name": "Mon recueil",
   "songs": [
     {
       "title": "Titre du chant",
@@ -161,8 +161,8 @@ Le fichier est un objet portant le nom du recueil une seule fois, puis la liste 
 }
 ```
 
-- `source_book` — code du recueil, répété sur chaque fichier du recueil.
-- `source_book_name` — nom lisible du recueil.
+- `songbook_code` — code du recueil, répété sur chaque fichier du recueil.
+- `songbook_name` — nom lisible du recueil.
 - `songs` — la liste des chants. Chaque chant a :
 - `title` — titre affiché et recherché.
 - `author` — texte, ou `null` si inconnu.

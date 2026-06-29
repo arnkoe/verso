@@ -144,8 +144,8 @@ The file is an object carrying the collection name once, then the list of songs:
 
 ```json
 {
-  "source_book": "MR",
-  "source_book_name": "My collection",
+  "songbook_code": "MR",
+  "songbook_name": "My collection",
   "songs": [
     {
       "title": "Song title",
@@ -161,8 +161,8 @@ The file is an object carrying the collection name once, then the list of songs:
 }
 ```
 
-- `source_book` — collection code, repeated on every file of the collection.
-- `source_book_name` — the collection's human-readable name.
+- `songbook_code` — collection code, repeated on every file of the collection.
+- `songbook_name` — the collection's human-readable name.
 - `songs` — the list of songs. Each song has:
 - `title` — title shown and searched.
 - `author` — text, or `null` if unknown.
