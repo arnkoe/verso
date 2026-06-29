@@ -66,9 +66,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Clé privée de signature des mises à jour (secret du dépôt).
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          # Clé générée sans passphrase : password vide. GitHub interdisant les
-          # secrets vides, on n'en crée pas et on force la chaîne vide ici.
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
+          # Clé générée sans passphrase : password vide. On force la chaîne vide
+          # littérale (pas de secret, GitHub interdisant les secrets vides).
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         with:
           # tauri-action crée le tag à partir de la version de tauri.conf.json.
           tagName: verso-v__VERSION__
