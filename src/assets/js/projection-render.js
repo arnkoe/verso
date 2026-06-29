@@ -23,7 +23,7 @@ function renderProjectionContent(state, container) {
   if (state.type === 'song') {
     const div = document.createElement('div');
     div.className = 'content-text';
-    const bookPart = [state.source_book, state.source_number ?? ''].filter(Boolean).join(' ');
+    const bookPart = [state.songbook_code, state.source_number ?? ''].filter(Boolean).join(' ');
     const labels = state.verseLabels && state.verseLabels.length
       ? state.verseLabels
       : [String(state.verse + 1)];

@@ -70,19 +70,20 @@ pub struct Song {
     #[serde(default)]
     pub author: Option<String>,
     #[serde(default)]
-    pub source_book: Option<String>,
+    pub songbook_code: Option<String>,
     #[serde(default)]
     pub source_number: Option<i64>,
     pub verses: Vec<Verse>,
 }
 
 /// Fichier de recueil : enveloppe portant le nom lisible une seule fois, plus
-/// la liste des chants. Le code (`source_book`) et le nom (`source_book_name`)
-/// sont propagés sur chaque `Song` à la lecture pour rester disponibles à plat.
+/// la liste des chants. Le code (`songbook_code`) et le nom
+/// (`source_book_name`) sont propagés sur chaque `Song` à la lecture pour rester
+/// disponibles à plat.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Songbook {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub source_book: Option<String>,
+    pub songbook_code: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source_book_name: Option<String>,
     pub songs: Vec<Song>,
@@ -94,7 +95,7 @@ pub struct SongSummary {
     pub id: i64,
     pub title: String,
     pub author: Option<String>,
-    pub source_book: Option<String>,
+    pub songbook_code: Option<String>,
     pub source_number: Option<i64>,
     pub verse_count: usize,
     /// Première ligne de chaque couplet (incipits), pour la recherche.
@@ -180,7 +181,7 @@ fn book_slug(book: &str) -> String {
 
 /// Étiquette de recueil pour un chant (vide → groupe « Sans recueil »).
 fn song_book(s: &Song) -> &str {
-    s.source_book.as_deref().filter(|s| !s.is_empty()).unwrap_or("Sans recueil")
+    s.songbook_code.as_deref().filter(|s| !s.is_empty()).unwrap_or("Sans recueil")
 }
 
 fn projection_state_path(app: &AppHandle) -> PathBuf {
@@ -280,13 +281,14 @@ fn songbook_files(dir: &Path, prefix: &str) -> Vec<PathBuf> {
 }
 
 /// Parse un fichier de recueil en acceptant deux formats : le format wrapper
-/// actuel (`{ source_book, source_book_name, songs: [...] }`) et l'ancien format
-/// (tableau de chants nu) encore présent dans les installations existantes.
+/// actuel (`{ songbook_code, source_book_name, songs: [...] }`) et l'ancien
+/// format (tableau de chants nu) encore présent dans les installations
+/// existantes.
 fn parse_songbook(bytes: &[u8]) -> Result<Songbook, serde_json::Error> {
     match serde_json::from_slice::<Songbook>(bytes) {
         Ok(book) => Ok(book),
         Err(_) => serde_json::from_slice::<Vec<Song>>(bytes).map(|songs| Songbook {
-            source_book: None,
+            songbook_code: None,
             source_book_name: None,
             songs,
         }),
@@ -310,8 +312,8 @@ fn read_songbook_files(files: &[PathBuf]) -> Result<Vec<Song>, String> {
         for mut s in book.songs {
             s.id = next_id;
             next_id += 1;
-            if s.source_book.is_none() {
-                s.source_book = book.source_book.clone();
+            if s.songbook_code.is_none() {
+                s.songbook_code = book.songbook_code.clone();
             }
             // Normalise les types de section en mémoire : les anciens codes
             // français restent lisibles même si le fichier n'a pas été migré.
@@ -390,7 +392,7 @@ pub fn save_songs(app: &AppHandle, state: &AppState, songs: &[Song]) -> Result<(
         let path = dir.join(&fname);
         let code = items
             .iter()
-            .find_map(|s| s.source_book.clone())
+            .find_map(|s| s.songbook_code.clone())
             .filter(|s| !s.is_empty());
         let existing_name = fs::read(&path)
             .ok()
@@ -398,7 +400,7 @@ pub fn save_songs(app: &AppHandle, state: &AppState, songs: &[Song]) -> Result<(
             .and_then(|b| b.source_book_name)
             .filter(|s| !s.is_empty());
         let book = Songbook {
-            source_book: code,
+            songbook_code: code,
             source_book_name: existing_name,
             songs: items.iter().map(|s| (*s).clone()).collect(),
         };
@@ -537,13 +539,13 @@ pub fn list_content(app: &AppHandle, kind: &str) -> Result<Vec<ContentEntry>, St
 }
 
 /// Nom lisible d'un recueil : `source_book_name` du wrapper si présent, sinon le
-/// code `source_book`.
+/// code `songbook_code`.
 fn songbook_label(path: &Path) -> Option<String> {
     let bytes = fs::read(path).ok()?;
     let book = parse_songbook(&bytes).ok()?;
     book.source_book_name
-        .or_else(|| book.source_book.clone())
-        .or_else(|| book.songs.first().and_then(|s| s.source_book.clone()))
+        .or_else(|| book.songbook_code.clone())
+        .or_else(|| book.songs.first().and_then(|s| s.songbook_code.clone()))
         .filter(|s| !s.is_empty())
 }
 
@@ -554,12 +556,12 @@ fn bible_label(path: &Path) -> Option<String> {
     bible.name.filter(|s| !s.is_empty())
 }
 
-/// Code interne d'un recueil (`source_book` du wrapper, ou du premier chant).
+/// Code interne d'un recueil (`songbook_code` du wrapper, ou du premier chant).
 fn songbook_code(path: &Path) -> Option<String> {
     let bytes = fs::read(path).ok()?;
     let book = parse_songbook(&bytes).ok()?;
-    book.source_book
-        .or_else(|| book.songs.first().and_then(|s| s.source_book.clone()))
+    book.songbook_code
+        .or_else(|| book.songs.first().and_then(|s| s.songbook_code.clone()))
         .filter(|s| !s.is_empty())
 }
 
@@ -637,9 +639,9 @@ pub fn import_content(
         let book: Songbook =
             serde_json::from_slice(&bytes).map_err(|e| format!("Recueil invalide : {e}"))?;
         let code = book
-            .source_book
+            .songbook_code
             .as_deref()
-            .or_else(|| book.songs.first().and_then(|s| s.source_book.as_deref()))
+            .or_else(|| book.songs.first().and_then(|s| s.songbook_code.as_deref()))
             .filter(|s| !s.is_empty())
             .unwrap_or("sans-recueil");
         format!("songbook-{}.json", book_slug(code))

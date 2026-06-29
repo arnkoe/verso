@@ -20,7 +20,7 @@ fn list_songs(app: AppHandle, state: tauri::State<AppState>) -> Result<Vec<SongS
             id: s.id,
             title: s.title.clone(),
             author: s.author.clone(),
-            source_book: s.source_book.clone(),
+            songbook_code: s.songbook_code.clone(),
             source_number: s.source_number,
             verse_count: s.verses.len(),
             incipits: s

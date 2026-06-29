@@ -145,9 +145,9 @@ async function loadSongCache() {
 // (le bouton « Tous » fixe reste en tête).
 function buildSongBookButtons(songs) {
   const wrap = document.getElementById('songBookFilter');
-  // Le filtre se fait sur le code (source_book) ; le bouton affiche le code,
+  // Le filtre se fait sur le code (songbook_code) ; le bouton affiche le code,
   // le nom lisible résolu via `songbookNames` servant d'infobulle.
-  const books = [...new Set(songs.map(s => s.source_book).filter(Boolean))]
+  const books = [...new Set(songs.map(s => s.songbook_code).filter(Boolean))]
     .sort((a, b) => a.localeCompare(b));
   wrap.querySelectorAll('.translation-btn[data-arg]:not([data-arg=""])').forEach(b => b.remove());
   for (const book of books) {
@@ -209,11 +209,11 @@ function searchSongs(q) {
         norm(s.title).includes(needle) ||
         (s.incipits || []).some(line => norm(line).includes(needle))
       );
-  if (songBookFilter) hits = hits.filter(s => s.source_book === songBookFilter);
+  if (songBookFilter) hits = hits.filter(s => s.songbook_code === songBookFilter);
   // Groupé par code de recueil ; le nom lisible est résolu au rendu.
   const grouped = {};
   for (const s of hits) {
-    const book = s.source_book || '';
+    const book = s.songbook_code || '';
     (grouped[book] = grouped[book] || []).push(s);
   }
   renderSongList(grouped);
@@ -248,9 +248,9 @@ async function loadSong(id) {
   document.getElementById('songHeader').style.display = '';
   markContentLoaded();
   // Kicker = nom lisible du recueil (résolu via songbookNames) ; abrév = code.
-  const kicker = songbookName(song.source_book).toUpperCase();
-  const abbr = song.source_book || '';
-  const prefix = song.source_book && song.source_number ? `${abbr} ${song.source_number} – ` : '';
+  const kicker = songbookName(song.songbook_code).toUpperCase();
+  const abbr = song.songbook_code || '';
+  const prefix = song.songbook_code && song.source_number ? `${abbr} ${song.source_number} – ` : '';
   document.getElementById('songSubtitle').textContent = kicker;
   document.getElementById('songTitle').textContent = prefix + song.title;
 
@@ -293,7 +293,7 @@ function projectVerse(i) {
     id: state.song.id,
     verse: i,
     title: state.song.title,
-    source_book: state.song.source_book,
+    songbook_code: state.song.songbook_code,
     source_number: state.song.source_number,
     verseText: state.song.verses[i].text,
     verseLabels: state.song.verses.map(v => verseShortLabel(v.type, v.number)),

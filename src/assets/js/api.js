@@ -15,7 +15,7 @@ const tauriEvent = window.__TAURI__.event;
 // ─── CHANTS ──────────────────────────────────────────────────────────────────
 
 async function apiListSongs() {
-  // Retourne [{id,title,author,source_book,source_number,verse_count}]
+  // Retourne [{id,title,author,songbook_code,source_number,verse_count}]
   return await invoke('list_songs');
 }
 
