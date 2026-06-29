@@ -78,14 +78,14 @@ pub struct Song {
 
 /// Fichier de recueil : enveloppe portant le nom lisible une seule fois, plus
 /// la liste des chants. Le code (`songbook_code`) et le nom
-/// (`source_book_name`) sont propagés sur chaque `Song` à la lecture pour rester
+/// (`songbook_name`) sont propagés sur chaque `Song` à la lecture pour rester
 /// disponibles à plat.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Songbook {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub songbook_code: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub source_book_name: Option<String>,
+    pub songbook_name: Option<String>,
     pub songs: Vec<Song>,
 }
 
@@ -281,7 +281,7 @@ fn songbook_files(dir: &Path, prefix: &str) -> Vec<PathBuf> {
 }
 
 /// Parse un fichier de recueil en acceptant deux formats : le format wrapper
-/// actuel (`{ songbook_code, source_book_name, songs: [...] }`) et l'ancien
+/// actuel (`{ songbook_code, songbook_name, songs: [...] }`) et l'ancien
 /// format (tableau de chants nu) encore présent dans les installations
 /// existantes.
 fn parse_songbook(bytes: &[u8]) -> Result<Songbook, serde_json::Error> {
@@ -289,7 +289,7 @@ fn parse_songbook(bytes: &[u8]) -> Result<Songbook, serde_json::Error> {
         Ok(book) => Ok(book),
         Err(_) => serde_json::from_slice::<Vec<Song>>(bytes).map(|songs| Songbook {
             songbook_code: None,
-            source_book_name: None,
+            songbook_name: None,
             songs,
         }),
     }
@@ -397,11 +397,11 @@ pub fn save_songs(app: &AppHandle, state: &AppState, songs: &[Song]) -> Result<(
         let existing_name = fs::read(&path)
             .ok()
             .and_then(|b| parse_songbook(&b).ok())
-            .and_then(|b| b.source_book_name)
+            .and_then(|b| b.songbook_name)
             .filter(|s| !s.is_empty());
         let book = Songbook {
             songbook_code: code,
-            source_book_name: existing_name,
+            songbook_name: existing_name,
             songs: items.iter().map(|s| (*s).clone()).collect(),
         };
         let json = serde_json::to_vec(&book).map_err(|e| format!("Sérialisation : {e}"))?;
@@ -538,12 +538,12 @@ pub fn list_content(app: &AppHandle, kind: &str) -> Result<Vec<ContentEntry>, St
     Ok(out)
 }
 
-/// Nom lisible d'un recueil : `source_book_name` du wrapper si présent, sinon le
+/// Nom lisible d'un recueil : `songbook_name` du wrapper si présent, sinon le
 /// code `songbook_code`.
 fn songbook_label(path: &Path) -> Option<String> {
     let bytes = fs::read(path).ok()?;
     let book = parse_songbook(&bytes).ok()?;
-    book.source_book_name
+    book.songbook_name
         .or_else(|| book.songbook_code.clone())
         .or_else(|| book.songs.first().and_then(|s| s.songbook_code.clone()))
         .filter(|s| !s.is_empty())
