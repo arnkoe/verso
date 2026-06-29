@@ -9,3 +9,6 @@ dist/
 
 # Archive des seeds (recueils + bibles) sortis du build, conservés hors git.
 _seeds-archive/
+
+# Notes internes non publiées (doc de la synchro superutilisateur, etc.).
+SYNC-SUPERUSERS.md
