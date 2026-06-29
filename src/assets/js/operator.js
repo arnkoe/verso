@@ -18,7 +18,7 @@ const state = {
   image: null,
   projection: null,
   projectionMode: 'textes',
-  translation: null,
+  bibleCode: null,
   searchCursor: 0,
 };
 
@@ -149,10 +149,10 @@ function buildSongBookButtons(songs) {
   // le nom lisible résolu via `songbookNames` servant d'infobulle.
   const books = [...new Set(songs.map(s => s.songbook_code).filter(Boolean))]
     .sort((a, b) => a.localeCompare(b));
-  wrap.querySelectorAll('.translation-btn[data-arg]:not([data-arg=""])').forEach(b => b.remove());
+  wrap.querySelectorAll('.filter-btn[data-arg]:not([data-arg=""])').forEach(b => b.remove());
   for (const book of books) {
     const btn = document.createElement('button');
-    btn.className = 'translation-btn';
+    btn.className = 'filter-btn';
     btn.dataset.action = 'selectSongBook';
     btn.dataset.arg = book;
     btn.textContent = book;
@@ -160,13 +160,13 @@ function buildSongBookButtons(songs) {
     wrap.appendChild(btn);
   }
   // S'assure que le filtre courant (« Tous » par défaut) reste visuellement sélectionné.
-  wrap.querySelectorAll('.translation-btn').forEach(b => b.classList.toggle('active', b.dataset.arg === songBookFilter));
+  wrap.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.arg === songBookFilter));
 }
 
 loadSongCache().catch(() => {}); // préchargement, erreurs gérées à la recherche
 
 function selectSongBook(btn, book) {
-  document.querySelectorAll('#songBookFilter .translation-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#songBookFilter .filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   songBookFilter = book;
   const q = document.getElementById('songSearchInput').value.trim();
@@ -318,14 +318,14 @@ function _saveDefaultBible(t) {
   catch (_) { /* stockage indisponible */ }
 }
 
-async function loadBibleBooks(translation) {
-  if (bibleBooksCache[translation]) return bibleBooksCache[translation];
-  const data = await apiBibleBooks(translation);
-  bibleBooksCache[translation] = data.books || [];
-  return bibleBooksCache[translation];
+async function loadBibleBooks(bibleCode) {
+  if (bibleBooksCache[bibleCode]) return bibleBooksCache[bibleCode];
+  const data = await apiBibleBooks(bibleCode);
+  bibleBooksCache[bibleCode] = data.books || [];
+  return bibleBooksCache[bibleCode];
 }
 
-// Map code de traduction → nom lisible (issu des données via `list_bibles`).
+// Map code de bible → nom lisible (issu des données via `list_bibles`).
 const bibleNames = new Map();
 
 function bibleName(code) {
@@ -346,18 +346,18 @@ async function initBibleTranslations() {
 
   if (!translations.length) {
     wrap.innerHTML = `<span class="search-empty">${esc(t('list.noBible'))}</span>`;
-    state.translation = null;
+    state.bibleCode = null;
     return;
   }
 
   const codes = translations.map(x => x.code);
   const saved = _savedDefaultBible();
-  state.translation = codes.includes(saved) ? saved : codes[0];
+  state.bibleCode = codes.includes(saved) ? saved : codes[0];
   wrap.innerHTML = translations
     .map(({ code, name }) =>
-      `<button class="translation-btn${code === state.translation ? ' active' : ''}" data-action="selectTranslation" data-arg="${esc(code)}" title="${esc(name)}">${esc(code)}</button>`)
+      `<button class="filter-btn${code === state.bibleCode ? ' active' : ''}" data-action="selectBibleCode" data-arg="${esc(code)}" title="${esc(name)}">${esc(code)}</button>`)
     .join('');
-  loadBibleBooks(state.translation);
+  loadBibleBooks(state.bibleCode);
 }
 
 initBibleTranslations();
@@ -489,12 +489,12 @@ document.getElementById('bibleSearchInput').addEventListener('input', async e =>
   const q = e.target.value.trim();
   const list = document.getElementById('bibleList');
   if (!q) { list.innerHTML = ''; return; }
-  if (!state.translation) {
+  if (!state.bibleCode) {
     list.innerHTML = `<div class="search-empty">${esc(t('list.noBibleAvailable'))}</div>`;
     return;
   }
 
-  const books = await loadBibleBooks(state.translation);
+  const books = await loadBibleBooks(state.bibleCode);
   const ref   = resolveRef(q, books);
 
   if (ref) {
@@ -527,12 +527,12 @@ document.getElementById('bibleList').addEventListener('click', e => {
   fetchBibleChapter(ref);
 });
 
-async function selectTranslation(btn, t) {
-  document.querySelectorAll('#bibleTranslations .translation-btn').forEach(b => b.classList.remove('active'));
+async function selectBibleCode(btn, code) {
+  document.querySelectorAll('#bibleTranslations .filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  state.translation = t;
-  _saveDefaultBible(t);
-  await loadBibleBooks(t);
+  state.bibleCode = code;
+  _saveDefaultBible(code);
+  await loadBibleBooks(code);
 
   // Aucun chapitre affiché : rien à recharger.
   const cur = state.bible?.verses[0];
@@ -556,7 +556,7 @@ async function fetchBibleChapter(ref) {
   const q = `${ref.book} ${ref.chapter}`;
   let data;
   try {
-    data = await apiBibleSearch(q, state.translation);
+    data = await apiBibleSearch(q, state.bibleCode);
   } catch (err) {
     if (seq !== bibleReqSeq) return;
     reprojectBibleVerse = null;
@@ -566,7 +566,7 @@ async function fetchBibleChapter(ref) {
   if (seq !== bibleReqSeq) return;
   if (!data.verses || !data.verses.length) { reprojectBibleVerse = null; return; }
 
-  state.bible = { verses: data.verses, translation: data.translation };
+  state.bible = { verses: data.verses, bibleCode: data.bible_code };
   state.bibleVerse = -1;
 
   const first = data.verses[0];
@@ -575,7 +575,7 @@ async function fetchBibleChapter(ref) {
     ? `${first.book} ${first.chapter}:${first.verse}`
     : `${first.book} ${first.chapter}:${first.verse}–${last.verse}`;
   // Sous-titre = nom lisible de la traduction (résolu via bibleNames), sinon le code.
-  const translationLabel = bibleName(data.translation).toUpperCase();
+  const translationLabel = bibleName(data.bible_code).toUpperCase();
   document.getElementById('bibleHeader').style.display = '';
   markContentLoaded();
   document.getElementById('bibleTitle').textContent = title;
@@ -626,7 +626,7 @@ function projectBibleVerse(i) {
   project({
     type: 'bible',
     verse: i,
-    translation: state.translation,
+    bibleCode: state.bibleCode,
     reference: `${v.book} ${v.chapter}:${v.verse}`,
     text: v.text,
   });
@@ -1846,7 +1846,7 @@ document.addEventListener('click', e => {
   switch (action) {
     // Ces deux fonctions attendent l'élément cliqué en premier argument.
     case 'selectSongBook':
-    case 'selectTranslation':
+    case 'selectBibleCode':
       fn(el, d.arg);
       return;
     case 'projectVerse':

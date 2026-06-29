@@ -68,7 +68,7 @@ fn update_song(
 
 #[derive(Serialize)]
 struct BooksResponse {
-    translation: String,
+    bible_code: String,
     books: Vec<String>,
 }
 
@@ -86,11 +86,11 @@ fn list_songbooks(app: AppHandle) -> Vec<storage::ContentName> {
 fn bible_books(
     app: AppHandle,
     state: tauri::State<AppState>,
-    translation: String,
+    bible_code: String,
 ) -> Result<BooksResponse, String> {
-    let bible = storage::load_bible(&app, &state, &translation)?;
+    let bible = storage::load_bible(&app, &state, &bible_code)?;
     Ok(BooksResponse {
-        translation,
+        bible_code,
         books: bible.books.iter().map(|b| b.name.clone()).collect(),
     })
 }
@@ -100,9 +100,9 @@ fn bible_search(
     app: AppHandle,
     state: tauri::State<AppState>,
     q: String,
-    translation: String,
+    bible_code: String,
 ) -> Result<BibleSearchResult, String> {
-    let bible = storage::load_bible(&app, &state, &translation)?;
+    let bible = storage::load_bible(&app, &state, &bible_code)?;
     bible_search::search(&bible, &q)
 }
 

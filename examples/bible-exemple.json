@@ -1,6 +1,6 @@
 {
-  "translation": "XXX",
-  "name": "Nom lisible de la traduction",
+  "bible_code": "XXX",
+  "bible_name": "Nom lisible de la traduction",
   "books": [
     {
       "name": "Genèse",

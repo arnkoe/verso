@@ -39,13 +39,13 @@ async function apiListBibles() {
   return await invoke('list_bibles');
 }
 
-async function apiBibleBooks(translation) {
-  return await invoke('bible_books', { translation });
+async function apiBibleBooks(bibleCode) {
+  return await invoke('bible_books', { bibleCode });
 }
 
-async function apiBibleSearch(q, translation) {
-  // Retourne soit {verses, translation} soit {books, translation}.
-  return await invoke('bible_search', { q, translation });
+async function apiBibleSearch(q, bibleCode) {
+  // Retourne soit {verses, bible_code} soit {books, bible_code}.
+  return await invoke('bible_search', { q, bibleCode });
 }
 
 // ─── PDF & IMAGES ────────────────────────────────────────────────────────────

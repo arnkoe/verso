@@ -19,11 +19,11 @@ pub struct BibleVerse {
 pub enum BibleSearchResult {
     Verses {
         verses: Vec<BibleVerse>,
-        translation: String,
+        bible_code: String,
     },
     Books {
         books: Vec<String>,
-        translation: String,
+        bible_code: String,
     },
 }
 
@@ -248,7 +248,7 @@ pub fn search(bible: &Bible, q: &str) -> Result<BibleSearchResult, String> {
         }
         return Ok(BibleSearchResult::Verses {
             verses,
-            translation: bible.translation.clone(),
+            bible_code: bible.bible_code.clone(),
         });
     }
 
@@ -258,7 +258,7 @@ pub fn search(bible: &Bible, q: &str) -> Result<BibleSearchResult, String> {
     books.truncate(20);
     Ok(BibleSearchResult::Books {
         books,
-        translation: bible.translation.clone(),
+        bible_code: bible.bible_code.clone(),
     })
 }
 
@@ -269,8 +269,8 @@ mod tests {
 
     fn fixture() -> Bible {
         Bible {
-            translation: "TST".into(),
-            name: None,
+            bible_code: "TST".into(),
+            bible_name: None,
             books: vec![
                 BibleBook {
                     name: "Genèse".into(),

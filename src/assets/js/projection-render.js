@@ -46,7 +46,7 @@ function renderProjectionContent(state, container) {
     div.className = 'content-text';
     div.innerHTML = `
       <div class="bible-text"><div class="bible-inner">${esc(state.text || '')}</div></div>
-      <div class="reference">${esc(state.reference || '')} (traduction ${esc(state.translation || '')})</div>`;
+      <div class="reference">${esc(state.reference || '')} (traduction ${esc(state.bibleCode || '')})</div>`;
     container.appendChild(div);
     scheduleFit(div.querySelector('.bible-text'), div.querySelector('.bible-inner'), '--bible-font-size');
     return;

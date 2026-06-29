@@ -111,11 +111,11 @@ pub struct BibleBook {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bible {
-    pub translation: String,
+    pub bible_code: String,
     /// Nom lisible de la traduction (ex. « Bible du Semeur »). Optionnel ; à
-    /// défaut on retombe sur le code `translation`.
+    /// défaut on retombe sur le code `bible_code`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
+    pub bible_name: Option<String>,
     pub books: Vec<BibleBook>,
 }
 
@@ -123,7 +123,7 @@ pub struct Bible {
 
 #[derive(Default)]
 pub struct AppState {
-    /// Cache des bibles déjà chargées en mémoire (clé = traduction).
+    /// Cache des bibles déjà chargées en mémoire (clé = code de bible).
     pub bibles: Mutex<std::collections::HashMap<String, Bible>>,
     /// Cache du recueil de chants.
     pub songs: Mutex<Option<Vec<Song>>>,
@@ -426,25 +426,25 @@ pub fn save_songs(app: &AppHandle, state: &AppState, songs: &[Song]) -> Result<(
 
 // ─── Bibles ─────────────────────────────────────────────────────────────────
 
-pub fn load_bible(app: &AppHandle, state: &AppState, translation: &str) -> Result<Bible, String> {
+pub fn load_bible(app: &AppHandle, state: &AppState, bible_code: &str) -> Result<Bible, String> {
     {
         let cache = state.bibles.lock().unwrap();
-        if let Some(b) = cache.get(translation) {
+        if let Some(b) = cache.get(bible_code) {
             return Ok(b.clone());
         }
     }
-    // Nom de fichier sécurisé : la traduction sert directement de nom de fichier.
-    let fname = sanitize_filename(translation)
-        .ok_or_else(|| format!("Traduction « {translation} » invalide"))?;
+    // Nom de fichier sécurisé : le code de bible sert directement de nom de fichier.
+    let fname = sanitize_filename(bible_code)
+        .ok_or_else(|| format!("Bible « {bible_code} » invalide"))?;
     let path = bibles_dir(app).join(format!("{fname}.json"));
-    let bytes = fs::read(&path).map_err(|_| format!("Traduction « {translation} » introuvable"))?;
+    let bytes = fs::read(&path).map_err(|_| format!("Bible « {bible_code} » introuvable"))?;
     let bible: Bible =
-        serde_json::from_slice(&bytes).map_err(|e| format!("Parse {translation} : {e}"))?;
+        serde_json::from_slice(&bytes).map_err(|e| format!("Parse {bible_code} : {e}"))?;
     state
         .bibles
         .lock()
         .unwrap()
-        .insert(translation.to_string(), bible.clone());
+        .insert(bible_code.to_string(), bible.clone());
     Ok(bible)
 }
 
@@ -549,11 +549,11 @@ fn songbook_label(path: &Path) -> Option<String> {
         .filter(|s| !s.is_empty())
 }
 
-/// Nom lisible d'une bible : champ `name` du fichier si présent.
+/// Nom lisible d'une bible : champ `bible_name` du fichier si présent.
 fn bible_label(path: &Path) -> Option<String> {
     let bytes = fs::read(path).ok()?;
     let bible: Bible = serde_json::from_slice(&bytes).ok()?;
-    bible.name.filter(|s| !s.is_empty())
+    bible.bible_name.filter(|s| !s.is_empty())
 }
 
 /// Code interne d'un recueil (`songbook_code` du wrapper, ou du premier chant).
