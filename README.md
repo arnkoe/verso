@@ -67,7 +67,7 @@ You can also check for updates manually from **Settings → Updates**.
 
 ---
 
-## Your songs, bibles and documents
+## Your songs, Bibles and documents
 
 Verso keeps everything in a folder named **`Verso`** inside the application data folder for your account. You don't need to know its exact location: open **Settings** (the gear button in the toolbar), then under **Content** click **Open** next to "Verso folder" to open it directly.
 
@@ -80,7 +80,7 @@ Inside, you will find:
 
 To add your own PDFs or images, simply drop your files into the `pdf` or `images` folder.
 
-The first time you launch Verso, if the folder is empty, Verso automatically adds some free content to get you started: the **Reflets** and **HEC** collections, and the **Darby** and **Louis Segond** bibles. You can keep, edit or delete them as you wish. Verso never touches your files if you have already added some.
+The first time you launch Verso, if the folder is empty, Verso automatically adds some free content to get you started: the **Reflets 4** and **Hymnes et Cantiques (révisés)** collections, and the **Darby** and **Louis Segond 1910** Bibles. You can keep, edit or delete them as you wish. Verso never touches your files if you have already added some.
 
 Verso also remembers what was being projected last time and brings it back when you reopen it.
 
@@ -93,6 +93,30 @@ The operator window has four tabs: **Songs**, **Bible**, **PDF** and **Images**.
 The principle is always the same: you search for what you want, you select it, and it appears on the projector.
 
 Song search is forgiving: it ignores accents and apostrophes, accepts several words, and matches both the song number and the opening words (incipit).
+
+### Editing a song
+
+When a song is open, the **Edit** button (above the verse list) opens a text area where you can fix the lyrics directly in the app, without touching the JSON file. **Save** writes the changes back to the collection; **Cancel** closes the area without changing anything.
+
+The text uses simple formatting:
+
+- Verses, choruses and other sections are separated by a **blank line**.
+- The **first line** of a block gives its type, most simply with a single letter: `V` for verse, `C` for chorus, `B` for bridge, `I` for intro, `O` for outro, `PC` for pre-chorus. Add a number when needed (`V2`).
+- Without a recognised type, the block is treated as a verse and numbered automatically: you can just type the lyrics with no labels at all.
+- The remaining lines of the block are the projected text; a single line break creates a new line.
+
+Example:
+
+```
+V1
+First line of the verse.
+Second line.
+
+C
+Chorus text.
+```
+
+Full names also work (`Verse 1`, `Chorus`, `Bridge`…) if you prefer.
 
 ### The keyboard shortcuts that save time
 
@@ -124,8 +148,8 @@ These shortcuts work in the operator window (the one on your computer).
 
 The **Settings** button (gear icon) in the toolbar opens a panel with sections:
 
-- **Content** — open the Verso folder where your collections, bibles and media live.
-- **Language** — switch the interface between English and French.
+- **Content** — manage your collections, Bibles, PDFs and images directly from Settings: for each category you can **Add** files, **Manage** the existing items and **Delete** them, without leaving the application. You can also open the Verso folder where these files live.
+- **Language** — change the interface language.
 - **Updates** — check manually for a new version and install it.
 
 You can close Settings by clicking the background or pressing **Esc**.
@@ -138,13 +162,13 @@ This section is for people comfortable with JSON files or code. You do **not** n
 
 ### Adding a song collection
 
-A collection is a file kept in `songbooks`, whose name starts with `songbook-` and ends with `.json` (for example `songbook-mycollection.json`).
+A collection is a file kept in `songbooks`, named `songbook-<code>.json`, where `<code>` is the collection code (`songbook_code`) lowercased, with spaces turned into hyphens and accents and punctuation removed. For a collection whose code is `ABC`, the file is `songbook-abc.json`. Verso regenerates this canonical name from the code, so you don't have to match it by hand.
 
 The file is an object carrying the collection name once, then the list of songs:
 
 ```json
 {
-  "songbook_code": "MR",
+  "songbook_code": "ABC",
   "songbook_name": "My collection",
   "songs": [
     {
@@ -174,11 +198,11 @@ The file is an object carrying the collection name once, then the list of songs:
 
 JSON does not allow a real line break inside a text value: write `\n` for each line break in `text`.
 
-A complete file is available in [`examples/songbook-exemple.json`](examples/songbook-exemple.json): you can copy it and fill it with your own songs.
+A complete file is available in [`examples/songbook-abc.json`](examples/songbook-abc.json): you can copy it and fill it with your own songs.
 
-### Adding a bible
+### Adding a Bible
 
-A translation is a file kept in `bibles`, whose name starts with `bible-` and ends with `.json` (for example `bible-s21.json`).
+A translation is a file kept in `bibles`, named `bible-<code>.json`, where `<code>` is the translation code (`bible_code`) lowercased, with spaces turned into hyphens and accents and punctuation removed. For a translation whose code is `S21`, the file is `bible-s21.json`. Verso regenerates this canonical name from the code, so you don't have to match it by hand.
 
 ```json
 {
@@ -209,9 +233,9 @@ A translation is a file kept in `bibles`, whose name starts with `bible-` and en
 }
 ```
 
-A complete file is available in [`examples/bible-exemple.json`](examples/bible-exemple.json): you can copy it and fill it with your translation.
+A complete file is available in [`examples/bible-abc.json`](examples/bible-abc.json): you can copy it and fill it with your translation.
 
-- `bible_code` — the translation code (ideally identical to the file name).
+- `bible_code` — the translation code; the file name is derived from it.
 - `bible_name` — *(optional)* the readable translation name (for example `Segond 21`); shown in the operator and in the content manager. Falls back to the code if absent.
 - `books` — the **ordered** list of books.
   - `name` — the book name (used for reference search).
@@ -246,6 +270,6 @@ src-tauri/                 Rust backend
   src/lib.rs               Tauri commands + windows
   src/storage.rs           file storage + initial seeding
   src/bible_search.rs      Bible reference resolution
-  resources/               royalty-free collections + bibles bundled (seed)
+  resources/               royalty-free collections + Bibles bundled (seed)
   tauri.conf.json          config (windows, CSP, bundle)
 ```

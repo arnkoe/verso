@@ -67,7 +67,7 @@ Vous pouvez aussi vérifier les mises à jour manuellement depuis **Paramètres 
 
 ---
 
-## Vos chants, vos bibles, vos documents
+## Vos chants, vos Bibles, vos documents
 
 Verso range tout dans un dossier nommé **`Verso`**, à l'intérieur du dossier de données de l'application pour votre compte. Vous n'avez pas besoin d'en connaître l'emplacement exact : ouvrez les **Paramètres** (le bouton roue dentée de la barre d'outils), puis dans la rubrique **Contenus** cliquez sur **Ouvrir** à côté de « Dossier Verso » pour l'ouvrir directement.
 
@@ -80,7 +80,7 @@ Verso range tout dans un dossier nommé **`Verso`**, à l'intérieur du dossier 
 
 Pour ajouter vos propres PDF ou images, déposez simplement vos fichiers dans le dossier `pdf` ou `images`.
 
-La première fois que vous lancez Verso, si le dossier est vide, Verso y dépose automatiquement quelques contenus gratuits pour commencer : les recueils **Reflets** et **HEC**, et les bibles **Darby** et **Louis Segond**. Vous pouvez les garder, les modifier ou les supprimer comme vous voulez. Verso ne touche jamais à vos fichiers si vous en avez déjà mis.
+La première fois que vous lancez Verso, si le dossier est vide, Verso y dépose automatiquement quelques contenus gratuits pour commencer : les recueils **Reflets 4** et **Hymnes et Cantiques (révisés)**, et les Bibles **Darby** et **Louis Segond 1910**. Vous pouvez les garder, les modifier ou les supprimer comme vous voulez. Verso ne touche jamais à vos fichiers si vous en avez déjà mis.
 
 Verso se souvient aussi de ce qui était projeté la dernière fois et le reprend à la réouverture.
 
@@ -93,6 +93,30 @@ La fenêtre opérateur a quatre onglets : **Chants**, **Bible**, **PDF** et **Im
 Le principe est toujours le même : vous cherchez ce que vous voulez, vous le sélectionnez, et il s'affiche sur le vidéoprojecteur.
 
 La recherche de chants est tolérante : elle ignore les accents et les apostrophes, accepte plusieurs mots, et matche aussi bien le numéro du chant que ses premiers mots (incipit).
+
+### Modifier un chant
+
+Quand un chant est ouvert, le bouton **Modifier** (en haut de la liste des strophes) ouvre une zone de texte où vous pouvez corriger les paroles directement dans l'application, sans toucher au fichier JSON. **Sauvegarder** enregistre les changements dans le recueil ; **Annuler** referme la zone sans rien modifier.
+
+Le texte suit une mise en forme simple :
+
+- Les strophes, refrains et autres sections sont séparés par une **ligne vide**.
+- La **première ligne** d'un bloc indique son type, le plus simplement avec une lettre : `S` pour strophe, `R` pour refrain, `P` pour pont, `I` pour introduction, `O` pour final, `PC` pour pré-refrain. Ajoutez un numéro si besoin (`S2`).
+- Sans type reconnu, le bloc est considéré comme une strophe et numéroté automatiquement : vous pouvez écrire les paroles sans aucune étiquette.
+- Les lignes suivantes du bloc sont le texte projeté ; un simple retour à la ligne crée un nouveau vers.
+
+Exemple :
+
+```
+S1
+Première ligne de la strophe.
+Deuxième ligne.
+
+R
+Texte du refrain.
+```
+
+Les noms complets fonctionnent aussi (`Strophe 1`, `Refrain`, `Pont`…) si vous préférez.
 
 ### Les raccourcis clavier qui font gagner du temps
 
@@ -124,8 +148,8 @@ Ces raccourcis fonctionnent dans la fenêtre opérateur (celle sur votre ordinat
 
 Le bouton **Paramètres** (roue dentée) de la barre d'outils ouvre un volet avec des rubriques :
 
-- **Contenus** — ouvrir le dossier Verso où se trouvent vos recueils, bibles et médias.
-- **Langue** — basculer l'interface entre français et anglais.
+- **Contenus** — gérez vos recueils, Bibles, PDF et images directement depuis les paramètres : pour chaque catégorie vous pouvez **Ajouter** des fichiers, **Gérer** les éléments existants et les **Supprimer**, sans quitter l'application. Vous pouvez aussi ouvrir le dossier Verso où se trouvent ces fichiers.
+- **Langue** — changer la langue de l'interface.
 - **Mises à jour** — vérifier manuellement une nouvelle version et l'installer.
 
 Vous pouvez fermer les Paramètres en cliquant sur le fond ou en appuyant sur **Échap**.
@@ -138,13 +162,13 @@ Cette section s'adresse aux personnes à l'aise avec les fichiers JSON ou le cod
 
 ### Ajouter un recueil de chants
 
-Un recueil est un fichier rangé dans `songbooks`, dont le nom commence par `songbook-` et finit par `.json` (par exemple `songbook-monrecueil.json`).
+Un recueil est un fichier rangé dans `songbooks`, nommé `songbook-<code>.json`, où `<code>` est le code du recueil (`songbook_code`) en minuscules, espaces remplacés par des tirets, accents et ponctuation supprimés. Pour un recueil dont le code est `ABC`, le fichier est `songbook-abc.json`. Verso régénère ce nom canonique à partir du code : vous n'avez pas à le respecter à la main.
 
 Le fichier est un objet portant le nom du recueil une seule fois, puis la liste des chants :
 
 ```json
 {
-  "songbook_code": "MR",
+  "songbook_code": "ABC",
   "songbook_name": "Mon recueil",
   "songs": [
     {
@@ -174,11 +198,11 @@ Le fichier est un objet portant le nom du recueil une seule fois, puis la liste 
 
 Le format JSON n'autorise pas de vrai retour à la ligne à l'intérieur d'un texte : écrivez `\n` pour chaque saut de ligne dans `text`.
 
-Un fichier complet est disponible dans [`examples/songbook-exemple.json`](examples/songbook-exemple.json) : vous pouvez le copier et le remplir avec vos chants.
+Un fichier complet est disponible dans [`examples/songbook-abc.json`](examples/songbook-abc.json) : vous pouvez le copier et le remplir avec vos chants.
 
-### Ajouter une bible
+### Ajouter une Bible
 
-Une traduction est un fichier rangé dans `bibles`, dont le nom commence par `bible-` et finit par `.json` (par exemple `bible-s21.json`).
+Une traduction est un fichier rangé dans `bibles`, nommé `bible-<code>.json`, où `<code>` est le code de la traduction (`bible_code`) en minuscules, espaces remplacés par des tirets, accents et ponctuation supprimés. Pour une traduction dont le code est `S21`, le fichier est `bible-s21.json`. Verso régénère ce nom canonique à partir du code : vous n'avez pas à le respecter à la main.
 
 ```json
 {
@@ -209,9 +233,9 @@ Une traduction est un fichier rangé dans `bibles`, dont le nom commence par `bi
 }
 ```
 
-Un fichier complet est disponible dans [`examples/bible-exemple.json`](examples/bible-exemple.json) : vous pouvez le copier et le remplir avec votre traduction.
+Un fichier complet est disponible dans [`examples/bible-abc.json`](examples/bible-abc.json) : vous pouvez le copier et le remplir avec votre traduction.
 
-- `bible_code` — code de la traduction (idéalement identique au nom du fichier).
+- `bible_code` — code de la traduction ; le nom du fichier en est dérivé.
 - `bible_name` — *(optionnel)* nom lisible de la traduction (par exemple `Segond 21`) ; affiché dans l'opérateur et dans la gestion des contenus. À défaut, on retombe sur le code.
 - `books` — liste **ordonnée** des livres.
   - `name` — nom du livre (utilisé pour la recherche de référence).
@@ -246,6 +270,6 @@ src-tauri/                 backend Rust
   src/lib.rs               commandes Tauri + fenêtres
   src/storage.rs           stockage fichiers + amorçage initial
   src/bible_search.rs      résolution de référence biblique
-  resources/               recueils + bibles libres de droits empaquetés (seed)
+  resources/               recueils + Bibles libres de droits empaquetés (seed)
   tauri.conf.json          config (fenêtres, CSP, bundle)
 ```
