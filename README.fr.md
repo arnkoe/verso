@@ -118,32 +118,9 @@ Texte du refrain.
 
 Les noms complets fonctionnent aussi (`Strophe 1`, `Refrain`, `Pont`…) si vous préférez.
 
-### Les raccourcis clavier qui font gagner du temps
+### Raccourcis clavier
 
-Ces raccourcis fonctionnent dans la fenêtre opérateur (celle sur votre ordinateur).
-
-**Changer d'onglet**
-
-- **Tab** : passer à l'onglet suivant (Chants → Bible → PDF → Images).
-- **Maj + Tab** : revenir à l'onglet précédent.
-
-**Chercher**
-
-- **/** (la touche slash) : aller directement dans le champ de recherche.
-- **Flèches haut / bas** : se déplacer dans la liste des résultats.
-- **Entrée** : valider le résultat sélectionné.
-
-**Projeter et avancer**
-
-- **Flèche bas** ou **flèche droite** : projeter l'élément suivant (strophe suivante, verset suivant, page suivante).
-- **Flèche haut** ou **flèche gauche** : projeter l'élément précédent.
-- **Entrée** : identique à la flèche suivante, projeter l'élément suivant (ou le premier si rien n'est encore projeté).
-- **Cmd () + Entrée** (macOS) ou **Ctrl + Entrée** : ouvrir la fenêtre de projection (comme le bouton **Projeter**), qu'un élément soit sélectionné ou non.
-- **Échap** : effacer la projection (écran neutre).
-
-**Dans la fenêtre de projection**
-
-- **Échap** : fermer la fenêtre de projection.
+Verso propose des raccourcis clavier pour changer d'onglet, chercher et projeter sans la souris. La liste complète et toujours à jour est intégrée à l'application : ouvrez la fenêtre opérateur et cliquez sur le bouton **Raccourcis** (icône clavier) dans la barre d'outils.
 
 ### Paramètres
 

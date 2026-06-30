@@ -52,12 +52,20 @@ const I18N = {
     'song.save': 'Sauvegarder',
     // Aide (raccourcis)
     'help.title': 'Raccourcis clavier',
+    'help.or': 'ou',
+    // Libellés de touches (utilisés hors macOS ; sur macOS on affiche les glyphes natifs).
+    'key.shift': 'Maj',
+    'key.enter': 'Entrée',
+    'key.esc': 'Échap',
+    'key.tab': 'Tab',
+    'key.ctrl': 'Ctrl',
     'help.tabs': "Changer d'onglet",
     'help.tabNext': 'Onglet suivant',
     'help.tabPrev': 'Onglet précédent',
     'help.search': 'Rechercher',
     'help.goToSearch': 'Aller au champ de recherche',
-    'help.navResults': 'Naviguer dans les résultats',
+    'help.nextResult': 'Résultat suivant',
+    'help.prevResult': 'Résultat précédent',
     'help.validate': 'Valider la sélection',
     'help.project': 'Projeter',
     'help.itemNext': "Projeter l'élément suivant",
@@ -193,12 +201,20 @@ const I18N = {
     'song.cancel': 'Cancel',
     'song.save': 'Save',
     'help.title': 'Keyboard shortcuts',
+    'help.or': 'or',
+    // Key labels (used outside macOS; on macOS the native glyphs are shown).
+    'key.shift': 'Shift',
+    'key.enter': 'Enter',
+    'key.esc': 'Esc',
+    'key.tab': 'Tab',
+    'key.ctrl': 'Ctrl',
     'help.tabs': 'Switch tab',
     'help.tabNext': 'Next tab',
     'help.tabPrev': 'Previous tab',
     'help.search': 'Search',
     'help.goToSearch': 'Go to the search field',
-    'help.navResults': 'Navigate results',
+    'help.nextResult': 'Next result',
+    'help.prevResult': 'Previous result',
     'help.validate': 'Confirm selection',
     'help.project': 'Project',
     'help.itemNext': 'Project the next item',
@@ -325,10 +341,32 @@ function t(key, vars) {
 }
 
 /** Applique les traductions à tout le DOM marqué (texte, title, placeholder, aria-label). */
+// Détection plateforme pour les libellés de touches.
+const _isMac = /Mac/i.test(navigator.platform || navigator.userAgent || '');
+
+// Glyphes natifs macOS des touches modificatrices/spéciales.
+const _MAC_KEY_GLYPHS = {
+  shift: '⇧',
+  enter: '⏎',
+  esc:   'esc', // la touche Mac porte le texte « esc », pas le glyphe ⎋
+  tab:   '⇥',
+  mod:   '⌘',
+};
+
+// Libellé d'une touche selon la plateforme et la langue.
+// macOS : glyphe natif. Ailleurs : texte traduit ('mod' devient Ctrl).
+function _keyLabel(key) {
+  if (_isMac && _MAC_KEY_GLYPHS[key]) return _MAC_KEY_GLYPHS[key];
+  return t('key.' + (key === 'mod' ? 'ctrl' : key));
+}
+
 function applyI18n(root) {
   const scope = root || document;
   scope.querySelectorAll('[data-i18n]').forEach(el => {
     el.textContent = t(el.dataset.i18n);
+  });
+  scope.querySelectorAll('[data-key]').forEach(el => {
+    el.textContent = _keyLabel(el.dataset.key);
   });
   scope.querySelectorAll('[data-i18n-title]').forEach(el => {
     el.setAttribute('title', t(el.dataset.i18nTitle));

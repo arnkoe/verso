@@ -918,6 +918,11 @@ body {
   align-items: center;
   gap: 6px;
 }
+/* Séparateur « ou » entre deux touches équivalentes : texte discret, pas une touche. */
+.info-pane-help .info-keys .key-sep {
+  font-size: 0.85em;
+  opacity: 0.7;
+}
 /* Touches à la même hauteur que les boutons des réglages (.hdr-btn). */
 .info-pane-help .info-keys kbd {
   display: inline-flex;

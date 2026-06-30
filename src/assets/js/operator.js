@@ -30,9 +30,6 @@ const state = {
 (function localizeOpenVersoButton() {
   const isMac = /Mac/i.test(navigator.platform || navigator.userAgent || '');
   const isWin = /Win/i.test(navigator.platform || navigator.userAgent || '');
-  // Raccourci « ouvrir la projection » : ⌘ sur macOS, Ctrl ailleurs.
-  const kbdMod = document.getElementById('kbdProjectMod');
-  if (kbdMod && isMac) kbdMod.textContent = '⌘';
   if (!isMac && !isWin) return;
   const label = document.getElementById('btnOpenVersoDirLabel');
   const btn = document.getElementById('btnOpenVersoDir');
@@ -1000,6 +997,42 @@ function activateSearchCursor() {
 
 // ─── RACCOURCIS CLAVIER ───────────────────────────────────────────────────────
 
+// Élément navigable de l'onglet actif, ou null si rien n'est sélectionné.
+// Indices normalisés en base 0 ; current vaut -1 quand rien n'est projeté.
+function navTarget() {
+  if (state.activeTab === 'cantiques' && state.song) {
+    return { current: state.songVerse, count: state.song.verses.length, project: projectVerse };
+  }
+  if (state.activeTab === 'bible' && state.bible) {
+    return { current: state.bibleVerse, count: state.bible.verses.length, project: projectBibleVerse };
+  }
+  if (state.activeTab === 'pdf' && state.pdf) {
+    // pdfPage est 1-indexé (−1 quand rien n'est projeté) ; on normalise en base 0.
+    return { current: state.pdfPage < 1 ? -1 : state.pdfPage - 1, count: state.pdf.page_count, project: i => projectPdfPage(i + 1) };
+  }
+  if (state.activeTab === 'images' && state.image) {
+    const projected = state.projection && state.projection.type === 'image'
+      && state.projection.filename === state.image.filename;
+    return { current: projected ? 0 : -1, count: 1, project: projectImage };
+  }
+  return null;
+}
+
+// Avance (step +1) ou recule (step -1) dans l'élément de l'onglet actif.
+// Si rien n'est sélectionné, navigue dans la liste de résultats à la place.
+// fromStart : si rien n'est encore projeté (current === -1), viser le premier
+// élément au lieu de current + step (utilisé par Entrée).
+function navMove(step, fromStart) {
+  const t = navTarget();
+  if (!t) {
+    if (step > 0 && fromStart) activateSearchCursor();
+    else moveSearchCursor(step);
+    return;
+  }
+  const target = (fromStart && t.current === -1) ? 0 : t.current + step;
+  if (target >= 0 && target < t.count) t.project(target);
+}
+
 function activateTab(tab) {
   if (tab === 'pdf' && state.activeTab === 'pdf' && state.pdf) {
     state.pdf = null;
@@ -1070,62 +1103,19 @@ document.addEventListener('keydown', e => {
 
   if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
     e.preventDefault();
-    if (state.activeTab === 'cantiques' && state.song) {
-      const next = state.songVerse + 1;
-      if (next < state.song.verses.length) projectVerse(next);
-    } else if (state.activeTab === 'bible' && state.bible) {
-      const next = state.bibleVerse + 1;
-      if (next < state.bible.verses.length) projectBibleVerse(next);
-    } else if (state.activeTab === 'pdf' && state.pdf) {
-      const next = Math.max(1, state.pdfPage + 1);
-      if (next <= state.pdf.page_count) projectPdfPage(next);
-    } else if (state.activeTab === 'images' && state.image) {
-      if (!state.projection || state.projection.type !== 'image' || state.projection.filename !== state.image.filename) {
-        projectImage();
-      }
-    } else if (state.activeTab === 'pdf' || state.activeTab === 'images') {
-      moveSearchCursor(1);
-    }
+    navMove(1, false);
     return;
   }
 
   if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
     e.preventDefault();
-    if (state.activeTab === 'cantiques' && state.song) {
-      const prev = state.songVerse - 1;
-      if (prev >= 0) projectVerse(prev);
-    } else if (state.activeTab === 'bible' && state.bible) {
-      const prev = state.bibleVerse - 1;
-      if (prev >= 0) projectBibleVerse(prev);
-    } else if (state.activeTab === 'pdf' && state.pdf) {
-      const prev = state.pdfPage - 1;
-      if (prev >= 1) projectPdfPage(prev);
-    } else if (state.activeTab === 'images' && state.image) {
-      // une seule image à la fois
-    } else if (state.activeTab === 'pdf' || state.activeTab === 'images') {
-      moveSearchCursor(-1);
-    }
+    navMove(-1, false);
     return;
   }
 
   if (e.key === 'Enter') {
     e.preventDefault();
-    if (state.activeTab === 'cantiques' && state.song) {
-      const next = state.songVerse === -1 ? 0 : state.songVerse + 1;
-      if (next < state.song.verses.length) projectVerse(next);
-    } else if (state.activeTab === 'bible' && state.bible) {
-      const next = state.bibleVerse === -1 ? 0 : state.bibleVerse + 1;
-      if (next < state.bible.verses.length) projectBibleVerse(next);
-    } else if (state.activeTab === 'pdf' && state.pdf) {
-      const next = Math.max(1, state.pdfPage + 1);
-      if (next <= state.pdf.page_count) projectPdfPage(next);
-    } else if (state.activeTab === 'images' && state.image) {
-      if (!state.projection || state.projection.type !== 'image' || state.projection.filename !== state.image.filename) {
-        projectImage();
-      }
-    } else if (state.activeTab === 'pdf' || state.activeTab === 'images') {
-      activateSearchCursor();
-    }
+    navMove(1, true);
     return;
   }
 

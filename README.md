@@ -118,32 +118,9 @@ Chorus text.
 
 Full names also work (`Verse 1`, `Chorus`, `Bridge`…) if you prefer.
 
-### The keyboard shortcuts that save time
+### Keyboard shortcuts
 
-These shortcuts work in the operator window (the one on your computer).
-
-**Switching tabs**
-
-- **Tab**: move to the next tab (Songs → Bible → PDF → Images).
-- **Shift + Tab**: go back to the previous tab.
-
-**Searching**
-
-- **/** (the slash key): jump straight to the search field.
-- **Up / Down arrows**: move through the list of results.
-- **Enter**: confirm the selected result.
-
-**Projecting and moving forward**
-
-- **Down arrow** or **right arrow**: project the next item (next verse, next Bible verse, next page).
-- **Up arrow** or **left arrow**: project the previous item.
-- **Enter**: same as the next-item arrow, project the next item (or the first one if nothing is projected yet).
-- **Cmd () + Enter** (macOS) or **Ctrl + Enter**: open the projection window (same as the **Project** button), whether or not anything is selected.
-- **Esc**: clear the projection (blank screen).
-
-**In the projection window**
-
-- **Esc**: close the projection window.
+Verso has keyboard shortcuts to switch tabs, search, and project without the mouse. The full, always up-to-date list is built into the application: open the operator window and click the **Shortcuts** button (keyboard icon) in the toolbar.
 
 ### Settings
 
