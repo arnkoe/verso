@@ -387,6 +387,7 @@ fn windows_names_by_gdi() -> std::collections::HashMap<String, String> {
                 continue;
             }
             let gdi = wchar_to_string(&source.viewGdiDeviceName);
+            let gdi = gdi.trim().to_string();
             if gdi.is_empty() {
                 continue;
             }
@@ -401,6 +402,7 @@ fn windows_names_by_gdi() -> std::collections::HashMap<String, String> {
                 continue;
             }
             let friendly = wchar_to_string(&target.monitorFriendlyDeviceName);
+            let friendly = friendly.trim().to_string();
             if !friendly.is_empty() {
                 map.insert(gdi, friendly);
             }
@@ -448,9 +450,14 @@ fn list_monitors(app: AppHandle) -> Result<Vec<MonitorInfo>, String> {
                 .filter(|s| !s.is_empty())
                 .unwrap_or(raw);
             // Sur Windows, remplace le nom GDI ("\\.\DISPLAY<N>") par le nom
-            // lisible (marque/modèle) si trouvé.
+            // lisible (marque/modèle) si trouvé. Sinon, on renvoie une chaîne
+            // vide plutôt que le nom GDI brut : le front retombe alors sur le
+            // libellé lisible « Écran N » au lieu d'afficher "\\.\DISPLAY1".
             #[cfg(target_os = "windows")]
-            let name = names.get(&raw).cloned().unwrap_or(raw);
+            let name = names
+                .get(raw.trim())
+                .cloned()
+                .unwrap_or_default();
             #[cfg(not(any(target_os = "macos", target_os = "windows")))]
             let name = raw;
 
