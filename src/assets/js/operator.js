@@ -30,6 +30,9 @@ const state = {
 (function localizeOpenVersoButton() {
   const isMac = /Mac/i.test(navigator.platform || navigator.userAgent || '');
   const isWin = /Win/i.test(navigator.platform || navigator.userAgent || '');
+  // Raccourci « ouvrir la projection » : ⌘ sur macOS, Ctrl ailleurs.
+  const kbdMod = document.getElementById('kbdProjectMod');
+  if (kbdMod && isMac) kbdMod.textContent = '⌘';
   if (!isMac && !isWin) return;
   const label = document.getElementById('btnOpenVersoDirLabel');
   const btn = document.getElementById('btnOpenVersoDir');
@@ -1041,6 +1044,15 @@ document.addEventListener('keydown', e => {
   const i = TAB_ORDER.indexOf(state.activeTab);
   const next = (i + (e.shiftKey ? -1 : 1) + TAB_ORDER.length) % TAB_ORDER.length;
   activateTab(TAB_ORDER[next]);
+}, true);
+
+// Cmd+Entrée (macOS) / Ctrl+Entrée ouvre la fenêtre de projection, exactement
+// comme le bouton « Projeter », qu'un contenu soit sélectionné ou non. Marche
+// aussi depuis un champ de recherche (capture).
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return;
+  e.preventDefault();
+  openProjection();
 }, true);
 
 document.addEventListener('keydown', e => {

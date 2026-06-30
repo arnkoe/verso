@@ -63,6 +63,7 @@ const I18N = {
     'help.itemNext': 'Élément suivant',
     'help.itemPrev': 'Élément précédent',
     'help.projectNext': "Projeter l'élément suivant",
+    'help.openProjection': 'Ouvrir la fenêtre de projection',
     'help.clear': 'Vider la projection',
     'help.closeProjection': 'Fermer la fenêtre de projection (depuis cette fenêtre)',
     // À propos
@@ -204,6 +205,7 @@ const I18N = {
     'help.itemNext': 'Next item',
     'help.itemPrev': 'Previous item',
     'help.projectNext': 'Project the next item',
+    'help.openProjection': 'Open the projection window',
     'help.clear': 'Clear projection',
     'help.closeProjection': 'Close the projection window (from this window)',
     'about.desc': 'Content projection for churches.',

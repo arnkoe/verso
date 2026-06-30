@@ -138,6 +138,7 @@ Ces raccourcis fonctionnent dans la fenêtre opérateur (celle sur votre ordinat
 - **Flèche bas** ou **flèche droite** : élément suivant (strophe suivante, verset suivant, page suivante).
 - **Flèche haut** ou **flèche gauche** : élément précédent.
 - **Entrée** : projeter l'élément suivant (ou le premier si rien n'est encore projeté).
+- **Cmd () + Entrée** (macOS) ou **Ctrl + Entrée** : ouvrir la fenêtre de projection (comme le bouton **Projeter**), qu'un élément soit sélectionné ou non.
 - **Échap** : effacer la projection (écran neutre).
 
 **Dans la fenêtre de projection**

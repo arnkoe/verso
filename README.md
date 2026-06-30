@@ -138,6 +138,7 @@ These shortcuts work in the operator window (the one on your computer).
 - **Down arrow** or **right arrow**: next item (next verse, next Bible verse, next page).
 - **Up arrow** or **left arrow**: previous item.
 - **Enter**: project the next item (or the first one if nothing is projected yet).
+- **Cmd () + Enter** (macOS) or **Ctrl + Enter**: open the projection window (same as the **Project** button), whether or not anything is selected.
 - **Esc**: clear the projection (blank screen).
 
 **In the projection window**
