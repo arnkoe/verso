@@ -1116,6 +1116,13 @@ document.addEventListener('keydown', e => {
     } else if (state.activeTab === 'bible' && state.bible) {
       const next = state.bibleVerse === -1 ? 0 : state.bibleVerse + 1;
       if (next < state.bible.verses.length) projectBibleVerse(next);
+    } else if (state.activeTab === 'pdf' && state.pdf) {
+      const next = Math.max(1, state.pdfPage + 1);
+      if (next <= state.pdf.page_count) projectPdfPage(next);
+    } else if (state.activeTab === 'images' && state.image) {
+      if (!state.projection || state.projection.type !== 'image' || state.projection.filename !== state.image.filename) {
+        projectImage();
+      }
     } else if (state.activeTab === 'pdf' || state.activeTab === 'images') {
       activateSearchCursor();
     }
