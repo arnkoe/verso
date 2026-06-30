@@ -19,6 +19,25 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+/// Crée une `Command` qui n'ouvre pas de fenêtre console sur Windows. Sans le
+/// flag `CREATE_NO_WINDOW`, chaque appel à `git`/`hostname` fait clignoter une
+/// fenêtre `cmd` au démarrage en mode superutilisateur.
+fn command(program: &str) -> Command {
+    let cmd = Command::new(program);
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        let mut cmd = cmd;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+        cmd
+    }
+    #[cfg(not(windows))]
+    {
+        cmd
+    }
+}
+
 use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 
@@ -80,7 +99,7 @@ fn require_config(app: &AppHandle) -> Result<SyncConfig, String> {
 /// succès, ou un message d'erreur incluant stderr en cas d'échec. Un message
 /// dédié est renvoyé si `git` est introuvable dans le PATH.
 fn git(cwd: &Path, args: &[&str]) -> Result<String, String> {
-    let output = Command::new("git")
+    let output = command("git")
         .args(args)
         .current_dir(cwd)
         .output()
@@ -210,7 +229,7 @@ fn hostname() -> String {
             return name.trim().to_string();
         }
     }
-    if let Ok(out) = Command::new("hostname").output() {
+    if let Ok(out) = command("hostname").output() {
         let name = String::from_utf8_lossy(&out.stdout).trim().to_string();
         if !name.is_empty() {
             return name;
