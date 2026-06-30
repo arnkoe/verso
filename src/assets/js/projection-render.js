@@ -138,6 +138,28 @@ function _cachePdfDoc(cache, key, doc) {
   }
 }
 
+// Récupère (ou décode puis met en cache) le document PDF d'un fichier.
+async function _loadPdfDoc(filename, cache) {
+  let doc = cache.get(filename);
+  if (!doc) {
+    const url = await mediaUrl('pdf', filename);
+    doc = await pdfjsLib.getDocument({ url }).promise;
+    _cachePdfDoc(cache, filename, doc);
+  }
+  return doc;
+}
+
+// Rend une page PDF dans un canvas à la largeur cible `targetWidth` (px). La
+// hauteur découle du ratio de la page. Renvoie le viewport utilisé.
+async function _renderPdfPageToCanvas(page, canvas, targetWidth) {
+  const base = page.getViewport({ scale: 1 });
+  const viewport = page.getViewport({ scale: targetWidth / base.width });
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+  return viewport;
+}
+
 let _pdfRenderSeq = 0;
 
 async function renderPdfPage(canvas, filename, pageNum) {
@@ -150,27 +172,15 @@ async function renderPdfPage(canvas, filename, pageNum) {
   }
   if (!window.pdfjsLib) return;
   try {
-    let doc = _pdfDocCache.get(filename);
-    if (!doc) {
-      const url = await mediaUrl('pdf', filename);
-      doc = await pdfjsLib.getDocument({ url }).promise;
-      _cachePdfDoc(_pdfDocCache, filename, doc);
-    }
+    const doc = await _loadPdfDoc(filename, _pdfDocCache);
     if (seq !== _pdfRenderSeq) return;
     const page = await doc.getPage(pageNum);
     if (seq !== _pdfRenderSeq) return;
 
-    const base = page.getViewport({ scale: 1 });
     const targetWidth = Math.max(window.screen.width, 1920) * (window.devicePixelRatio || 1);
-    const scale = targetWidth / base.width;
-    const viewport = page.getViewport({ scale });
-
-    canvas.width  = viewport.width;
-    canvas.height = viewport.height;
-    canvas.style.width  = '';
+    await _renderPdfPageToCanvas(page, canvas, targetWidth);
+    canvas.style.width = '';
     canvas.style.height = '';
-
-    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
   } catch (e) {
     console.error('PDF render failed', e);
   }

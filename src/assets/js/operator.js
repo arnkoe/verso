@@ -717,14 +717,8 @@ async function renderPdfThumbnails(filename) {
       if (!thumb) continue;
       try {
         const page = await doc.getPage(p);
-        const baseVp = page.getViewport({ scale: 1 });
-        const targetW = 240;
-        const scale = targetW / baseVp.width;
-        const vp = page.getViewport({ scale });
         const canvas = document.createElement('canvas');
-        canvas.width = vp.width;
-        canvas.height = vp.height;
-        await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+        await _renderPdfPageToCanvas(page, canvas, 240);
         if (token !== _pdfThumbToken) { doc.destroy(); return; }
         thumb.innerHTML = '';
         thumb.appendChild(canvas);
@@ -884,21 +878,11 @@ async function renderPreviewPdf(canvas, filename, pageNum) {
   const seq = ++_previewPdfSeq;
   if (!window.pdfjsLib) return;
   try {
-    let doc = _previewPdfCache.get(filename);
-    if (!doc) {
-      const url = await mediaUrl('pdf', filename);
-      doc = await pdfjsLib.getDocument({ url }).promise;
-      _cachePdfDoc(_previewPdfCache, filename, doc);
-    }
+    const doc = await _loadPdfDoc(filename, _previewPdfCache);
     if (seq !== _previewPdfSeq) return;
     const page = await doc.getPage(pageNum);
     if (seq !== _previewPdfSeq) return;
-    const base = page.getViewport({ scale: 1 });
-    const scale = 1470 / base.width;
-    const viewport = page.getViewport({ scale });
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+    await _renderPdfPageToCanvas(page, canvas, 1470);
   } catch (e) {
     console.error('Preview PDF render failed', e);
   }
