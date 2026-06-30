@@ -146,84 +146,6 @@ pub fn data_dir(app: &AppHandle) -> PathBuf {
     dir
 }
 
-/// Anciens dossiers de données possibles (versions ≤ 0.4.x). À l'époque,
-/// `data_dir` valait `document_dir()/Verso`, avec repli sur `app_data_dir()`
-/// (sans suffixe « Verso ») lorsque `document_dir()` échouait. Ce repli arrivait
-/// notamment sous Windows quand le dossier « Documents » n'était pas résoluble
-/// (profils redirigés, OneDrive Known Folder Move…), si bien que les données
-/// atterrissaient sous `app_data_dir()` et non dans les Documents.
-///
-/// La migration doit donc inspecter ces deux emplacements, sinon les données de
-/// ces utilisateurs ne sont jamais reprises. Renvoie les candidats existants,
-/// du plus probable au moins probable, en excluant la destination actuelle.
-fn legacy_data_dirs(app: &AppHandle, dest: &Path) -> Vec<PathBuf> {
-    let mut candidates = Vec::new();
-    if let Ok(docs) = app.path().document_dir() {
-        candidates.push(docs.join("Verso"));
-    }
-    // Ancien repli : `app_data_dir()` brut, sans « Verso » (la version actuelle,
-    // elle, ajoute « Verso » ; on vise donc bien l'ancien emplacement distinct).
-    if let Ok(app_data) = app.path().app_data_dir() {
-        candidates.push(app_data);
-    }
-    candidates
-        .into_iter()
-        .filter(|c| c != dest && c.is_dir())
-        .collect()
-}
-
-/// Copie récursivement le contenu de `src` dans `dst` sans jamais écraser un
-/// fichier déjà présent dans `dst`. Les dossiers intermédiaires sont créés à la
-/// volée. Les erreurs ponctuelles sont ignorées (best effort). `skip` permet
-/// d'exclure un sous-chemin (utile quand `src` est le parent de `dst` : on évite
-/// alors de recopier la destination dans elle-même).
-fn copy_tree_no_overwrite(src: &Path, dst: &Path, skip: &Path) {
-    let Ok(entries) = fs::read_dir(src) else { return };
-    let _ = fs::create_dir_all(dst);
-    for entry in entries.flatten() {
-        let from = entry.path();
-        if from == skip {
-            continue;
-        }
-        let Some(name) = from.file_name() else { continue };
-        let to = dst.join(name);
-        if from.is_dir() {
-            copy_tree_no_overwrite(&from, &to, skip);
-        } else if !to.exists() {
-            let _ = fs::copy(&from, &to);
-        }
-    }
-}
-
-/// Migration ponctuelle : les versions ≤ 0.4.x stockaient recueils, bibles et
-/// médias soit dans `Documents/Verso`, soit (repli Windows quand « Documents »
-/// n'était pas résoluble) directement sous `app_data_dir()`. Depuis, les données
-/// vivent sous `app_data_dir()/Verso` (voir `data_dir`). On recopie une seule
-/// fois l'ancien contenu vers le nouveau dossier, sans écraser ce qui s'y trouve
-/// déjà. Appelée au démarrage avant `seed_defaults`, pour que l'amorçage voie les
-/// données migrées et ne réamorce pas. Un marqueur `.migrated-from-documents`
-/// évite toute reprise ultérieure ; les fichiers d'origine ne sont jamais
-/// supprimés.
-pub fn migrate_from_documents(app: &AppHandle) {
-    let dest = data_dir(app);
-    // Marqueur versionné : le suffixe « -v2 » force une reprise unique chez les
-    // utilisateurs où la première migration (qui n'inspectait que `Documents`)
-    // avait écrit son marqueur sans rien copier, notamment sous Windows.
-    let marker = dest.join(".migrated-from-documents-v2");
-    if marker.exists() {
-        return;
-    }
-
-    // Reprend chaque emplacement hérité encore présent. `dest` est exclu de la
-    // copie : lorsqu'un candidat est le parent de `dest` (cas du repli
-    // `app_data_dir()`), on évite de recopier la destination dans elle-même.
-    for legacy in legacy_data_dirs(app, &dest) {
-        copy_tree_no_overwrite(&legacy, &dest, &dest);
-    }
-
-    let _ = fs::write(&marker, b"");
-}
-
 /// Dossier contenant un fichier JSON par recueil de chants. Public pour que le
 /// module `sync` puisse y recopier les recueils tirés du dépôt de données et en
 /// extraire ceux à publier.
@@ -429,43 +351,6 @@ fn read_songbook_files(files: &[PathBuf]) -> Result<Vec<Song>, String> {
         }
     }
     Ok(songs)
-}
-
-/// Migration de masse : réécrit chaque fichier de recueil dont au moins une
-/// section utilise encore un ancien code de type, en le convertissant vers la
-/// forme canonique internationale. Les fichiers déjà canoniques ne sont pas
-/// touchés. Appelée au démarrage, mais une seule fois : un marqueur
-/// `.vtypes-migrated` évite de relire et reparser tous les recueils à chaque
-/// lancement (même pattern que `seed_defaults`/`migrate_from_documents`). Les
-/// erreurs ponctuelles sont ignorées pour ne jamais empêcher le lancement.
-pub fn migrate_vtypes(app: &AppHandle) {
-    let marker = data_dir(app).join(".vtypes-migrated");
-    if marker.exists() {
-        return;
-    }
-    let dir = songbooks_dir(app);
-    for path in songbook_files(&dir) {
-        let Ok(bytes) = fs::read(&path) else { continue };
-        let Ok(mut book) = parse_songbook(&bytes) else {
-            continue;
-        };
-        let mut changed = false;
-        for song in &mut book.songs {
-            for v in &mut song.verses {
-                let canon = canonical_vtype(&v.vtype);
-                if v.vtype != canon {
-                    v.vtype = canon.to_string();
-                    changed = true;
-                }
-            }
-        }
-        if changed {
-            if let Ok(json) = serde_json::to_vec(&book) {
-                let _ = write_atomic(&path, &json);
-            }
-        }
-    }
-    let _ = fs::write(&marker, b"");
 }
 
 pub fn load_songs(app: &AppHandle, state: &AppState) -> Result<Vec<Song>, String> {

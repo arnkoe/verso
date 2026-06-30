@@ -338,6 +338,33 @@ fn parse_model_number(tao_name: &str) -> Option<u32> {
 /// demande le nom source (`viewGdiDeviceName` == le `szDevice` de tao) puis le
 /// nom cible (`monitorFriendlyDeviceName`), et on associe les deux. La jointure
 /// se fait donc sur exactement la chaîne que tao a utilisée.
+/// DIAGNOSTIC TEMPORAIRE (à retirer) : écrit une ligne dans
+/// `verso-monitors.log` sur le Bureau de l'utilisateur. En build de prod
+/// Windows il n'y a pas de console attachée, donc `eprintln!` est invisible ;
+/// on passe par un fichier pour pouvoir récupérer la trace après coup.
+#[cfg(target_os = "windows")]
+fn diag_log(line: &str) {
+    use std::io::Write;
+
+    let path = std::env::var_os("USERPROFILE")
+        .map(std::path::PathBuf::from)
+        .map(|p| p.join("Desktop").join("verso-monitors.log"))
+        .or_else(|| {
+            std::env::temp_dir()
+                .join("verso-monitors.log")
+                .into()
+        });
+    if let Some(path) = path {
+        if let Ok(mut f) = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&path)
+        {
+            let _ = writeln!(f, "{line}");
+        }
+    }
+}
+
 #[cfg(target_os = "windows")]
 fn windows_names_by_gdi() -> std::collections::HashMap<String, String> {
     use windows::Win32::Devices::Display::{
@@ -350,45 +377,60 @@ fn windows_names_by_gdi() -> std::collections::HashMap<String, String> {
 
     let mut map = std::collections::HashMap::new();
 
+    diag_log("=== windows_names_by_gdi() start ===");
+
     let mut path_count: u32 = 0;
     let mut mode_count: u32 = 0;
     // SAFETY : appels FFI ; les pointeurs proviennent de vecteurs dimensionnés
     // par GetDisplayConfigBufferSizes juste avant.
     unsafe {
-        if GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &mut path_count, &mut mode_count)
-            != ERROR_SUCCESS
-        {
+        let buf_rc = GetDisplayConfigBufferSizes(
+            QDC_ONLY_ACTIVE_PATHS,
+            &mut path_count,
+            &mut mode_count,
+        );
+        diag_log(&format!(
+            "GetDisplayConfigBufferSizes rc={} path_count={path_count} mode_count={mode_count}",
+            buf_rc.0
+        ));
+        if buf_rc != ERROR_SUCCESS {
+            diag_log("ABORT: GetDisplayConfigBufferSizes failed");
             return map;
         }
 
         let mut paths = vec![DISPLAYCONFIG_PATH_INFO::default(); path_count as usize];
         let mut modes = vec![DISPLAYCONFIG_MODE_INFO::default(); mode_count as usize];
 
-        if QueryDisplayConfig(
+        let query_rc = QueryDisplayConfig(
             QDC_ONLY_ACTIVE_PATHS,
             &mut path_count,
             paths.as_mut_ptr(),
             &mut mode_count,
             modes.as_mut_ptr(),
             None,
-        ) != ERROR_SUCCESS
-        {
+        );
+        diag_log(&format!("QueryDisplayConfig rc={}", query_rc.0));
+        if query_rc != ERROR_SUCCESS {
+            diag_log("ABORT: QueryDisplayConfig failed");
             return map;
         }
 
-        for path in paths.iter().take(path_count as usize) {
+        for (i, path) in paths.iter().take(path_count as usize).enumerate() {
             // Nom GDI de la source ("\\.\DISPLAY<N>").
             let mut source = DISPLAYCONFIG_SOURCE_DEVICE_NAME::default();
             source.header.r#type = DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME;
             source.header.size = std::mem::size_of::<DISPLAYCONFIG_SOURCE_DEVICE_NAME>() as u32;
             source.header.adapterId = path.sourceInfo.adapterId;
             source.header.id = path.sourceInfo.id;
-            if DisplayConfigGetDeviceInfo(&mut source.header) != ERROR_SUCCESS.0 as i32 {
+            let src_rc = DisplayConfigGetDeviceInfo(&mut source.header);
+            if src_rc != ERROR_SUCCESS.0 as i32 {
+                diag_log(&format!("path[{i}] source GetDeviceInfo rc={src_rc} -> skip"));
                 continue;
             }
-            let gdi = wchar_to_string(&source.viewGdiDeviceName);
-            let gdi = gdi.trim().to_string();
+            let gdi_raw = wchar_to_string(&source.viewGdiDeviceName);
+            let gdi = gdi_raw.trim().to_string();
             if gdi.is_empty() {
+                diag_log(&format!("path[{i}] gdi empty (raw={gdi_raw:?}) -> skip"));
                 continue;
             }
 
@@ -398,16 +440,33 @@ fn windows_names_by_gdi() -> std::collections::HashMap<String, String> {
             target.header.size = std::mem::size_of::<DISPLAYCONFIG_TARGET_DEVICE_NAME>() as u32;
             target.header.adapterId = path.targetInfo.adapterId;
             target.header.id = path.targetInfo.id;
-            if DisplayConfigGetDeviceInfo(&mut target.header) != ERROR_SUCCESS.0 as i32 {
+            let tgt_rc = DisplayConfigGetDeviceInfo(&mut target.header);
+            if tgt_rc != ERROR_SUCCESS.0 as i32 {
+                diag_log(&format!(
+                    "path[{i}] gdi={gdi:?} target GetDeviceInfo rc={tgt_rc} -> skip"
+                ));
                 continue;
             }
             let friendly = wchar_to_string(&target.monitorFriendlyDeviceName);
             let friendly = friendly.trim().to_string();
+            let device_path = wchar_to_string(&target.monitorDevicePath);
+            let output_tech = target.outputTechnology.0;
+            let edid_mfg = target.edidManufactureId;
+            let edid_product = target.edidProductCodeId;
+            diag_log(&format!(
+                "path[{i}] gdi={gdi:?} friendly={friendly:?} outputTech={output_tech} edidMfg={edid_mfg:#06x} edidProduct={edid_product:#06x} devicePath={device_path:?}"
+            ));
             if !friendly.is_empty() {
                 map.insert(gdi, friendly);
             }
         }
     }
+
+    diag_log(&format!(
+        "=== windows_names_by_gdi() end: {} entries {:?} ===",
+        map.len(),
+        map
+    ));
 
     map
 }
@@ -454,10 +513,19 @@ fn list_monitors(app: AppHandle) -> Result<Vec<MonitorInfo>, String> {
             // vide plutôt que le nom GDI brut : le front retombe alors sur le
             // libellé lisible « Écran N » au lieu d'afficher "\\.\DISPLAY1".
             #[cfg(target_os = "windows")]
-            let name = names
-                .get(raw.trim())
-                .cloned()
-                .unwrap_or_default();
+            let name = {
+                let matched = names.get(raw.trim()).cloned();
+                diag_log(&format!(
+                    "tao monitor raw={raw:?} trimmed={:?} pos=({},{}) size={}x{} primary={is_primary} -> matched={matched:?} map_keys={:?}",
+                    raw.trim(),
+                    pos.x,
+                    pos.y,
+                    size.width,
+                    size.height,
+                    names.keys().collect::<Vec<_>>()
+                ));
+                matched.unwrap_or_default()
+            };
             #[cfg(not(any(target_os = "macos", target_os = "windows")))]
             let name = raw;
 
@@ -556,16 +624,9 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(AppState::default())
         .setup(|app| {
-            // Migration ponctuelle : recopie le contenu des anciennes versions
-            // (Documents/Verso) vers le dossier de données actuel, avant tout
-            // amorçage, pour que seed_defaults voie les données existantes.
-            storage::migrate_from_documents(app.handle());
             // Premier lancement : dépose les recueils et bibles libres de droits
             // empaquetés dans le dossier de données de l'utilisateur.
             storage::seed_defaults(app.handle());
-            // Migre une fois les anciens codes de section français (S/R/P/I/O)
-            // vers la forme canonique internationale (verse/chorus/bridge...).
-            storage::migrate_vtypes(app.handle());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
