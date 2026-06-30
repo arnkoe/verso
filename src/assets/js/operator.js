@@ -1065,21 +1065,17 @@ function tabSearchInput(tab) {
   })[tab] || null;
 }
 
-// Cmd/Ctrl + flèches fait défiler les onglets dans l'ordre visuel, y compris
-// depuis un champ de saisie. Le modificateur libère le Tab natif (traversée du
-// focus, lecteurs d'écran) et distingue ce raccourci des flèches nues, qui
-// parcourent et projettent le contenu. ↑/← = précédent, ↓/→ = suivant.
+// Tab / Maj+Tab fait défiler les onglets dans l'ordre visuel, y compris depuis un
+// champ de saisie. C'est intercepté globalement (la navigation Tab entre champs
+// est donc neutralisée dans la fenêtre opérateur, qui se pilote au clavier via
+// les champs de recherche et les flèches).
 const TAB_ORDER = ['cantiques', 'bible', 'pdf', 'images'];
-const TAB_PREV_KEYS = ['ArrowUp', 'ArrowLeft'];
-const TAB_NEXT_KEYS = ['ArrowDown', 'ArrowRight'];
 
 document.addEventListener('keydown', e => {
-  if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return;
-  const dir = TAB_NEXT_KEYS.includes(e.key) ? 1 : TAB_PREV_KEYS.includes(e.key) ? -1 : 0;
-  if (!dir) return;
+  if (e.key !== 'Tab' || e.metaKey || e.ctrlKey || e.altKey) return;
   e.preventDefault();
   const i = TAB_ORDER.indexOf(state.activeTab);
-  const next = (i + dir + TAB_ORDER.length) % TAB_ORDER.length;
+  const next = (i + (e.shiftKey ? -1 : 1) + TAB_ORDER.length) % TAB_ORDER.length;
   activateTab(TAB_ORDER[next]);
 }, true);
 
