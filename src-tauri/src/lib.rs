@@ -14,34 +14,34 @@ use storage::{AppState, Song, SongSummary, Verse};
 
 #[tauri::command]
 fn list_songs(app: AppHandle, state: tauri::State<AppState>) -> Result<Vec<SongSummary>, String> {
-    let songs = storage::load_songs(&app, &state)?;
-    Ok(songs
-        .iter()
-        .map(|s| SongSummary {
-            id: s.id,
-            title: s.title.clone(),
-            author: s.author.clone(),
-            songbook_code: s.songbook_code.clone(),
-            source_number: s.source_number,
-            verse_count: s.verses.len(),
-            incipits: s
-                .verses
-                .iter()
-                .filter_map(|v| v.text.lines().next())
-                .map(|l| l.trim().to_string())
-                .filter(|l| !l.is_empty())
-                .collect(),
-        })
-        .collect())
+    storage::with_songs(&app, &state, |songs| {
+        songs
+            .iter()
+            .map(|s| SongSummary {
+                id: s.id,
+                title: s.title.clone(),
+                author: s.author.clone(),
+                songbook_code: s.songbook_code.clone(),
+                source_number: s.source_number,
+                verse_count: s.verses.len(),
+                incipits: s
+                    .verses
+                    .iter()
+                    .filter_map(|v| v.text.lines().next())
+                    .map(|l| l.trim().to_string())
+                    .filter(|l| !l.is_empty())
+                    .collect(),
+            })
+            .collect()
+    })
 }
 
 #[tauri::command]
 fn get_song(app: AppHandle, state: tauri::State<AppState>, id: i64) -> Result<Song, String> {
-    let songs = storage::load_songs(&app, &state)?;
-    songs
-        .into_iter()
-        .find(|s| s.id == id)
-        .ok_or_else(|| "Cantique introuvable".into())
+    storage::with_songs(&app, &state, |songs| {
+        songs.iter().find(|s| s.id == id).cloned()
+    })?
+    .ok_or_else(|| "Cantique introuvable".into())
 }
 
 #[tauri::command]

@@ -406,9 +406,15 @@ fn read_songbook_files(files: &[PathBuf]) -> Result<Vec<Song>, String> {
 /// Migration de masse : réécrit chaque fichier de recueil dont au moins une
 /// section utilise encore un ancien code de type, en le convertissant vers la
 /// forme canonique internationale. Les fichiers déjà canoniques ne sont pas
-/// touchés. Appelée une fois au démarrage ; les erreurs ponctuelles sont
-/// ignorées pour ne jamais empêcher le lancement de l'application.
+/// touchés. Appelée au démarrage, mais une seule fois : un marqueur
+/// `.vtypes-migrated` évite de relire et reparser tous les recueils à chaque
+/// lancement (même pattern que `seed_defaults`/`migrate_from_documents`). Les
+/// erreurs ponctuelles sont ignorées pour ne jamais empêcher le lancement.
 pub fn migrate_vtypes(app: &AppHandle) {
+    let marker = data_dir(app).join(".vtypes-migrated");
+    if marker.exists() {
+        return;
+    }
     let dir = songbooks_dir(app);
     for path in songbook_files(&dir) {
         let Ok(bytes) = fs::read(&path) else { continue };
@@ -431,6 +437,7 @@ pub fn migrate_vtypes(app: &AppHandle) {
             }
         }
     }
+    let _ = fs::write(&marker, b"");
 }
 
 pub fn load_songs(app: &AppHandle, state: &AppState) -> Result<Vec<Song>, String> {
@@ -448,6 +455,32 @@ pub fn load_songs(app: &AppHandle, state: &AppState) -> Result<Vec<Song>, String
 
     *state.songs.lock().unwrap() = Some(songs.clone());
     Ok(songs)
+}
+
+/// S'assure que le cache des chants est chargé, puis exécute `f` sous le lock
+/// avec un emprunt de la liste. Évite de cloner tout le Vec (corps des strophes
+/// inclus) pour des accès en lecture seule comme `list_songs`/`get_song`, où
+/// seul un sous-ensemble des champs est lu.
+pub fn with_songs<T>(
+    app: &AppHandle,
+    state: &AppState,
+    f: impl FnOnce(&[Song]) -> T,
+) -> Result<T, String> {
+    {
+        let cache = state.songs.lock().unwrap();
+        if let Some(s) = cache.as_ref() {
+            return Ok(f(s));
+        }
+    }
+
+    // Cache froid : on lit le dossier puis on l'installe, et on applique `f` sur
+    // la version mise en cache (sous le lock) pour rester cohérent.
+    let dir = songbooks_dir(app);
+    let files = songbook_files(&dir);
+    let songs = read_songbook_files(&files)?;
+    let mut cache = state.songs.lock().unwrap();
+    let stored = cache.insert(songs);
+    Ok(f(stored))
 }
 
 /// Invalide le cache mémoire des chants : le prochain `load_songs` relira le
