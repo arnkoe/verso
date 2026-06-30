@@ -2,12 +2,22 @@ name: Publier une version
 
 # Workflow standard documenté par Tauri :
 # https://v2.tauri.app/distribute/pipelines/github/
+# Variante "release manuelle" (création de la release dissociée du build) :
+# https://github.com/tauri-apps/tauri-action/blob/dev/examples/publish-to-manual-release.yml
 #
-# Déclenchement : pousser sur la branche `release`. tauri-action lit la version
-# dans src-tauri/tauri.conf.json, crée le tag (verso-v<version>) et une release
-# GitHub BROUILLON, construit/signe les bundles macOS (ARM + Intel) et Windows,
-# et fusionne `latest.json` plateforme par plateforme (un seul job en matrice).
-# Le job `publish` bascule ensuite le brouillon en release publiée.
+# Déclenchement : pousser sur la branche `release`.
+#
+# Pourquoi cette variante plutôt que la matrice unique de la doc ? Avec la
+# matrice unique, les trois jobs (macOS x2 + Windows) démarrent en parallèle,
+# cherchent la release du tag, n'en trouvent aucune et en créent CHACUN une :
+# GitHub autorise plusieurs releases draft sur le même tag. Résultat (constaté
+# en 0.4.5) : deux releases concurrentes, les bundles répartis entre les deux,
+# et un latest.json incomplet -> l'auto-update Windows ne voyait aucun bundle.
+#
+# Ici, un seul job `create-release` crée la release BROUILLON une fois et expose
+# son id. Les jobs de build s'y rattachent via `releaseId` (sans toucher au
+# tag), fusionnent latest.json plateforme par plateforme, puis `publish-release`
+# bascule le brouillon en release publiée une fois tous les builds réussis.
 on:
   push:
     branches:
@@ -15,7 +25,88 @@ on:
   workflow_dispatch: # permet de lancer le build manuellement depuis l'onglet Actions
 
 jobs:
-  publish-tauri:
+  # Crée la release brouillon une seule fois et expose son id aux jobs de build.
+  # La version (donc le tag) est lue dans src-tauri/tauri.conf.json, source de
+  # vérité de l'app (cf. CLAUDE.md), pas dans package.json.
+  create-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create-release.outputs.result }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Lire la version
+        run: echo "PACKAGE_VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")" >> "$GITHUB_ENV"
+
+      - name: Créer la release brouillon
+        id: create-release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = process.env.PACKAGE_VERSION;
+            const { data } = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `verso-v${version}`,
+              name: `Verso v${version}`,
+              draft: true,
+              prerelease: false,
+              body: `## Quel fichier télécharger ?
+
+            - **Windows** : le fichier qui finit par \`setup.exe\`.
+            - **Mac récent (puce Apple)** : le fichier \`.dmg\` qui contient \`aarch64\`.
+            - **Mac plus ancien (puce Intel)** : le fichier \`.dmg\` qui contient \`x64\`.
+
+            Pas sûr de votre Mac ? Menu Pomme → **À propos de ce Mac**, regardez
+            la ligne « Puce » ou « Processeur ».
+
+            > Au premier lancement, votre ordinateur affichera un message qui fait
+            > peur. **C'est normal et ce n'est pas un virus** : Verso est un logiciel
+            > gratuit qui n'a pas les certificats payants de Microsoft et d'Apple.
+            > Voici comment passer cette étape, une seule fois.
+
+            ## Premier lancement sur Windows
+
+            Windows peut afficher un **écran bleu** : « Windows a protégé votre
+            ordinateur ». Pour continuer :
+
+            1. Cliquez sur le petit texte **« Informations complémentaires »**.
+            2. Cliquez sur le bouton **« Exécuter quand même »** qui apparaît.
+
+            Les mises à jour suivantes s'installeront toutes seules, sans cette étape.
+
+            ## Premier lancement sur Mac
+
+            1. Ouvrez le fichier \`.dmg\`, puis **glissez Verso dans le dossier
+               Applications**.
+            2. Si le Mac affiche « "Verso" est endommagé et ne peut pas être ouvert »,
+               une petite manipulation est nécessaire, **une seule fois** :
+
+               a. Ouvrez le **Terminal** : appuyez sur **Cmd + Espace**, tapez
+                  \`Terminal\`, puis **Entrée**.
+
+               b. Copiez-collez cette ligne dans la fenêtre noire :
+
+                  \`\`\`
+                  xattr -dr com.apple.quarantine /Applications/Verso.app
+                  \`\`\`
+
+               c. Appuyez sur **Entrée** (rien ne s'affiche, c'est normal), puis
+                  fermez le Terminal.
+
+            3. Ouvrez Verso normalement. Les mises à jour suivantes s'installeront
+               toutes seules, sans cette étape.
+
+            ---
+
+            Voir les changements ci-dessous.`,
+            });
+            return data.id;
+
+  build-tauri:
+    needs: create-release
     permissions:
       contents: write
     strategy:
@@ -70,97 +161,31 @@ jobs:
           # littérale (pas de secret, GitHub interdisant les secrets vides).
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         with:
-          # tauri-action crée le tag à partir de la version de tauri.conf.json.
-          tagName: verso-v__VERSION__
-          releaseName: "Verso v__VERSION__"
-          releaseDraft: true
-          prerelease: false
+          # Rattache les bundles à la release brouillon créée en amont : pas de
+          # tagName/releaseName ici, sinon chaque job retenterait de créer sa
+          # propre release (la race condition que ce workflow corrige).
+          releaseId: ${{ needs.create-release.outputs.release_id }}
           # Génère et fusionne latest.json (fichier interrogé par l'updater).
           includeUpdaterJson: true
           args: ${{ matrix.args }}
-          releaseBody: |
-            ## Quel fichier télécharger ?
-
-            - **Windows** : le fichier qui finit par `setup.exe`.
-            - **Mac récent (puce Apple)** : le fichier `.dmg` qui contient `aarch64`.
-            - **Mac plus ancien (puce Intel)** : le fichier `.dmg` qui contient `x64`.
-
-            Pas sûr de votre Mac ? Menu Pomme → **À propos de ce Mac**, regardez
-            la ligne « Puce » ou « Processeur ».
-
-            > Au premier lancement, votre ordinateur affichera un message qui fait
-            > peur. **C'est normal et ce n'est pas un virus** : Verso est un logiciel
-            > gratuit qui n'a pas les certificats payants de Microsoft et d'Apple.
-            > Voici comment passer cette étape, une seule fois.
-
-            ## Premier lancement sur Windows
-
-            Windows peut afficher un **écran bleu** : « Windows a protégé votre
-            ordinateur ». Pour continuer :
-
-            1. Cliquez sur le petit texte **« Informations complémentaires »**.
-            2. Cliquez sur le bouton **« Exécuter quand même »** qui apparaît.
-
-            Les mises à jour suivantes s'installeront toutes seules, sans cette étape.
-
-            ## Premier lancement sur Mac
-
-            1. Ouvrez le fichier `.dmg`, puis **glissez Verso dans le dossier
-               Applications**.
-            2. Si le Mac affiche « "Verso" est endommagé et ne peut pas être ouvert »,
-               une petite manipulation est nécessaire, **une seule fois** :
-
-               a. Ouvrez le **Terminal** : appuyez sur **Cmd + Espace**, tapez
-                  `Terminal`, puis **Entrée**.
-
-               b. Copiez-collez cette ligne dans la fenêtre noire :
-
-                  ```
-                  xattr -dr com.apple.quarantine /Applications/Verso.app
-                  ```
-
-               c. Appuyez sur **Entrée** (rien ne s'affiche, c'est normal), puis
-                  fermez le Terminal.
-
-            3. Ouvrez Verso normalement. Les mises à jour suivantes s'installeront
-               toutes seules, sans cette étape.
-
-            ---
-
-            Voir les changements ci-dessous.
 
   # Bascule la release brouillon en publiée une fois tous les builds réussis.
-  publish:
-    needs: publish-tauri
+  publish-release:
+    needs: [create-release, build-tauri]
     permissions:
       contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Basculer la release en publiée
         uses: actions/github-script@v7
+        env:
+          release_id: ${{ needs.create-release.outputs.release_id }}
         with:
           script: |
-            const { data: pkg } = await github.rest.repos.getContent({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              path: 'src-tauri/tauri.conf.json',
-              ref: context.sha,
-            });
-            const version = JSON.parse(
-              Buffer.from(pkg.content, 'base64').toString()
-            ).version;
-            const tag = `verso-v${version}`;
-            const { data: releases } = await github.rest.repos.listReleases({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            });
-            const release = releases.find(r => r.tag_name === tag);
-            if (!release) {
-              throw new Error(`Release introuvable pour le tag ${tag}`);
-            }
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              release_id: release.id,
+              release_id: process.env.release_id,
               draft: false,
+              prerelease: false,
             });
