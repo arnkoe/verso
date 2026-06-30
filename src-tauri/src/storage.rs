@@ -146,6 +146,56 @@ pub fn data_dir(app: &AppHandle) -> PathBuf {
     dir
 }
 
+/// Ancien dossier de données (versions ≤ 0.4.x) : « Verso » dans les Documents de
+/// l'utilisateur. Conservé uniquement pour la migration ponctuelle vers le
+/// nouveau `data_dir` sous app data dir (voir `migrate_from_documents`).
+fn legacy_documents_dir(app: &AppHandle) -> Option<PathBuf> {
+    app.path().document_dir().ok().map(|d| d.join("Verso"))
+}
+
+/// Copie récursivement le contenu de `src` dans `dst` sans jamais écraser un
+/// fichier déjà présent dans `dst`. Les dossiers intermédiaires sont créés à la
+/// volée. Les erreurs ponctuelles sont ignorées (best effort).
+fn copy_tree_no_overwrite(src: &Path, dst: &Path) {
+    let Ok(entries) = fs::read_dir(src) else { return };
+    let _ = fs::create_dir_all(dst);
+    for entry in entries.flatten() {
+        let from = entry.path();
+        let Some(name) = from.file_name() else { continue };
+        let to = dst.join(name);
+        if from.is_dir() {
+            copy_tree_no_overwrite(&from, &to);
+        } else if !to.exists() {
+            let _ = fs::copy(&from, &to);
+        }
+    }
+}
+
+/// Migration ponctuelle : les versions ≤ 0.4.x stockaient recueils, bibles et
+/// médias dans `Documents/Verso`. Depuis, les données vivent sous app data dir
+/// (voir `data_dir`). On recopie une seule fois l'ancien contenu vers le nouveau
+/// dossier, sans écraser ce qui s'y trouve déjà. Appelée au démarrage avant
+/// `seed_defaults`, pour que l'amorçage voie les données migrées et ne réamorce
+/// pas. Un marqueur `.migrated-from-documents` évite toute reprise ultérieure ;
+/// les fichiers de l'utilisateur dans Documents ne sont jamais supprimés.
+pub fn migrate_from_documents(app: &AppHandle) {
+    let dest = data_dir(app);
+    let marker = dest.join(".migrated-from-documents");
+    if marker.exists() {
+        return;
+    }
+
+    if let Some(legacy) = legacy_documents_dir(app) {
+        // Ne rien faire si l'ancien dossier n'existe pas, est le même que le
+        // nouveau, ou ne contient aucune donnée.
+        if legacy != dest && legacy.is_dir() {
+            copy_tree_no_overwrite(&legacy, &dest);
+        }
+    }
+
+    let _ = fs::write(&marker, b"");
+}
+
 /// Dossier contenant un fichier JSON par recueil de chants. Public pour que le
 /// module `sync` puisse y recopier les recueils tirés du dépôt de données et en
 /// extraire ceux à publier.

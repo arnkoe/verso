@@ -549,6 +549,10 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(AppState::default())
         .setup(|app| {
+            // Migration ponctuelle : recopie le contenu des anciennes versions
+            // (Documents/Verso) vers le dossier de données actuel, avant tout
+            // amorçage, pour que seed_defaults voie les données existantes.
+            storage::migrate_from_documents(app.handle());
             // Premier lancement : dépose les recueils et bibles libres de droits
             // empaquetés dans le dossier de données de l'utilisateur.
             storage::seed_defaults(app.handle());
