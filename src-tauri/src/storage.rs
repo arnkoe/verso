@@ -146,25 +146,49 @@ pub fn data_dir(app: &AppHandle) -> PathBuf {
     dir
 }
 
-/// Ancien dossier de données (versions ≤ 0.4.x) : « Verso » dans les Documents de
-/// l'utilisateur. Conservé uniquement pour la migration ponctuelle vers le
-/// nouveau `data_dir` sous app data dir (voir `migrate_from_documents`).
-fn legacy_documents_dir(app: &AppHandle) -> Option<PathBuf> {
-    app.path().document_dir().ok().map(|d| d.join("Verso"))
+/// Anciens dossiers de données possibles (versions ≤ 0.4.x). À l'époque,
+/// `data_dir` valait `document_dir()/Verso`, avec repli sur `app_data_dir()`
+/// (sans suffixe « Verso ») lorsque `document_dir()` échouait. Ce repli arrivait
+/// notamment sous Windows quand le dossier « Documents » n'était pas résoluble
+/// (profils redirigés, OneDrive Known Folder Move…), si bien que les données
+/// atterrissaient sous `app_data_dir()` et non dans les Documents.
+///
+/// La migration doit donc inspecter ces deux emplacements, sinon les données de
+/// ces utilisateurs ne sont jamais reprises. Renvoie les candidats existants,
+/// du plus probable au moins probable, en excluant la destination actuelle.
+fn legacy_data_dirs(app: &AppHandle, dest: &Path) -> Vec<PathBuf> {
+    let mut candidates = Vec::new();
+    if let Ok(docs) = app.path().document_dir() {
+        candidates.push(docs.join("Verso"));
+    }
+    // Ancien repli : `app_data_dir()` brut, sans « Verso » (la version actuelle,
+    // elle, ajoute « Verso » ; on vise donc bien l'ancien emplacement distinct).
+    if let Ok(app_data) = app.path().app_data_dir() {
+        candidates.push(app_data);
+    }
+    candidates
+        .into_iter()
+        .filter(|c| c != dest && c.is_dir())
+        .collect()
 }
 
 /// Copie récursivement le contenu de `src` dans `dst` sans jamais écraser un
 /// fichier déjà présent dans `dst`. Les dossiers intermédiaires sont créés à la
-/// volée. Les erreurs ponctuelles sont ignorées (best effort).
-fn copy_tree_no_overwrite(src: &Path, dst: &Path) {
+/// volée. Les erreurs ponctuelles sont ignorées (best effort). `skip` permet
+/// d'exclure un sous-chemin (utile quand `src` est le parent de `dst` : on évite
+/// alors de recopier la destination dans elle-même).
+fn copy_tree_no_overwrite(src: &Path, dst: &Path, skip: &Path) {
     let Ok(entries) = fs::read_dir(src) else { return };
     let _ = fs::create_dir_all(dst);
     for entry in entries.flatten() {
         let from = entry.path();
+        if from == skip {
+            continue;
+        }
         let Some(name) = from.file_name() else { continue };
         let to = dst.join(name);
         if from.is_dir() {
-            copy_tree_no_overwrite(&from, &to);
+            copy_tree_no_overwrite(&from, &to, skip);
         } else if !to.exists() {
             let _ = fs::copy(&from, &to);
         }
@@ -172,25 +196,29 @@ fn copy_tree_no_overwrite(src: &Path, dst: &Path) {
 }
 
 /// Migration ponctuelle : les versions ≤ 0.4.x stockaient recueils, bibles et
-/// médias dans `Documents/Verso`. Depuis, les données vivent sous app data dir
-/// (voir `data_dir`). On recopie une seule fois l'ancien contenu vers le nouveau
-/// dossier, sans écraser ce qui s'y trouve déjà. Appelée au démarrage avant
-/// `seed_defaults`, pour que l'amorçage voie les données migrées et ne réamorce
-/// pas. Un marqueur `.migrated-from-documents` évite toute reprise ultérieure ;
-/// les fichiers de l'utilisateur dans Documents ne sont jamais supprimés.
+/// médias soit dans `Documents/Verso`, soit (repli Windows quand « Documents »
+/// n'était pas résoluble) directement sous `app_data_dir()`. Depuis, les données
+/// vivent sous `app_data_dir()/Verso` (voir `data_dir`). On recopie une seule
+/// fois l'ancien contenu vers le nouveau dossier, sans écraser ce qui s'y trouve
+/// déjà. Appelée au démarrage avant `seed_defaults`, pour que l'amorçage voie les
+/// données migrées et ne réamorce pas. Un marqueur `.migrated-from-documents`
+/// évite toute reprise ultérieure ; les fichiers d'origine ne sont jamais
+/// supprimés.
 pub fn migrate_from_documents(app: &AppHandle) {
     let dest = data_dir(app);
-    let marker = dest.join(".migrated-from-documents");
+    // Marqueur versionné : le suffixe « -v2 » force une reprise unique chez les
+    // utilisateurs où la première migration (qui n'inspectait que `Documents`)
+    // avait écrit son marqueur sans rien copier, notamment sous Windows.
+    let marker = dest.join(".migrated-from-documents-v2");
     if marker.exists() {
         return;
     }
 
-    if let Some(legacy) = legacy_documents_dir(app) {
-        // Ne rien faire si l'ancien dossier n'existe pas, est le même que le
-        // nouveau, ou ne contient aucune donnée.
-        if legacy != dest && legacy.is_dir() {
-            copy_tree_no_overwrite(&legacy, &dest);
-        }
+    // Reprend chaque emplacement hérité encore présent. `dest` est exclu de la
+    // copie : lorsqu'un candidat est le parent de `dest` (cas du repli
+    // `app_data_dir()`), on évite de recopier la destination dans elle-même.
+    for legacy in legacy_data_dirs(app, &dest) {
+        copy_tree_no_overwrite(&legacy, &dest, &dest);
     }
 
     let _ = fs::write(&marker, b"");
