@@ -1285,6 +1285,8 @@ function _saveScreen(m) {
 // `index` (optionnel) sert au fallback « Écran N » quand l'OS ne fournit pas de nom.
 function _screenLabel(m, index) {
   if (m.name) return m.name;
+  // Dalle intégrée (laptop) : l'OS ne fournit pas de nom de modèle.
+  if (m.is_internal) return t('screen.builtin');
   if (index != null) return t('screen.numbered', { n: index + 1 });
   return (!m.x && !m.y) ? t('screen.main') : t('screen.numbered', { n: `${m.width}×${m.height}` });
 }

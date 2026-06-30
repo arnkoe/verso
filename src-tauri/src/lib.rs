@@ -281,6 +281,9 @@ struct MonitorInfo {
     width: u32,
     height: u32,
     is_primary: bool,
+    /// Vrai si l'écran est une dalle intégrée (laptop) sans nom de modèle
+    /// exposé par l'OS : le front affiche alors « Écran intégré ».
+    is_internal: bool,
     scale: f64,
 }
 
@@ -330,107 +333,79 @@ fn parse_model_number(tao_name: &str) -> Option<u32> {
     tao_name.rsplit('#').next()?.trim().parse().ok()
 }
 
-/// Windows : map nom GDI ("\\.\DISPLAY<N>") -> nom lisible (marque/modèle).
+/// Info écran résolue côté Windows pour un nom GDI donné.
+#[cfg(target_os = "windows")]
+#[derive(Default, Clone)]
+struct WinMonitor {
+    /// Nom lisible (marque/modèle issu de l'EDID), vide si indisponible.
+    name: String,
+    /// Vrai si la sortie est une dalle intégrée (laptop) : Windows ne fournit
+    /// alors pas de `monitorFriendlyDeviceName`. Le front affiche « Écran
+    /// intégré » plutôt que le repli numéroté.
+    internal: bool,
+}
+
+/// Windows : map nom GDI ("\\.\DISPLAY<N>") -> info écran (nom lisible + interne).
 ///
 /// tao renvoie sur Windows le nom GDI (`szDevice`, ex. "\\.\DISPLAY1"). Le nom
 /// lisible (issu de l'EDID, ex. "DELL U2419H") n'est exposé que par l'API
 /// DisplayConfig. On énumère les chemins d'affichage actifs ; pour chacun on
 /// demande le nom source (`viewGdiDeviceName` == le `szDevice` de tao) puis le
 /// nom cible (`monitorFriendlyDeviceName`), et on associe les deux. La jointure
-/// se fait donc sur exactement la chaîne que tao a utilisée.
-/// DIAGNOSTIC TEMPORAIRE (à retirer) : écrit une ligne dans
-/// `verso-monitors.log` sur le Bureau de l'utilisateur. En build de prod
-/// Windows il n'y a pas de console attachée, donc `eprintln!` est invisible ;
-/// on passe par un fichier pour pouvoir récupérer la trace après coup.
+/// se fait donc sur exactement la chaîne que tao a utilisée. Les dalles
+/// intégrées (laptop) n'ont pas de nom convivial : on les repère via
+/// `outputTechnology == INTERNAL` pour que le front affiche « Écran intégré ».
 #[cfg(target_os = "windows")]
-fn diag_log(line: &str) {
-    use std::io::Write;
-
-    let path = std::env::var_os("USERPROFILE")
-        .map(std::path::PathBuf::from)
-        .map(|p| p.join("Desktop").join("verso-monitors.log"))
-        .or_else(|| {
-            std::env::temp_dir()
-                .join("verso-monitors.log")
-                .into()
-        });
-    if let Some(path) = path {
-        if let Ok(mut f) = std::fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&path)
-        {
-            let _ = writeln!(f, "{line}");
-        }
-    }
-}
-
-#[cfg(target_os = "windows")]
-fn windows_names_by_gdi() -> std::collections::HashMap<String, String> {
+fn windows_names_by_gdi() -> std::collections::HashMap<String, WinMonitor> {
     use windows::Win32::Devices::Display::{
         DisplayConfigGetDeviceInfo, GetDisplayConfigBufferSizes, QueryDisplayConfig,
         DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME, DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME,
-        DISPLAYCONFIG_MODE_INFO, DISPLAYCONFIG_PATH_INFO, DISPLAYCONFIG_SOURCE_DEVICE_NAME,
-        DISPLAYCONFIG_TARGET_DEVICE_NAME, QDC_ONLY_ACTIVE_PATHS,
+        DISPLAYCONFIG_MODE_INFO, DISPLAYCONFIG_OUTPUT_TECHNOLOGY_INTERNAL, DISPLAYCONFIG_PATH_INFO,
+        DISPLAYCONFIG_SOURCE_DEVICE_NAME, DISPLAYCONFIG_TARGET_DEVICE_NAME, QDC_ONLY_ACTIVE_PATHS,
     };
     use windows::Win32::Foundation::ERROR_SUCCESS;
 
     let mut map = std::collections::HashMap::new();
-
-    diag_log("=== windows_names_by_gdi() start ===");
 
     let mut path_count: u32 = 0;
     let mut mode_count: u32 = 0;
     // SAFETY : appels FFI ; les pointeurs proviennent de vecteurs dimensionnés
     // par GetDisplayConfigBufferSizes juste avant.
     unsafe {
-        let buf_rc = GetDisplayConfigBufferSizes(
-            QDC_ONLY_ACTIVE_PATHS,
-            &mut path_count,
-            &mut mode_count,
-        );
-        diag_log(&format!(
-            "GetDisplayConfigBufferSizes rc={} path_count={path_count} mode_count={mode_count}",
-            buf_rc.0
-        ));
-        if buf_rc != ERROR_SUCCESS {
-            diag_log("ABORT: GetDisplayConfigBufferSizes failed");
+        if GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &mut path_count, &mut mode_count)
+            != ERROR_SUCCESS
+        {
             return map;
         }
 
         let mut paths = vec![DISPLAYCONFIG_PATH_INFO::default(); path_count as usize];
         let mut modes = vec![DISPLAYCONFIG_MODE_INFO::default(); mode_count as usize];
 
-        let query_rc = QueryDisplayConfig(
+        if QueryDisplayConfig(
             QDC_ONLY_ACTIVE_PATHS,
             &mut path_count,
             paths.as_mut_ptr(),
             &mut mode_count,
             modes.as_mut_ptr(),
             None,
-        );
-        diag_log(&format!("QueryDisplayConfig rc={}", query_rc.0));
-        if query_rc != ERROR_SUCCESS {
-            diag_log("ABORT: QueryDisplayConfig failed");
+        ) != ERROR_SUCCESS
+        {
             return map;
         }
 
-        for (i, path) in paths.iter().take(path_count as usize).enumerate() {
+        for path in paths.iter().take(path_count as usize) {
             // Nom GDI de la source ("\\.\DISPLAY<N>").
             let mut source = DISPLAYCONFIG_SOURCE_DEVICE_NAME::default();
             source.header.r#type = DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME;
             source.header.size = std::mem::size_of::<DISPLAYCONFIG_SOURCE_DEVICE_NAME>() as u32;
             source.header.adapterId = path.sourceInfo.adapterId;
             source.header.id = path.sourceInfo.id;
-            let src_rc = DisplayConfigGetDeviceInfo(&mut source.header);
-            if src_rc != ERROR_SUCCESS.0 as i32 {
-                diag_log(&format!("path[{i}] source GetDeviceInfo rc={src_rc} -> skip"));
+            if DisplayConfigGetDeviceInfo(&mut source.header) != ERROR_SUCCESS.0 as i32 {
                 continue;
             }
-            let gdi_raw = wchar_to_string(&source.viewGdiDeviceName);
-            let gdi = gdi_raw.trim().to_string();
+            let gdi = wchar_to_string(&source.viewGdiDeviceName);
+            let gdi = gdi.trim().to_string();
             if gdi.is_empty() {
-                diag_log(&format!("path[{i}] gdi empty (raw={gdi_raw:?}) -> skip"));
                 continue;
             }
 
@@ -440,33 +415,21 @@ fn windows_names_by_gdi() -> std::collections::HashMap<String, String> {
             target.header.size = std::mem::size_of::<DISPLAYCONFIG_TARGET_DEVICE_NAME>() as u32;
             target.header.adapterId = path.targetInfo.adapterId;
             target.header.id = path.targetInfo.id;
-            let tgt_rc = DisplayConfigGetDeviceInfo(&mut target.header);
-            if tgt_rc != ERROR_SUCCESS.0 as i32 {
-                diag_log(&format!(
-                    "path[{i}] gdi={gdi:?} target GetDeviceInfo rc={tgt_rc} -> skip"
-                ));
+            if DisplayConfigGetDeviceInfo(&mut target.header) != ERROR_SUCCESS.0 as i32 {
                 continue;
             }
             let friendly = wchar_to_string(&target.monitorFriendlyDeviceName);
             let friendly = friendly.trim().to_string();
-            let device_path = wchar_to_string(&target.monitorDevicePath);
-            let output_tech = target.outputTechnology.0;
-            let edid_mfg = target.edidManufactureId;
-            let edid_product = target.edidProductCodeId;
-            diag_log(&format!(
-                "path[{i}] gdi={gdi:?} friendly={friendly:?} outputTech={output_tech} edidMfg={edid_mfg:#06x} edidProduct={edid_product:#06x} devicePath={device_path:?}"
-            ));
-            if !friendly.is_empty() {
-                map.insert(gdi, friendly);
-            }
+            let internal = target.outputTechnology == DISPLAYCONFIG_OUTPUT_TECHNOLOGY_INTERNAL;
+            map.insert(
+                gdi,
+                WinMonitor {
+                    name: friendly,
+                    internal,
+                },
+            );
         }
     }
-
-    diag_log(&format!(
-        "=== windows_names_by_gdi() end: {} entries {:?} ===",
-        map.len(),
-        map
-    ));
 
     map
 }
@@ -504,30 +467,24 @@ fn list_monitors(app: AppHandle) -> Result<Vec<MonitorInfo>, String> {
 
             // Sur macOS, remplace "Monitor #<N>" par le nom lisible si trouvé.
             #[cfg(target_os = "macos")]
-            let name = parse_model_number(&raw)
-                .and_then(|n| names.get(&n).cloned())
-                .filter(|s| !s.is_empty())
-                .unwrap_or(raw);
+            let (name, is_internal) = (
+                parse_model_number(&raw)
+                    .and_then(|n| names.get(&n).cloned())
+                    .filter(|s| !s.is_empty())
+                    .unwrap_or(raw),
+                false,
+            );
             // Sur Windows, remplace le nom GDI ("\\.\DISPLAY<N>") par le nom
             // lisible (marque/modèle) si trouvé. Sinon, on renvoie une chaîne
-            // vide plutôt que le nom GDI brut : le front retombe alors sur le
-            // libellé lisible « Écran N » au lieu d'afficher "\\.\DISPLAY1".
+            // vide plutôt que le nom GDI brut : le front affiche alors « Écran
+            // intégré » (dalle laptop) ou le repli numéroté « Écran N ».
             #[cfg(target_os = "windows")]
-            let name = {
-                let matched = names.get(raw.trim()).cloned();
-                diag_log(&format!(
-                    "tao monitor raw={raw:?} trimmed={:?} pos=({},{}) size={}x{} primary={is_primary} -> matched={matched:?} map_keys={:?}",
-                    raw.trim(),
-                    pos.x,
-                    pos.y,
-                    size.width,
-                    size.height,
-                    names.keys().collect::<Vec<_>>()
-                ));
-                matched.unwrap_or_default()
+            let (name, is_internal) = {
+                let matched = names.get(raw.trim()).cloned().unwrap_or_default();
+                (matched.name, matched.internal)
             };
             #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-            let name = raw;
+            let (name, is_internal) = (raw, false);
 
             MonitorInfo {
                 name,
@@ -536,6 +493,7 @@ fn list_monitors(app: AppHandle) -> Result<Vec<MonitorInfo>, String> {
                 width: size.width,
                 height: size.height,
                 is_primary,
+                is_internal,
                 scale: m.scale_factor(),
             }
         })
