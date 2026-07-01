@@ -1,6 +1,6 @@
 {
   "name": "verso",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "Verso — projection de chants et textes (version Tauri, stockage fichiers)",
   "private": true,
   "type": "module",
