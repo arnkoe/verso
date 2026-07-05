@@ -12,7 +12,7 @@ L'interface est disponible en **anglais** (par défaut) et en **français**. Vou
 
 ## Installer Verso
 
-1. Allez sur la page des **versions** (« Releases ») du projet.
+1. Allez sur la [page des **versions** (« Releases »)](https://github.com/arnkoe/verso/releases/latest), puis ouvrez la section **Assets** en bas de la dernière version.
 2. Téléchargez le fichier qui correspond à votre ordinateur :
    - **Windows** : le fichier dont le nom finit par `setup.exe`.
    - **Mac récent (puce Apple, depuis 2020)** : le fichier `.dmg` qui contient `aarch64`.
