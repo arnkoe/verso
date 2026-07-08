@@ -928,7 +928,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   height: 28px;
+  min-width: 44px;
   padding: 0 8px;
   border-radius: 6px;
 }
