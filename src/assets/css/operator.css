@@ -539,16 +539,15 @@ body {
   grid-template-columns: 80px 1fr auto;
   gap: 18px;
   align-items: start;
-  padding: 14px 24px;
+  padding: 14px 16px;
+  margin: 6px 8px;
+  border-radius: 14px;
   cursor: pointer;
-  border-left: 3px solid transparent;
-  border-bottom: 1px solid var(--line-2);
   background: var(--panel);
   transition: background 0.15s;
 }
-/* .strophe-item:last-child border-bottom kept for single-strophe songs */
 .strophe-item:hover { background: var(--hover); }
-.strophe-item.active { background: var(--sel); border-left-color: var(--live); }
+.strophe-item.active { background: var(--sel); }
 
 .strophe-number {
   font-size: var(--fs-sm);
@@ -606,16 +605,15 @@ body {
   grid-template-columns: 80px 1fr auto;
   gap: 18px;
   align-items: start;
-  padding: 14px 24px;
+  padding: 14px 16px;
+  margin: 6px 8px;
+  border-radius: 14px;
   cursor: pointer;
-  border-left: 3px solid transparent;
-  border-bottom: 1px solid var(--line-2);
   background: var(--panel);
   transition: background 0.15s;
 }
-.bible-verse-item:last-child { border-bottom: 0; }
 .bible-verse-item:hover { background: var(--hover); }
-.bible-verse-item.active { background: var(--sel); border-left-color: var(--live); }
+.bible-verse-item.active { background: var(--sel); }
 
 .bible-verse-number {
   font-size: var(--fs-sm);
@@ -638,16 +636,15 @@ body {
   grid-template-columns: 80px 1fr auto;
   gap: 18px;
   align-items: flex-start;
-  padding: 14px 24px;
+  padding: 14px 16px;
+  margin: 6px 8px;
+  border-radius: 14px;
   cursor: pointer;
-  border-left: 3px solid transparent;
-  border-bottom: 1px solid var(--line-2);
   background: var(--panel);
   transition: background 0.15s;
 }
-.pdf-page-item:last-child { border-bottom: 0; }
 .pdf-page-item:hover { background: var(--hover); }
-.pdf-page-item.active { background: var(--sel); border-left-color: var(--live); }
+.pdf-page-item.active { background: var(--sel); }
 
 .pdf-page-thumb {
   width: 200px;
