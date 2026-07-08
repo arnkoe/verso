@@ -74,9 +74,11 @@ async function project(payload) {
 
 function switchSideTab(tab) {
   state.activeTab = tab;
-  ['cantiques', 'bible', 'pdf', 'images'].forEach(t => {
+  TAB_ORDER.forEach(t => {
     document.getElementById('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
   });
+  // Positionne la pastille blanche sous l'onglet actif (voir .tabs::before).
+  document.querySelector('.tabs').style.setProperty('--tab-index', TAB_ORDER.indexOf(tab));
   document.getElementById('searchCantiques').style.display = tab === 'cantiques' ? '' : 'none';
   document.getElementById('searchBible').style.display     = tab === 'bible'     ? 'flex' : 'none';
   document.getElementById('listPdf').style.display         = tab === 'pdf'       ? 'flex' : 'none';

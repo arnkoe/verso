@@ -1,7 +1,7 @@
 :root {
   --bg: #f3f4f6;
   --panel: #ffffff;
-  --ink: #111111;
+  --ink: #000000;
   --ink-2: #3a3a3a;
   --mute: #6b6b6b;
   --mute-2: #9a9a9a;
@@ -95,31 +95,60 @@ body {
 #searchCantiques, #searchBible, #listPdf, #listImages { grid-row: 2; }
 
 .tabs {
+  --tab-count: 4;
+  --tab-index: 0;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  border-bottom: 1px solid var(--line-2);
+  grid-template-columns: repeat(var(--tab-count), 1fr);
+  margin: 12px 12px 0;
+  padding: 2px;
+  background: var(--line-2);
+  border-radius: 6px;
+  position: relative;
 }
+/* Pastille blanche unique placée sous l'onglet actif. Elle occupe exactement
+   une cellule (1/--tab-count de la zone interne) et se positionne par translateX
+   d'un multiple de sa propre largeur (100%). Aucune constante magique : ajouter
+   un onglet ne demande que --tab-count. La marge autour de la pastille vient du
+   padding 2px du conteneur, pas d'un gap (qui casserait les pourcentages).
+   Pas d'animation : le déplacement est instantané. Une transition transform sur
+   cette webview déclenche l'animateur natif macOS qui ajoute un ressort visible
+   (dépassement puis retour) impossible à neutraliser via la courbe. */
+.tabs::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc((100% - 4px) / var(--tab-count));
+  transform: translateX(calc(var(--tab-index) * 100%));
+  background: var(--panel);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.04);
+  border-radius: 6px;
+  z-index: 0;
+}
+/* L'espace tabs → champ doit égaler champ → filtres. Ce dernier vaut 12px
+   (gap 8px de la search-box + padding-top 4px de .filter-pills). La search-box
+   apporte déjà 12px de padding-top : on le garde tel quel via la marge des tabs
+   (margin-bottom 0), donc rien à surcharger ici. */
 .tab {
   appearance: none;
   background: transparent;
   border: 0;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 12px;
-  color: var(--mute);
-  padding: 12px 0;
+  color: var(--mute-2);
+  padding: 6px 0;
   cursor: pointer;
-  letter-spacing: 0.02em;
   position: relative;
+  z-index: 1;
   transition: color 0.15s;
 }
-.tab.active { color: var(--ink); font-weight: 500; }
-.tab.active::after {
-  content: "";
-  position: absolute;
-  left: 12px; right: 12px; bottom: -1px;
-  height: 1.5px; background: var(--ink);
+.tab.active {
+  color: var(--ink);
+  font-weight: 500;
 }
-.tab:hover:not(.active) { color: var(--ink-2); }
+.tab:hover:not(.active) { color: var(--ink); }
 
 /* ── ZONE RECHERCHE DANS SIDEBAR ───────────────────────────────────────────── */
 .search-box {
