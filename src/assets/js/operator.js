@@ -95,7 +95,12 @@ function switchSideTab(tab) {
   if (tab === 'pdf') loadPdfList();
   else if (tab === 'images') loadImageList();
 
-  state.searchCursor = 0;
+  // Aligne le curseur clavier sur l'élément déjà chargé (classe .active) plutôt
+  // que de le remettre en tête : sans ça, le curseur surlignerait le 1er résultat
+  // en plus de l'élément actif au retour sur l'onglet.
+  const active = searchListEl()?.querySelector('.content-item.active');
+  const idx = active ? searchItems().indexOf(active) : -1;
+  state.searchCursor = idx >= 0 ? idx : 0;
   updateSearchCursor();
 }
 
@@ -255,7 +260,7 @@ async function loadSong(id) {
   document.getElementById('songHeader').style.display = '';
   markContentLoaded();
   // Kicker = nom lisible du recueil (résolu via songbookNames) ; abrév = code.
-  const kicker = songbookName(song.songbook_code).toUpperCase();
+  const kicker = songbookName(song.songbook_code);
   const abbr = song.songbook_code || '';
   const prefix = song.songbook_code && song.source_number ? `${abbr} ${song.source_number} – ` : '';
   document.getElementById('songSubtitle').textContent = kicker;
@@ -481,7 +486,7 @@ function renderBibleBookList(books, candidates, entry) {
   const ntIdx = books.indexOf(NT_FIRST_BOOK);
   let html = '', lastTestament = null;
   for (const b of candidates.slice(0, 20)) {
-    const testament = ntIdx >= 0 && books.indexOf(b) >= ntIdx ? 'NOUVEAU TESTAMENT' : 'ANCIEN TESTAMENT';
+    const testament = ntIdx >= 0 && books.indexOf(b) >= ntIdx ? 'Nouveau Testament' : 'Ancien Testament';
     if (testament !== lastTestament) {
       html += `<div class="source-group">${testament}</div>`;
       lastTestament = testament;
@@ -582,11 +587,11 @@ async function fetchBibleChapter(ref) {
     ? `${first.book} ${first.chapter}:${first.verse}`
     : `${first.book} ${first.chapter}:${first.verse}–${last.verse}`;
   // Sous-titre = nom lisible de la traduction (résolu via bibleNames), sinon le code.
-  const translationLabel = bibleName(data.bible_code).toUpperCase();
+  const translationLabel = bibleName(data.bible_code);
   document.getElementById('bibleHeader').style.display = '';
   markContentLoaded();
   document.getElementById('bibleTitle').textContent = title;
-  document.getElementById('bibleSubtitle').textContent = 'TRADUCTION ' + translationLabel;
+  document.getElementById('bibleSubtitle').textContent = 'Traduction ' + translationLabel;
   showPanel('panelBible');
   renderBibleVerses(data.verses);
 
