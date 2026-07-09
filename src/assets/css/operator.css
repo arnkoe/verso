@@ -8,8 +8,8 @@
   /* Échelle de gris unifiée (teinte froide, même famille que --bg).
      Du plus clair au plus foncé : surface < hover < sel. */
   --surface-1: #fafbfc;   /* fills légers surélevés */
-  --hover: #e9ecef;       /* survol des lignes/boutons */
-  --sel: #e9ecef;         /* sélection / état actif (identique au survol) */
+  --hover: #f0f2f5;       /* survol des lignes/boutons (un peu plus clair que --sel) */
+  --sel: #e9ecef;         /* sélection / état actif */
   --line-2: #f2f3f5;      /* séparateur clair */
   --line: #e8eaed;        /* bordure standard */
   --line-strong: #d7dbe0; /* bordure au survol */
