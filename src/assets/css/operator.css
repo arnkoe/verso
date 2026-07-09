@@ -560,7 +560,7 @@ body {
   align-items: start;
   padding: 14px 16px;
   margin: 6px 8px;
-  border-radius: 14px;
+  border-radius: 20px;
   cursor: pointer;
   background: transparent;
   transition: background 0.15s;
@@ -628,7 +628,7 @@ body {
   align-items: start;
   padding: 14px 16px;
   margin: 6px 8px;
-  border-radius: 14px;
+  border-radius: 20px;
   cursor: pointer;
   background: transparent;
   transition: background 0.15s;
@@ -659,7 +659,7 @@ body {
   align-items: flex-start;
   padding: 14px 16px;
   margin: 6px 8px;
-  border-radius: 14px;
+  border-radius: 20px;
   cursor: pointer;
   background: transparent;
   transition: background 0.15s;
