@@ -141,8 +141,9 @@ body {
    d'un multiple de sa propre largeur (100%). Aucune constante magique : ajouter
    un onglet ne demande que --tab-count. La marge autour de la pastille vient du
    padding 2px du conteneur, pas d'un gap (qui casserait les pourcentages).
-   Pas d'animation : le déplacement est instantané. Une transition transform sur
-   cette webview déclenche l'animateur natif macOS qui ajoute un ressort visible
+   Le glissement est animé en JS (slideTabIndicator) qui interpole --tab-index
+   image par image. Surtout PAS de transition CSS sur ce transform : sur cette
+   webview elle déclenche l'animateur natif macOS qui ajoute un ressort visible
    (dépassement puis retour) impossible à neutraliser via la courbe. */
 .tabs::before {
   content: "";

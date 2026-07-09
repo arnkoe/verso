@@ -79,8 +79,8 @@ function switchSideTab(tab) {
   TAB_ORDER.forEach(t => {
     document.getElementById('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
   });
-  // Positionne la pastille blanche sous l'onglet actif (voir .tabs::before).
-  document.querySelector('.tabs').style.setProperty('--tab-index', TAB_ORDER.indexOf(tab));
+  // Fait glisser la pastille blanche vers l'onglet actif (voir .tabs::before).
+  slideTabIndicator(TAB_ORDER.indexOf(tab));
   document.getElementById('searchCantiques').style.display = tab === 'cantiques' ? '' : 'none';
   document.getElementById('searchBible').style.display     = tab === 'bible'     ? 'flex' : 'none';
   document.getElementById('listPdf').style.display         = tab === 'pdf'       ? 'flex' : 'none';
@@ -104,6 +104,34 @@ function switchSideTab(tab) {
   const idx = active ? searchItems().indexOf(active) : -1;
   state.searchCursor = idx >= 0 ? idx : 0;
   updateSearchCursor();
+}
+
+// Glisse la pastille (.tabs::before) vers l'onglet cible en interpolant
+// --tab-index image par image. On n'utilise PAS de transition CSS sur le
+// transform : sur cette webview elle déclenche l'animateur natif macOS qui
+// ajoute un ressort (dépassement puis retour). Une courbe ease-out pilotée à
+// la main reste strictement monotone, donc aucun rebond possible.
+let tabSlideRAF = null;
+function slideTabIndicator(target) {
+  const tabs = document.querySelector('.tabs');
+  const from = parseFloat(getComputedStyle(tabs).getPropertyValue('--tab-index')) || 0;
+  if (tabSlideRAF !== null) cancelAnimationFrame(tabSlideRAF);
+  if (from === target) { tabs.style.setProperty('--tab-index', target); return; }
+
+  const DURATION = 220;
+  const start = performance.now();
+  const step = now => {
+    const t = Math.min((now - start) / DURATION, 1);
+    const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic, sans dépassement
+    tabs.style.setProperty('--tab-index', from + (target - from) * eased);
+    if (t < 1) {
+      tabSlideRAF = requestAnimationFrame(step);
+    } else {
+      tabs.style.setProperty('--tab-index', target);
+      tabSlideRAF = null;
+    }
+  };
+  tabSlideRAF = requestAnimationFrame(step);
 }
 
 // Panneaux de superposition (Aide, À propos, Paramètres) : contrairement aux
