@@ -812,6 +812,7 @@ async function selectImage(filename) {
   document.getElementById('imageHeader').style.display = '';
   markContentLoaded();
   document.getElementById('imageTitle').textContent = filename;
+  document.getElementById('imageSubtitle').textContent = '…';
   showPanel('panelImages');
 
   const isLive = state.projection && state.projection.type === 'image' && state.projection.filename === filename;
@@ -824,6 +825,15 @@ async function selectImage(filename) {
       <div class="strophe-action">${isLive ? livePill() : ''}</div>
     </div>
   `;
+
+  const img = preview.querySelector('img');
+  const showDimensions = () => {
+    if (state.image && state.image.filename === filename && img.naturalWidth) {
+      document.getElementById('imageSubtitle').textContent = `${img.naturalWidth} × ${img.naturalHeight} px`;
+    }
+  };
+  if (img.complete) showDimensions();
+  else img.addEventListener('load', showDimensions, { once: true });
 }
 
 function projectImage() {
