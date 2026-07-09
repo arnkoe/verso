@@ -479,6 +479,10 @@ body {
   justify-content: space-between;
   gap: 12px;
   min-width: 0;
+  /* Hauteur fixe = hauteur des boutons d'action, pour que la position du
+     titre (et l'espace kicker->titre) soit identique sur tous les onglets,
+     avec ou sans boutons. */
+  min-height: 28px;
 }
 .content-kicker {
   font-size: var(--fs-sm);
