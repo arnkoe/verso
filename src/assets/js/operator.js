@@ -309,7 +309,7 @@ function renderVerseList() {
     const label = typeLabel +
       (verse.type === 'verse' && verse.number != null ? ' ' + verse.number : '');
     const isLive = i === state.songVerse;
-    return `<div class="strophe-item${isLive ? ' active' : ''}" data-verse="${i}" data-action="projectVerse">
+    return `<div class="list-item strophe-item${isLive ? ' active' : ''}" data-verse="${i}" data-action="projectVerse">
       <div class="strophe-number" data-short="${esc(shortLabel)}">${esc(label)}</div>
       <div class="strophe-text">${esc(verse.text)}</div>
       <div class="strophe-action">
@@ -648,7 +648,7 @@ function renderBibleVerses(verses) {
   const list = document.getElementById('bibleVerseList');
   list.innerHTML = verses.map((v, i) => {
     const isLive = i === state.bibleVerse;
-    return `<div class="bible-verse-item${isLive ? ' active' : ''}" data-verse="${i}" data-action="projectBibleVerse">
+    return `<div class="list-item bible-verse-item${isLive ? ' active' : ''}" data-verse="${i}" data-action="projectBibleVerse">
       <span class="bible-verse-number" data-short="V${v.verse}">Verset ${v.verse}</span>
       <span class="bible-verse-text">${esc(v.text)}</span>
       <div class="strophe-action">
@@ -726,7 +726,7 @@ function renderPdfPageList(filename, pageCount) {
   document.getElementById('pdfSubtitle').textContent = `${pageCount} pages`;
   const list = document.getElementById('pdfPageList');
   list.innerHTML = Array.from({ length: pageCount }, (_, i) => `
-    <div class="pdf-page-item" data-page="${i+1}" data-action="projectPdfPage">
+    <div class="list-item pdf-page-item" data-page="${i+1}" data-action="projectPdfPage">
       <div class="strophe-number" data-short="P${i + 1}">Page ${i + 1}</div>
       <div class="pdf-page-thumb" data-thumb-page="${i+1}">
         <div class="thumb-loading">…</div>
@@ -819,7 +819,7 @@ async function selectImage(filename) {
   const url = await mediaUrl('images', filename);
   const preview = document.getElementById('imagePreview');
   preview.innerHTML = `
-    <div class="strophe-item image-page-item${isLive ? ' active' : ''}" data-image-preview="${esc(filename)}" data-action="projectImage">
+    <div class="list-item strophe-item image-page-item${isLive ? ' active' : ''}" data-image-preview="${esc(filename)}" data-action="projectImage">
       <div class="strophe-number">Image</div>
       <img src="${esc(url)}" style="max-width:100%;max-height:400px;object-fit:contain;display:block;">
       <div class="strophe-action">${isLive ? livePill() : ''}</div>
@@ -950,7 +950,7 @@ function syncList(selector, matchFn) {
 function syncActiveItems(s) {
   if (!s) return;
   if (s.type === 'blank') {
-    document.querySelectorAll('.strophe-item, .bible-verse-item, .pdf-page-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.strophe-action').forEach(el => { el.innerHTML = ''; });
   } else if (s.type === 'song') {
     syncList('#verseList .strophe-item', el => parseInt(el.dataset.verse) === s.verse);
@@ -1156,7 +1156,7 @@ document.addEventListener('keydown', e => {
     state.songVerse = -1;
     state.bibleVerse = -1;
     state.pdfPage = -1;
-    document.querySelectorAll('.strophe-item, .bible-verse-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active'));
     project({ type: 'blank' });
     return;
   }

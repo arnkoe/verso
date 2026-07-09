@@ -553,11 +553,15 @@ body {
   background: var(--scroll); border-radius: 10px; border: 3px solid var(--panel);
 }
 
-.strophe-item {
+/* Base commune à tous les items de liste de la main card
+   (chants, versets Bible, pages PDF, images). Les classes spécifiques
+   ci-dessous ne portent que leurs particularités ; elles servent aussi
+   de sélecteurs de synchronisation dans operator.js. */
+.list-item {
   display: grid;
   grid-template-columns: 80px 1fr auto;
   gap: 18px;
-  align-items: start;
+  align-items: flex-start;
   padding: 14px 16px;
   margin: 6px 8px;
   border-radius: 20px;
@@ -565,10 +569,11 @@ body {
   background: transparent;
   transition: background 0.15s;
 }
-.strophe-item:hover { background: var(--hover); }
-.strophe-item.active { background: var(--sel); }
+.list-item:hover { background: var(--hover); }
+.list-item.active { background: var(--sel); }
 
-.strophe-number {
+.strophe-number,
+.bible-verse-number {
   font-size: var(--fs-sm);
   letter-spacing: 0;
   color: var(--mute-2);
@@ -576,15 +581,17 @@ body {
   padding-top: 3px;
   text-align: right;
 }
-.strophe-item.active .strophe-number { color: var(--live); font-weight: 600; }
+.list-item.active .strophe-number,
+.list-item.active .bible-verse-number { color: var(--live); font-weight: 600; }
 
-.strophe-text {
+.strophe-text,
+.bible-verse-text {
   font-size: var(--fs-read);
   line-height: 1.55;
   color: var(--ink);
-  white-space: pre-wrap;
   letter-spacing: -0.002em;
 }
+.strophe-text { white-space: pre-wrap; }
 
 .strophe-action {
   display: flex;
@@ -620,53 +627,9 @@ body {
   background: var(--live);
 }
 
-/* Bible */
-.bible-verse-item {
-  display: grid;
-  grid-template-columns: 80px 1fr auto;
-  gap: 18px;
-  align-items: start;
-  padding: 14px 16px;
-  margin: 6px 8px;
-  border-radius: 20px;
-  cursor: pointer;
-  background: transparent;
-  transition: background 0.15s;
-}
-.bible-verse-item:hover { background: var(--hover); }
-.bible-verse-item.active { background: var(--sel); }
+/* Bible : layout et styles numéro/texte partagés via .list-item */
 
-.bible-verse-number {
-  font-size: var(--fs-sm);
-  letter-spacing: 0;
-  color: var(--mute-2);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  padding-top: 3px;
-}
-.bible-verse-item.active .bible-verse-number { color: var(--live); font-weight: 600; }
-.bible-verse-text {
-  font-size: var(--fs-read);
-  color: var(--ink);
-  line-height: 1.55;
-}
-
-/* PDF pages */
-.pdf-page-item {
-  display: grid;
-  grid-template-columns: 80px 1fr auto;
-  gap: 18px;
-  align-items: flex-start;
-  padding: 14px 16px;
-  margin: 6px 8px;
-  border-radius: 20px;
-  cursor: pointer;
-  background: transparent;
-  transition: background 0.15s;
-}
-.pdf-page-item:hover { background: var(--hover); }
-.pdf-page-item.active { background: var(--sel); }
-
+/* PDF pages : layout partagé via .list-item */
 .pdf-page-thumb {
   width: 200px;
   background: var(--surface-1);
@@ -683,11 +646,6 @@ body {
 }
 .pdf-page-thumb canvas { display: block; width: 100%; height: auto; }
 .thumb-loading { font-size: var(--fs-xs); color: var(--mute-2); padding: 16px 0; }
-/* Ajustement pour items PDF en layout grid (strophe-number | thumb | action) */
-.pdf-page-item {
-  grid-template-columns: 80px 1fr auto;
-  align-items: flex-start;
-}
 .pdf-page-item .pdf-page-thumb {
   width: 100%;
   max-width: 220px;
@@ -698,10 +656,7 @@ body {
 .pdf-page-item .strophe-number { align-self: flex-start; }
 .pdf-page-item .strophe-action { align-self: flex-start; }
 
-/* Image items — même layout 3 colonnes que pdf-page-item */
-.image-page-item {
-  align-items: flex-start;
-}
+/* Image items — layout partagé via .list-item */
 .image-page-item .strophe-number { align-self: flex-start; }
 .image-page-item .strophe-action { align-self: flex-start; }
 .image-page-item img { display: block; max-width: 100%; max-height: 400px; object-fit: contain; }
@@ -803,9 +758,7 @@ body {
   /* Colonne des numéros plus étroite, alignée à gauche.
      padding-left aligné sur le padding de .content-header (16px) pour que
      les numéros soient sur la même verticale que le kicker et le titre. */
-  .strophe-item,
-  .bible-verse-item,
-  .pdf-page-item {
+  .list-item {
     grid-template-columns: 22px 1fr auto;
     gap: 10px;
     padding-left: 16px;
