@@ -47,10 +47,11 @@ const state = {
 // avant que le reste du script ne peuple les listes dynamiques.
 applyI18n();
 
-// Pastille « En projection » affichée sur l'item live d'une liste.
-// Construite à la volée car le libellé dépend de la langue active.
+// Indicateur « en projection » affiché sur l'item live d'une liste.
+// Le libellé (aria-label) dépend de la langue active, d'où la construction
+// à la volée.
 function livePill() {
-  return `<span class="live-pill"><span class="dot"></span><span class="live-pill-text">${esc(t('list.live'))}</span></span>`;
+  return `<span class="live-pill" role="img" aria-label="${esc(t('list.live'))}"></span>`;
 }
 
 // Marque/démarque un item de liste comme étant en projection (classe + pastille).
