@@ -896,14 +896,18 @@ async function renderPreviewPdf(canvas, filename, pageNum) {
   }
 }
 
-// Met à jour les items d'une liste : marque comme live celui qui matche, le fait
-// défiler à vue, et démarque les autres.
+// Met à jour les items d'une liste : marque comme live celui qui matche et
+// démarque les autres, puis fait défiler la sélection à vue. Le scroll est
+// effectué après la mise à jour complète de la sélection (et en douceur) pour
+// éviter que l'ancien verset reste visible pendant le défilement.
 function syncList(selector, matchFn) {
+  let target = null;
   document.querySelectorAll(selector).forEach(el => {
     const live = matchFn(el);
     setLive(el, live);
-    if (live) el.scrollIntoView({ block: 'nearest' });
+    if (live) target = el;
   });
+  if (target) target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 function syncActiveItems(s) {
