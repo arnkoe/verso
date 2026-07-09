@@ -488,7 +488,7 @@ body {
 .content-kicker {
   font-size: var(--fs-sm);
   letter-spacing: 0;
-  color: var(--mute-2);
+  color: var(--ink);
 }
 .content-title {
   font-size: var(--fs-xl);
