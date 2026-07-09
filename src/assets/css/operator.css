@@ -560,6 +560,17 @@ body {
 .hdr-btn.save { border-color: var(--live); color: var(--live); }
 .hdr-btn.save:hover { background: var(--live-weak); }
 
+/* Boutons posés sur le fond de fenêtre gris (--bg) de la zone principale : un
+   fond blanc y flotterait comme une pastille. On les fond dans la surface avec
+   un léger tint et pas d'ombre ; ils ne se soulèvent qu'au survol. */
+.main .hdr-btn {
+  background: var(--surface-1);
+  box-shadow: none;
+}
+.main .hdr-btn:hover { background: var(--hover); }
+.main .hdr-btn.save { background: var(--surface-1); }
+.main .hdr-btn.save:hover { background: var(--live-weak); }
+
 /* Panels */
 .panel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
 .panel.active { display: flex; }
@@ -907,10 +918,13 @@ body {
   min-width: 20px;
   padding: 2px 6px;
   text-align: center;
-  border: 1px solid var(--line);
-  border-bottom-width: 2px;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 3px;
   border-radius: 5px;
-  background: var(--surface-1);
+  /* Touches non cliquables : fond plus foncé que les boutons (.hdr-btn en
+     --surface-1) pour les distinguer d'un contrôle actionnable. Le relief vient
+     du bord bas épaissi. */
+  background: var(--sel);
   color: var(--ink);
 }
 
@@ -1192,6 +1206,10 @@ body {
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
+/* Dans la zone principale (fond gris --bg), le déclencheur ne doit pas flotter
+   en blanc : même traitement que .main .hdr-btn. */
+.main .dropdown-trigger { background: var(--surface-1); box-shadow: none; }
+.main .dropdown-trigger:hover { background: var(--hover); }
 .dropdown-trigger:hover { border-color: var(--line-strong); background: var(--hover); }
 .dropdown-trigger[aria-expanded="true"] { border-color: var(--line-strong); box-shadow: 0 1px 3px rgba(0,0,0,0.09); }
 .dropdown-value { flex: 1; text-align: left; }
