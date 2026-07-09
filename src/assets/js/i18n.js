@@ -46,7 +46,7 @@ const I18N = {
     'monitor.hideTitle': 'Masquer tout le contenu',
     // État vide / panneaux
     'empty.title': 'Aucun contenu sélectionné',
-    'empty.text': 'Choisissez un élément dans la barre latérale.',
+    'empty.text': 'Faites une recherche dans la barre latérale.',
     'song.edit': 'Modifier',
     'song.cancel': 'Annuler',
     'song.save': 'Sauvegarder',
@@ -197,7 +197,7 @@ const I18N = {
     'monitor.hide': 'Hide',
     'monitor.hideTitle': 'Hide all content',
     'empty.title': 'No content selected',
-    'empty.text': 'Pick an item in the sidebar.',
+    'empty.text': 'Search in the sidebar.',
     'song.edit': 'Edit',
     'song.cancel': 'Cancel',
     'song.save': 'Save',

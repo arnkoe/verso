@@ -21,6 +21,7 @@ const state = {
   projectionMode: 'textes',
   bibleCode: null,
   searchCursor: 0,
+  overlayPanel: null,  // panneau de superposition affiché (Aide/À propos/Paramètres) ou null
 };
 
 // Le libellé du bouton « Ouvrir le dossier Verso » dépend de la plateforme :
@@ -105,14 +106,40 @@ function switchSideTab(tab) {
   updateSearchCursor();
 }
 
+// Panneaux de superposition (Aide, À propos, Paramètres) : contrairement aux
+// panneaux de contenu (un par onglet), ils masquent l'empty state tant qu'ils
+// sont affichés, quel que soit l'onglet actif.
+const OVERLAY_PANELS = ['panelHelp', 'panelAbout', 'panelSettings'];
+
 function showPanel(id) {
-  ['panelCantique', 'panelBible', 'panelPdf', 'panelImages', 'panelHelp', 'panelAbout', 'panelSettings'].forEach(p => {
+  ['panelCantique', 'panelBible', 'panelPdf', 'panelImages', ...OVERLAY_PANELS].forEach(p => {
     document.getElementById(p).classList.toggle('active', p === id);
   });
+  state.overlayPanel = OVERLAY_PANELS.includes(id) ? id : null;
+  updateEmptyState();
 }
 
+// Vrai si l'onglet de contenu actif a un élément sélectionné.
+function activeTabHasContent() {
+  return ({
+    cantiques: () => !!state.song,
+    bible:     () => !!state.bible,
+    pdf:       () => !!state.pdf,
+    images:    () => !!state.image,
+  })[state.activeTab]?.() ?? false;
+}
+
+// L'empty state apparaît pour tout onglet sans contenu sélectionné, y compris
+// après qu'un contenu a été chargé dans un autre onglet. Il est masqué quand un
+// panneau de superposition (Aide/À propos/Paramètres) est affiché.
+function updateEmptyState() {
+  const loaded = state.overlayPanel != null || activeTabHasContent();
+  document.querySelector('.main').dataset.loaded = loaded ? 'true' : 'false';
+}
+
+// Conservé pour les appels existants : recalcule simplement l'empty state.
 function markContentLoaded() {
-  document.querySelector('.main').dataset.loaded = 'true';
+  updateEmptyState();
 }
 
 // ─── CANTIQUES ───────────────────────────────────────────────────────────────
