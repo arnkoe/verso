@@ -26,10 +26,8 @@
   /* Échelle typographique unifiée. N'utiliser que ces tokens. */
   --fs-xs: 11px;    /* métadonnées, compteurs, libellés discrets */
   --fs-sm: 12px;    /* texte UI secondaire, aides, descriptions */
-  --fs-base: 13px;  /* texte UI courant (défaut) */
-  --fs-md: 14px;    /* libellés de réglages, lignes accentuées */
-  --fs-lg: 15px;    /* titres de modales */
-  --fs-read: 16px;  /* contenu lu : strophes, versets */
+  --fs-md: 14px;    /* texte UI courant, libellés de réglages, lignes accentuées */
+  --fs-lg: 16px;    /* titres de modales, contenu lu : strophes, versets */
   --fs-xl: 20px;    /* titres principaux (contenu, info) */
   --fs-2xl: 24px;   /* titre de la zone principale */
 }
@@ -38,7 +36,7 @@
 html, body { height: 100%; }
 body {
   font-family: var(--font);
-  font-size: var(--fs-base);
+  font-size: var(--fs-md);
   color: var(--ink);
   background: var(--bg);
   /* -webkit-font-smoothing: antialiased;
@@ -75,7 +73,6 @@ body {
   top: 0; left: 0; right: 0;
   height: var(--titlebar-h);
   -webkit-app-region: drag;
-  app-region: drag;
   z-index: 10;
 }
 
@@ -188,7 +185,7 @@ body {
   border: 0;
   border-radius: 6px;
   font-family: inherit;
-  font-size: var(--fs-base);
+  font-size: var(--fs-md);
   color: var(--mute-2);
   padding: 6px 0;
   cursor: pointer;
@@ -220,7 +217,7 @@ body {
   padding: 0 10px 0 28px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  font-family: inherit; font-size: var(--fs-base);
+  font-family: inherit; font-size: var(--fs-md);
   color: var(--ink); background: #fff; outline: none;
 }
 .search-input:focus { border-color: var(--ink-2); }
@@ -232,7 +229,7 @@ body {
   padding: 0 10px 0 28px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  font-family: inherit; font-size: var(--fs-base);
+  font-family: inherit; font-size: var(--fs-md);
   color: var(--ink); background: #fff; outline: none;
 }
 .search-box input[type=text]:focus { border-color: var(--ink-2); }
@@ -321,7 +318,7 @@ body {
   grid-row: 1;
 }
 .item-title {
-  font-size: var(--fs-base); color: var(--ink);
+  font-size: var(--fs-md); color: var(--ink);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   grid-column: 2; grid-row: 1;
   /* Réserve la place de l'indicateur de sélection pour que l'ellipse
@@ -476,12 +473,12 @@ body {
   margin-bottom: 4px;
 }
 .empty-state-title {
-  font-size: var(--fs-read);
+  font-size: var(--fs-lg);
   font-weight: 500;
   color: var(--ink-2);
 }
 .empty-state-text {
-  font-size: var(--fs-base);
+  font-size: var(--fs-md);
   color: var(--mute);
   max-width: 320px;
   line-height: 1.5;
@@ -506,7 +503,7 @@ body {
   min-height: 28px;
 }
 .content-kicker {
-  font-size: var(--fs-read);
+  font-size: var(--fs-lg);
   letter-spacing: 0;
   color: var(--ink);
 }
@@ -619,7 +616,7 @@ body {
 
 .strophe-text,
 .bible-verse-text {
-  font-size: var(--fs-read);
+  font-size: var(--fs-lg);
   line-height: 1.55;
   color: var(--ink);
   letter-spacing: -0.002em;
@@ -694,17 +691,12 @@ body {
 .image-page-item .strophe-action { align-self: flex-start; }
 .image-page-item img { display: block; max-width: 100%; max-height: 400px; object-fit: contain; }
 
-/* En-têtes panneaux */
-#songHeader, #bibleHeader, #pdfHeader, #imageHeader {
-  /* style appliqué via .content-header */
-}
-
 /* Édition de strophes */
 #songEditArea { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
 #songEditTextarea {
   width: 100%; min-height: 400px;
   font-family: 'Courier New', monospace;
-  font-size: var(--fs-base); line-height: 1.6;
+  font-size: var(--fs-md); line-height: 1.6;
   padding: 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -750,7 +742,7 @@ body {
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  font-size: var(--fs-base);
+  font-size: var(--fs-md);
   color: var(--ink);
   transition: border-color 0.15s, background 0.15s;
 }
@@ -910,7 +902,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: var(--fs-base);
+  font-size: var(--fs-md);
 }
 .info-keys kbd {
   font-family: inherit;
@@ -995,7 +987,7 @@ body {
   margin: 8px 0 4px;
 }
 .about-version {
-  font-size: var(--fs-base);
+  font-size: var(--fs-md);
   color: var(--mute);
   margin-top: 12px;
 }
@@ -1007,7 +999,7 @@ body {
   background: transparent;
   padding: 0;
   font: inherit;
-  font-size: var(--fs-base);
+  font-size: var(--fs-md);
   color: var(--accent);
   cursor: pointer;
   text-decoration: underline;
@@ -1116,7 +1108,7 @@ body {
 .settings-row-desc { font-size: var(--fs-sm); color: var(--mute-2); margin-top: 2px; }
 
 .settings-update-status {
-  font-size: var(--fs-base);
+  font-size: var(--fs-md);
   margin-top: 10px;
   min-height: 1.2em;
   color: var(--mute);
@@ -1147,7 +1139,7 @@ body {
   justify-content: space-between;
   gap: 12px;
   padding: 9px 8px;
-  font-size: var(--fs-base);
+  font-size: var(--fs-md);
   color: var(--ink);
   border-bottom: 1px solid var(--line-2);
 }
@@ -1159,7 +1151,7 @@ body {
 .content-mgr-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .content-mgr-empty {
   padding: 28px 8px;
-  font-size: var(--fs-base);
+  font-size: var(--fs-md);
   color: var(--mute);
   text-align: center;
 }
@@ -1239,7 +1231,7 @@ body {
   background: transparent;
   color: var(--ink);
   font-family: inherit;
-  font-size: var(--fs-base);
+  font-size: var(--fs-md);
   text-align: left;
   cursor: pointer;
   white-space: nowrap;
