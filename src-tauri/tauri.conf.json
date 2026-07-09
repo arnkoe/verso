@@ -19,7 +19,10 @@
         "minHeight": 600,
         "resizable": true,
         "maximized": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "titleBarStyle": "Transparent",
+        "hiddenTitle": true,
+        "backgroundColor": "#f8f9fb"
       }
     ],
     "security": {

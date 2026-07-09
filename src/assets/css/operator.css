@@ -60,8 +60,23 @@ body {
   display: grid;
   grid-template-columns: var(--w-sidebar) 1fr;
   gap: 12px;
+  /* Barre de titre macOS transparente (titleBarStyle: Transparent) : le fond de
+     fenêtre (--bg) transparaît sous la barre native au lieu du blanc système.
+     Le contenu (sidebar + main) remonte jusqu'en haut ; on ajoute juste une
+     bande draggable transparente par-dessus pour déplacer la fenêtre, et un
+     léger décalage à gauche de la sidebar pour dégager les feux tricolores. */
   padding: 12px;
   min-height: 0;
+}
+:root { --titlebar-h: 16px; }
+.body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--titlebar-h);
+  -webkit-app-region: drag;
+  app-region: drag;
+  z-index: 10;
 }
 
 /* ── CARDS ─────────────────────────────────────────────────────────────────── */
@@ -132,7 +147,10 @@ body {
   --tab-index: 0;
   display: grid;
   grid-template-columns: repeat(var(--tab-count), 1fr);
-  margin: 12px 12px 0;
+  /* Marge haute portée à --titlebar-h : la card sidebar monte jusqu'en haut de
+     la fenêtre (barre de titre transparente), mais les onglets sont décalés
+     vers le bas pour dégager les feux tricolores macOS qui flottent au-dessus. */
+  margin: var(--titlebar-h) 12px 0;
   padding: 2px;
   background: var(--line-2);
   border-radius: 8px;
