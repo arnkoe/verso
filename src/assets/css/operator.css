@@ -31,6 +31,7 @@
   --fs-lg: 15px;    /* titres de modales */
   --fs-read: 16px;  /* contenu lu : strophes, versets */
   --fs-xl: 20px;    /* titres principaux (contenu, info) */
+  --fs-2xl: 24px;   /* titre de la zone principale */
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -471,7 +472,7 @@ body {
 .content-header {
   padding: 16px 24px 30px;
   display: grid;
-  gap: 2px;
+  gap: 8px;
   flex-shrink: 0;
   min-width: 0;
 }
@@ -487,12 +488,13 @@ body {
   min-height: 28px;
 }
 .content-kicker {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-read);
   letter-spacing: 0;
   color: var(--ink);
 }
 .content-title {
-  font-size: var(--fs-xl);
+  font-size: var(--fs-2xl);
+  line-height: 28px;
   font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--ink);
@@ -777,14 +779,13 @@ body {
     font-size: var(--fs-md);
   }
 
-  /* En-tête : boutons d'action sous le titre, sans réduire l'espace kicker → titre */
+  /* En-tête : boutons d'action sous le titre. Le titre est le premier enfant
+     de la rangée : c'est le gap de la rangée qui l'espace des boutons, sans
+     ajouter de marge qui gonflerait l'espace kicker → titre. */
   .content-header-row {
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
-  }
-  .content-header-row .content-title {
-    margin-top: 4px;
   }
   .content-header-actions {
     justify-content: flex-start;
