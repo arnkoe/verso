@@ -1,5 +1,5 @@
 :root {
-  --bg: #f3f4f6;
+  --bg: #fdfdfe;
   --panel: #ffffff;
   --ink: #000000;
   --ink-2: #3a3a3a;
@@ -8,8 +8,8 @@
   /* Échelle de gris unifiée (teinte froide, même famille que --bg).
      Du plus clair au plus foncé : surface < hover < sel. */
   --surface-1: #fafbfc;   /* fills légers surélevés */
-  --hover: #f5f6f8;       /* survol des lignes/boutons */
-  --sel: #eef0f3;         /* sélection / état actif */
+  --hover: #e9ecef;       /* survol des lignes/boutons */
+  --sel: #e9ecef;         /* sélection / état actif (identique au survol) */
   --line-2: #f2f3f5;      /* séparateur clair */
   --line: #e8eaed;        /* bordure standard */
   --line-strong: #d7dbe0; /* bordure au survol */
@@ -70,6 +70,21 @@ body {
   border-radius: var(--radius);
   overflow: hidden;
   min-height: 0;
+}
+
+/* La card principale n'est plus un panneau encadré : elle sert de surface de
+   contenu qui se fond dans la fenêtre, façon app Claude. On retire bordure,
+   rayon et fond visible pour que seule la sidebar « flotte » à gauche. */
+.main.card {
+  background: var(--bg);
+  border: 0;
+  border-radius: 0;
+}
+
+/* Cards de la sidebar : fond gris très clair et ombre légère pour qu'elles
+   « flottent » sur le fond blanc de la fenêtre. */
+.sidebar-left .card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 0 0 0.5px rgba(0,0,0,0.04);
 }
 
 /* ── SIDEBARS ──────────────────────────────────────────────────────────────── */
@@ -152,7 +167,7 @@ body {
   border: 0;
   border-radius: 6px;
   font-family: inherit;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-base);
   color: var(--mute-2);
   padding: 6px 0;
   cursor: pointer;
@@ -185,7 +200,7 @@ body {
   padding: 0 10px 0 28px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  font-family: inherit; font-size: var(--fs-sm);
+  font-family: inherit; font-size: var(--fs-base);
   color: var(--ink); background: #fff; outline: none;
 }
 .search-input:focus { border-color: var(--ink-2); }
@@ -197,7 +212,7 @@ body {
   padding: 0 10px 0 28px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  font-family: inherit; font-size: var(--fs-sm);
+  font-family: inherit; font-size: var(--fs-base);
   color: var(--ink); background: #fff; outline: none;
 }
 .search-box input[type=text]:focus { border-color: var(--ink-2); }
@@ -286,7 +301,7 @@ body {
   grid-row: 1;
 }
 .item-title {
-  font-size: var(--fs-sm); color: var(--ink);
+  font-size: var(--fs-base); color: var(--ink);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   grid-column: 2; grid-row: 1;
 }
@@ -453,14 +468,13 @@ body {
   padding: 16px 24px 14px;
   display: grid;
   gap: 2px;
-  border-bottom: 1px solid var(--line-2);
   min-height: 80px;
   flex-shrink: 0;
   min-width: 0;
 }
 .content-header-row {
   display: flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
   min-width: 0;
@@ -543,7 +557,7 @@ body {
   margin: 6px 8px;
   border-radius: 14px;
   cursor: pointer;
-  background: var(--panel);
+  background: transparent;
   transition: background 0.15s;
 }
 .strophe-item:hover { background: var(--hover); }
@@ -571,6 +585,7 @@ body {
   padding-top: 3px;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   min-height: 22px;
   width: 90px;
   flex-shrink: 0;
@@ -609,7 +624,7 @@ body {
   margin: 6px 8px;
   border-radius: 14px;
   cursor: pointer;
-  background: var(--panel);
+  background: transparent;
   transition: background 0.15s;
 }
 .bible-verse-item:hover { background: var(--hover); }
@@ -640,7 +655,7 @@ body {
   margin: 6px 8px;
   border-radius: 14px;
   cursor: pointer;
-  background: var(--panel);
+  background: transparent;
   transition: background 0.15s;
 }
 .pdf-page-item:hover { background: var(--hover); }
