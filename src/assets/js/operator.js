@@ -898,11 +898,21 @@ async function renderPreviewPdf(canvas, filename, pageNum) {
 
 // Met à jour les items d'une liste : marque comme live celui qui matche, le fait
 // défiler à vue, et démarque les autres.
+// Marge de défilement (scroll-off) : au lieu de coller l'item live au bord, on
+// garde visible son voisin du dessous (sauf sur le dernier) et celui du dessus
+// (sauf sur le premier). On fait défiler d'abord le voisin du dessus puis celui
+// du dessous : avec block:'nearest' le dernier appel gagne en cas de conflit,
+// ce qui privilégie la visibilité du verset/strophe/page suivant.
 function syncList(selector, matchFn) {
   document.querySelectorAll(selector).forEach(el => {
     const live = matchFn(el);
     setLive(el, live);
-    if (live) el.scrollIntoView({ block: 'nearest' });
+    if (live) {
+      const prev = el.previousElementSibling;
+      const next = el.nextElementSibling;
+      (prev || el).scrollIntoView({ block: 'nearest' });
+      (next || el).scrollIntoView({ block: 'nearest' });
+    }
   });
 }
 
