@@ -1,5 +1,5 @@
 :root {
-  --bg: #fdfdfe;
+  --bg: #f8f9fb;
   --panel: #ffffff;
   --ink: #000000;
   --ink-2: #3a3a3a;
@@ -8,8 +8,8 @@
   /* Échelle de gris unifiée (teinte froide, même famille que --bg).
      Du plus clair au plus foncé : surface < hover < sel. */
   --surface-1: #fafbfc;   /* fills légers surélevés */
-  --hover: #f0f2f5;       /* survol des lignes/boutons (un peu plus clair que --sel) */
-  --sel: #e9ecef;         /* sélection / état actif */
+  --hover: #eceff3;       /* survol des lignes/boutons (un peu plus clair que --sel) */
+  --sel: #e4e8ed;         /* sélection / état actif */
   --line-2: #f2f3f5;      /* séparateur clair */
   --line: #e8eaed;        /* bordure standard */
   --line-strong: #d7dbe0; /* bordure au survol */
@@ -81,10 +81,11 @@ body {
   border-radius: 0;
 }
 
-/* Cards de la sidebar : fond gris très clair et ombre légère pour qu'elles
-   « flottent » sur le fond blanc de la fenêtre. */
+/* Cards de la sidebar : le contraste vient du fond de fenêtre légèrement
+   grisé (--bg) sous les cards blanches ; l'ombre reste minimale, juste pour
+   décoller les cards. */
 .sidebar-left .card {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 0 0 0.5px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04);
 }
 
 /* ── SIDEBARS ──────────────────────────────────────────────────────────────── */
