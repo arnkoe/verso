@@ -184,7 +184,6 @@ body {
 /* ── ZONE RECHERCHE DANS SIDEBAR ───────────────────────────────────────────── */
 .search-box {
   padding: 12px;
-  border-bottom: 1px solid var(--line-2);
   display: grid;
   gap: 8px;
 }
