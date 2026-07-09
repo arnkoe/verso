@@ -582,11 +582,10 @@ body {
 }
 
 .strophe-action {
-  padding-top: 3px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  min-height: 22px;
+  height: 34px;
   width: 90px;
   flex-shrink: 0;
 }
@@ -596,7 +595,7 @@ body {
 /* Indicateur « en projection » : point vert dans un disque vert clair,
    même motif que la sélection des résultats, un peu plus grand. */
 .live-pill {
-  display: inline-flex;
+  display: flex;
   position: relative;
   width: 34px;
   height: 34px;
