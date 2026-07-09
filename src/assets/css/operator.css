@@ -303,6 +303,9 @@ body {
   font-size: var(--fs-base); color: var(--ink);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   grid-column: 2; grid-row: 1;
+  /* Réserve la place de l'indicateur de sélection pour que l'ellipse
+     s'applique avant qu'il ne recouvre le titre */
+  padding-right: 24px;
 }
 
 /* Résultat Bible : sans numéro, texte aligné sur la colonne titre (30px + 8px gap) */
