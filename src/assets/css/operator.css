@@ -525,6 +525,12 @@ body {
   align-items: center;
   flex-shrink: 0;
 }
+/* Boutons de traduction dans l'en-tête du chapitre : pas de padding-top ni de
+   retour à la ligne hérités de .filter-pills (contexte search-box). */
+.content-header-actions.filter-pills {
+  padding-top: 0;
+  flex-wrap: nowrap;
+}
 
 /* Boutons rectangulaires avec texte dans l'en-tête du panneau */
 .hdr-btn {

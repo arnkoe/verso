@@ -35,10 +35,6 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M20 20l-3.5-3.5"/></svg>
               <input type="text" class="search-input" id="songSearchInput" placeholder="Ex : 240" data-i18n-placeholder="search.songsPlaceholder" autocomplete="off">
             </div>
-            <!-- Bouton « Tous » fixe + boutons par recueil générés dynamiquement (voir operator.js). -->
-            <div class="filter-pills" id="songBookFilter">
-              <button class="filter-btn active" data-action="selectSongBook" data-arg="" data-i18n="songs.allBooks">Tous</button>
-            </div>
           </div>
           <div class="content-list" id="songList">
             <div class="search-empty"></div>
@@ -52,8 +48,6 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M20 20l-3.5-3.5"/></svg>
               <input type="text" class="search-input" id="bibleSearchInput" placeholder="Ex : col3" data-i18n-placeholder="search.biblePlaceholder" autocomplete="off">
             </div>
-            <!-- Boutons générés dynamiquement depuis les bibles présentes (voir operator.js). -->
-            <div class="filter-pills" id="bibleTranslations"></div>
           </div>
           <div class="content-list" id="bibleList">
             <div class="search-empty"></div>
@@ -181,6 +175,8 @@
           <div class="content-kicker" id="bibleSubtitle"></div>
           <div class="content-header-row">
             <div class="content-title" id="bibleTitle"></div>
+            <!-- Boutons de traduction générés dynamiquement (voir operator.js). -->
+            <div class="filter-pills content-header-actions" id="bibleTranslations"></div>
           </div>
         </div>
         <div class="strophe-list" id="bibleVerseList"></div>

@@ -24,7 +24,6 @@ const I18N = {
     'search.biblePlaceholder': 'Ex : col3',
     'search.pdfPlaceholder': 'Rechercher un PDF',
     'search.imagePlaceholder': 'Rechercher une image',
-    'songs.allBooks': 'Tous',
     'pdf.empty': 'Aucun PDF dans le dossier',
     'images.empty': 'Aucune image dans le dossier',
     // Barre d'outils
@@ -178,7 +177,6 @@ const I18N = {
     'search.biblePlaceholder': 'e.g. col3',
     'search.pdfPlaceholder': 'Search a PDF',
     'search.imagePlaceholder': 'Search an image',
-    'songs.allBooks': 'All',
     'pdf.empty': 'No PDF in the folder',
     'images.empty': 'No image in the folder',
     'tools.settings': 'Settings',

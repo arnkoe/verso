@@ -173,7 +173,6 @@ function markContentLoaded() {
 // ─── CANTIQUES ───────────────────────────────────────────────────────────────
 
 let songCache = null;
-let songBookFilter = '';
 
 let songCachePromise = null;
 
@@ -199,43 +198,13 @@ async function loadSongCache() {
   // pour permettre une nouvelle tentative au prochain appel.
   if (!songCachePromise) {
     songCachePromise = Promise.all([apiListSongs(), loadSongbookNames()])
-      .then(([s]) => { songCache = s; buildSongBookButtons(s); return s; })
+      .then(([s]) => { songCache = s; return s; })
       .catch(err => { songCachePromise = null; throw err; });
   }
   return songCachePromise;
 }
 
-// Ajoute un bouton de filtre par recueil distinct présent dans les chants
-// (le bouton « Tous » fixe reste en tête).
-function buildSongBookButtons(songs) {
-  const wrap = document.getElementById('songBookFilter');
-  // Le filtre se fait sur le code (songbook_code) ; le bouton affiche le code,
-  // le nom lisible résolu via `songbookNames` servant d'infobulle.
-  const books = [...new Set(songs.map(s => s.songbook_code).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b));
-  wrap.querySelectorAll('.filter-btn[data-arg]:not([data-arg=""])').forEach(b => b.remove());
-  for (const book of books) {
-    const btn = document.createElement('button');
-    btn.className = 'filter-btn';
-    btn.dataset.action = 'selectSongBook';
-    btn.dataset.arg = book;
-    btn.textContent = book;
-    btn.title = songbookName(book);
-    wrap.appendChild(btn);
-  }
-  // S'assure que le filtre courant (« Tous » par défaut) reste visuellement sélectionné.
-  wrap.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.arg === songBookFilter));
-}
-
 loadSongCache().catch(() => {}); // préchargement, erreurs gérées à la recherche
-
-function selectSongBook(btn, book) {
-  document.querySelectorAll('#songBookFilter .filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  songBookFilter = book;
-  const q = document.getElementById('songSearchInput').value.trim();
-  if (q.length >= 1) searchSongs(q);
-}
 
 document.getElementById('songSearchInput').addEventListener('input', async e => {
   const q = e.target.value.trim();
@@ -273,7 +242,6 @@ function searchSongs(q) {
         norm(s.title).includes(needle) ||
         (s.incipits || []).some(line => norm(line).includes(needle))
       );
-  if (songBookFilter) hits = hits.filter(s => s.songbook_code === songBookFilter);
   // Groupé par code de recueil ; le nom lisible est résolu au rendu.
   const grouped = {};
   for (const s of hits) {
@@ -400,20 +368,23 @@ function bibleName(code) {
   return (code && bibleNames.get(code)) || code || '';
 }
 
-// Construit les boutons de traduction à partir des bibles présentes dans le
-// dossier utilisateur. Si aucune bible n'est trouvée, affiche un message.
+// Traductions disponibles (bibles du dossier utilisateur), résolues au démarrage.
+let bibleTranslationsList = [];
+
+// Charge la liste des bibles présentes dans le dossier utilisateur et fixe la
+// traduction par défaut. Les boutons de sélection ne sont rendus qu'à
+// l'affichage d'un chapitre (voir renderBibleTranslations).
 async function initBibleTranslations() {
-  const wrap = document.getElementById('bibleTranslations');
   let translations = [];
   try {
     translations = await apiListBibles();
   } catch (_) { /* dossier indisponible : liste vide */ }
 
+  bibleTranslationsList = translations;
   bibleNames.clear();
   for (const { code, name } of translations) bibleNames.set(code, name);
 
   if (!translations.length) {
-    wrap.innerHTML = `<span class="search-empty">${esc(t('list.noBible'))}</span>`;
     state.bibleCode = null;
     return;
   }
@@ -421,11 +392,21 @@ async function initBibleTranslations() {
   const codes = translations.map(x => x.code);
   const saved = _savedDefaultBible();
   state.bibleCode = codes.includes(saved) ? saved : codes[0];
-  wrap.innerHTML = translations
+  loadBibleBooks(state.bibleCode);
+
+  // Un chapitre est déjà affiché (rechargement après ajout/suppression de
+  // bibles) : rafraîchit les boutons de traduction dans son en-tête.
+  if (state.bible?.verses?.length) renderBibleTranslations();
+}
+
+// Rend les boutons de traduction dans l'en-tête du chapitre affiché, à côté du
+// titre, et marque la traduction courante comme active.
+function renderBibleTranslations() {
+  const wrap = document.getElementById('bibleTranslations');
+  wrap.innerHTML = bibleTranslationsList
     .map(({ code, name }) =>
       `<button class="filter-btn${code === state.bibleCode ? ' active' : ''}" data-action="selectBibleCode" data-arg="${esc(code)}" title="${esc(name)}">${esc(code)}</button>`)
     .join('');
-  loadBibleBooks(state.bibleCode);
 }
 
 initBibleTranslations();
@@ -648,6 +629,7 @@ async function fetchBibleChapter(ref) {
   markContentLoaded();
   document.getElementById('bibleTitle').textContent = title;
   document.getElementById('bibleSubtitle').textContent = 'Traduction ' + translationLabel;
+  renderBibleTranslations();
   showPanel('panelBible');
   renderBibleVerses(data.verses);
 
@@ -1994,8 +1976,7 @@ document.addEventListener('click', e => {
   const d = el.dataset;
 
   switch (action) {
-    // Ces deux fonctions attendent l'élément cliqué en premier argument.
-    case 'selectSongBook':
+    // Cette fonction attend l'élément cliqué en premier argument.
     case 'selectBibleCode':
       fn(el, d.arg);
       return;
