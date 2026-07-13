@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verso — Fixture Bible</title>
+<link rel="stylesheet" href="../../src/assets/css/operator.css">
+</head>
+<body class="platform-macos">
+<div class="app">
+  <div class="body">
+    <aside class="sidebar-left">
+      <section class="card card-search">
+        <div class="tabs" role="tablist">
+          <button class="tab">Chants</button>
+          <button class="tab active" data-testid="sidebar-active-tab">Bible</button>
+          <button class="tab">PDF</button>
+          <button class="tab">Images</button>
+        </div>
+        <div id="searchBible" style="display:flex">
+          <div class="search-box">
+            <div class="field">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input class="search-input" value="col" aria-label="Recherche Bible">
+            </div>
+          </div>
+          <div class="content-list">
+            <div class="content-item active" data-bible-ref="colossiens" data-testid="sidebar-active-row">
+              <span class="item-title">Colossiens</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div></div>
+      <nav class="search-tools">
+        <button class="tool-item"><span class="tool-label">Paramètres</span></button>
+        <button class="tool-item"><span class="tool-label">Raccourcis</span></button>
+        <button class="tool-item"><span class="tool-label">À propos</span></button>
+      </nav>
+    </aside>
+
+    <main class="main card" data-loaded="true">
+      <div class="panel active" id="panelBible">
+        <div class="content-header">
+          <div class="content-kicker" data-testid="content-kicker">Traduction Bible du Semeur</div>
+          <div class="content-header-row">
+            <div class="content-title">Colossiens 1:1–29</div>
+            <div class="filter-pills content-header-actions">
+              <button class="filter-btn active" data-testid="active-translation">BDS</button>
+              <button class="filter-btn">DRB</button>
+              <button class="filter-btn">LSG</button>
+              <button class="filter-btn">NBS</button>
+              <button class="filter-btn">S21</button>
+            </div>
+          </div>
+        </div>
+        <div class="strophe-list">
+          <div class="list-item bible-verse-item active" data-testid="active-verse">
+            <span class="bible-verse-number" data-short="V1">Verset 1</span>
+            <span class="bible-verse-text">Paul, apôtre de Jésus-Christ par la volonté de Dieu, et le frère Timothée, saluent</span>
+            <div class="strophe-action"><span class="live-pill"></span></div>
+          </div>
+          <div class="list-item bible-verse-item">
+            <span class="bible-verse-number" data-short="V2">Verset 2</span>
+            <span class="bible-verse-text">ceux qui, à Colosses, appartiennent à Dieu par leur union avec le Christ</span>
+            <div class="strophe-action"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

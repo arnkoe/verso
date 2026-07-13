@@ -24,7 +24,13 @@
   --radius-sm: 8px;
   --radius: 10px;
   --control-h: 32px;
+  --ui-line-h: 16px;
   --w-sidebar: 330px;
+  /* Gouttières communes : les fonds interactifs partagent un même axe et
+     leur contenu utilise partout le même retrait horizontal. */
+  --sidebar-gutter: 10px;
+  --content-gutter: 32px;
+  --row-inset: 11px;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   /* Échelle typographique unifiée. N'utiliser que ces tokens. */
   --fs-xs: 11px;    /* métadonnées, compteurs, libellés discrets */
@@ -138,16 +144,20 @@ body {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 2px;
   margin: var(--titlebar-h) 0 0;
-  padding: 10px 10px 0;
+  padding: var(--sidebar-gutter) var(--sidebar-gutter) 0;
 }
 .tab {
   appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   height: var(--control-h);
   background: transparent;
   border: 0;
   border-radius: var(--radius-sm);
   font-family: inherit;
   font-size: var(--fs-md);
+  line-height: var(--ui-line-h);
   color: var(--mute);
   padding: 0;
   cursor: pointer;
@@ -162,7 +172,7 @@ body {
 
 /* ── ZONE RECHERCHE DANS SIDEBAR ───────────────────────────────────────────── */
 .search-box {
-  padding: 10px;
+  padding: var(--sidebar-gutter);
   display: grid;
   gap: 8px;
 }
@@ -173,7 +183,7 @@ body {
   align-items: center;
   gap: 8px;
   min-height: var(--control-h);
-  padding: 0 11px;
+  padding: 0 var(--row-inset);
   background: var(--surface-1);
   border-radius: var(--radius-sm);
 }
@@ -212,24 +222,25 @@ body {
   appearance: none;
   height: var(--control-h);
   border: 0;
-  background: var(--surface-1);
+  background: transparent;
   font-family: inherit;
   font-size: var(--fs-md);
-  font-weight: 600;
-  padding: 0 11px;
+  font-weight: 400;
+  padding: 0 var(--row-inset);
   border-radius: var(--radius-sm);
-  color: var(--ink-2);
+  color: var(--mute);
   cursor: pointer;
   box-shadow: none;
   transition: background 0.15s, color 0.15s;
 }
 .filter-btn:hover:not(.active) {
-  background: var(--hover);
+  background: var(--row-hover);
   color: var(--ink);
 }
 .filter-btn.active {
-  background: var(--hover);
+  background: var(--surface-1);
   color: var(--ink);
+  font-weight: 600;
 }
 
 /* ── LISTE SIDEBAR ─────────────────────────────────────────────────────────── */
@@ -237,7 +248,7 @@ body {
   overflow-y: auto;
   min-height: 0;
   flex: 1;
-  padding: 0 10px 10px;
+  padding: 0 var(--sidebar-gutter) var(--sidebar-gutter);
 }
 .content-list::-webkit-scrollbar { width: 10px; }
 .content-list::-webkit-scrollbar-thumb {
@@ -249,7 +260,7 @@ body {
   grid-template-columns: 31px 30px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
-  padding: 8px 11px;
+  padding: 8px var(--row-inset);
   margin: 0;
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -261,7 +272,7 @@ body {
 .content-item.active::before {
   content: "";
   position: absolute;
-  right: 11px;
+  right: var(--row-inset);
   top: 50%;
   transform: translateY(-50%);
   width: 7px; height: 7px;
@@ -339,7 +350,7 @@ body {
    le viewport CSS devient court, la ligne « recherche » 1fr s'écrase et la card
    sort par le bas, laissant un vide apparent sous les boutons). */
 .card-monitor {
-  padding: 10px;
+  padding: var(--sidebar-gutter);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -374,7 +385,7 @@ body {
   min-width: 0;
   height: var(--control-h);
   justify-content: space-between;
-  padding: 0 11px;
+  padding: 0 var(--row-inset);
   overflow: hidden;
   border: 0;
   border-radius: var(--radius-sm);
@@ -471,7 +482,9 @@ body {
 }
 
 .content-header {
-  padding: 28px 32px 20px;
+  /* La sidebar décale ses onglets sous la titlebar macOS superposée. Le
+     kicker reprend aussi le centrage vertical du libellé dans un contrôle. */
+  padding: calc(var(--titlebar-h) + var(--sidebar-gutter) + (var(--control-h) - var(--ui-line-h)) / 2) var(--content-gutter) 20px;
   display: grid;
   gap: 6px;
   flex-shrink: 0;
@@ -489,7 +502,8 @@ body {
   min-height: var(--control-h);
 }
 .content-kicker {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-md);
+  line-height: var(--ui-line-h);
   letter-spacing: 0;
   color: var(--mute);
 }
@@ -526,7 +540,7 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 0 11px;
+  padding: 0 var(--row-inset);
   height: var(--control-h);
   color: var(--ink-2);
   font-family: inherit;
@@ -559,7 +573,7 @@ body {
 .strophe-list {
   flex: 1;
   overflow-y: auto;
-  padding: 0 24px 28px;
+  padding: 0 var(--content-gutter) 28px;
 }
 .strophe-list::-webkit-scrollbar { width: 12px; }
 .strophe-list::-webkit-scrollbar-thumb {
@@ -572,10 +586,10 @@ body {
    de sélecteurs de synchronisation dans operator.js. */
 .list-item {
   display: grid;
-  grid-template-columns: 64px 1fr 40px;
+  grid-template-columns: 64px 1fr var(--control-h);
   gap: 16px;
   align-items: flex-start;
-  padding: 13px 12px;
+  padding: 13px var(--row-inset);
   margin: 2px 0;
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -595,7 +609,7 @@ body {
   text-align: right;
 }
 .list-item.active .strophe-number,
-.list-item.active .bible-verse-number { color: var(--live); font-weight: 600; }
+.list-item.active .bible-verse-number { color: var(--ink); font-weight: 600; }
 
 .strophe-text,
 .bible-verse-text {
@@ -611,11 +625,8 @@ body {
   align-items: center;
   justify-content: flex-end;
   height: var(--control-h);
-  width: 40px;
+  width: var(--control-h);
   flex-shrink: 0;
-}
-@media (max-width: 900px) {
-  .strophe-action { width: 28px; }
 }
 /* Indicateur « en projection » : le même point discret que dans la sidebar. */
 .live-pill {
@@ -673,7 +684,13 @@ body {
 .image-page-item img { display: block; max-width: 100%; max-height: 400px; object-fit: contain; }
 
 /* Édition de strophes */
-#songEditArea { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+#songEditArea {
+  padding: 12px var(--content-gutter);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
 #songEditTextarea {
   width: 100%; min-height: 400px;
   font-family: 'Courier New', monospace;
@@ -732,6 +749,7 @@ body {
   color: var(--ink-2);
   font-size: var(--fs-sm);
 }
+.screen-modal__item strong { font-weight: 600; }
 .screen-modal__footer {
   display: flex;
   justify-content: flex-end;
@@ -739,6 +757,8 @@ body {
 
 /* ── RESPONSIVE 900px ─────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
+  :root { --content-gutter: 16px; }
+
   /* La sidebar garde les proportions du panneau de référence. */
   .body {
     grid-template-columns: var(--w-sidebar) 1fr;
@@ -746,10 +766,10 @@ body {
 
   /* En-tête : padding latéral réduit */
   .content-header {
-    padding: 20px 16px 16px;
+    padding: calc(var(--titlebar-h) + var(--sidebar-gutter) + (var(--control-h) - var(--ui-line-h)) / 2) var(--content-gutter) 16px;
   }
 
-  .strophe-list { padding: 0 8px 20px; }
+  .strophe-list { padding: 0 var(--content-gutter) 20px; }
 
   /* Numéros (strophe / verset / page) : label court via data-short */
   .strophe-number[data-short],
@@ -762,14 +782,13 @@ body {
     font-size: var(--fs-xs);
   }
 
-  /* Colonne des numéros plus étroite, alignée à gauche.
-     padding-left aligné sur le padding de .content-header (16px) pour que
-     les numéros soient sur la même verticale que le kicker et le titre. */
+  /* Colonne des numéros plus étroite, alignée à gauche. Le fond de chaque
+     ligne partage désormais l'axe du kicker, du titre et des filtres ; son
+     contenu reprend le même retrait que les lignes de la sidebar. */
   .list-item {
     grid-template-columns: 22px 1fr auto;
     gap: 10px;
-    padding-left: 16px;
-    padding-right: 12px;
+    padding-inline: var(--row-inset);
   }
   .strophe-number,
   .bible-verse-number {
@@ -867,7 +886,7 @@ body {
 }
 .info-pane {
   width: 100%;
-  padding: 28px 32px;
+  padding: 28px var(--content-gutter);
   max-width: 640px;
   margin: 0 auto;
   color: var(--ink-2);
@@ -988,7 +1007,7 @@ body {
   appearance: none;
   border: 0;
   height: var(--control-h);
-  padding: 0 11px;
+  padding: 0 var(--row-inset);
   border-radius: var(--radius-sm);
   background: var(--surface-1);
   font-family: inherit;
@@ -1069,7 +1088,9 @@ body {
 .content-modal-body {
   flex: 1;
   overflow-y: auto;
-  padding: 6px 14px;
+  /* 12px de gouttière + 8px de retrait des lignes = les 20px de l'en-tête
+     et du pied de modale. */
+  padding: 6px 12px;
   min-height: 0;
 }
 .content-modal-foot {
@@ -1196,7 +1217,7 @@ body {
   gap: 8px;
   min-width: 130px;
   height: var(--control-h);
-  padding: 0 8px 0 11px;
+  padding: 0 8px 0 var(--row-inset);
   border: 0;
   border-radius: var(--radius-sm);
   background: var(--surface-1);
