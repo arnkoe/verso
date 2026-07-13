@@ -4,12 +4,12 @@
   --ink: #000000;
   --ink-2: #55554f;
   --mute: #777772;
-  --mute-2: #9a9a96;
+  --mute-2: #878782;
   /* Surfaces chaudes reprises de la sidebar. Les contrôles ont un fond plus
      marqué que les lignes de contenu afin de rester identifiables sans bordure. */
-  --surface-1: #f2f1ef;   /* boutons et contrôles */
-  --hover: #eae9e6;       /* survol des boutons */
-  --sel: #f2f1ef;         /* sélection de contenu */
+  --surface-1: #eae9e6;   /* boutons et contrôles (onglet actif inclus) */
+  --hover: #e2e1dd;       /* survol des boutons, focus du champ de recherche */
+  --sel: #eae9e6;         /* sélection de contenu (même fond que les contrôles) */
   --row-hover: #f7f7f5;   /* survol de contenu */
   --line-2: #f1f1ef;      /* séparateur clair */
   --line: #e7e7e4;        /* bordure standard */
@@ -23,6 +23,12 @@
   --danger-weak: #fdeaea;    /* fond léger d'un contrôle destructif au survol */
   --radius-sm: 8px;
   --radius: 10px;
+  /* Ombres : panel = relief latéral de la sidebar, raised = menus flottants,
+     overlay = modales. Ne pas en introduire d'autres. */
+  --shadow-panel: 2px 0 10px rgba(0, 0, 0, 0.04);
+  --shadow-raised: 0 8px 28px rgba(0, 0, 0, 0.14);
+  --shadow-overlay: 0 10px 40px rgba(0, 0, 0, 0.2);
+  --overlay: rgba(0, 0, 0, 0.35); /* voile derrière les modales */
   --control-h: 32px;
   --ui-line-h: 16px;
   --w-sidebar: 330px;
@@ -33,11 +39,13 @@
   --content-scrollbar-w: 12px;
   --row-inset: 11px;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, Menlo, Consolas, monospace;
   /* Échelle typographique unifiée. N'utiliser que ces tokens. */
   --fs-xs: 11px;    /* métadonnées, compteurs, libellés discrets */
   --fs-sm: 12px;    /* texte UI secondaire, aides, descriptions */
   --fs-md: 14px;    /* texte UI courant, libellés de réglages, lignes accentuées */
-  --fs-lg: 16px;    /* titres de modales, contenu lu : strophes, versets */
+  --fs-lg: 16px;    /* contenu lu : strophes, versets */
+  --fs-xl: 20px;    /* titres de modales */
   --fs-2xl: 24px;   /* titre de la zone principale */
 }
 
@@ -116,9 +124,9 @@ body {
   height: 100%;
   background: var(--panel);
   border: 0;
-  border-right: 1px solid rgba(0,0,0,0.08);
+  border-right: 1px solid var(--line);
   border-radius: 0;
-  box-shadow: 2px 0 10px rgba(0,0,0,0.04);
+  box-shadow: var(--shadow-panel);
   position: relative;
   z-index: 1;
   overflow: hidden;
@@ -188,7 +196,11 @@ body {
   padding: 0 var(--row-inset);
   background: var(--surface-1);
   border-radius: var(--radius-sm);
+  transition: background 0.15s;
 }
+/* Focus : fond un cran plus marqué (même teinte que le survol des boutons),
+   sans bordure ni anneau. */
+.field:focus-within { background: var(--hover); }
 .field svg {
   position: static;
   width: 18px; height: 18px; color: var(--mute);
@@ -253,9 +265,9 @@ body {
   flex: 1;
   padding: 0 var(--sidebar-gutter) var(--sidebar-gutter);
 }
-.content-list::-webkit-scrollbar { width: 10px; }
+.content-list::-webkit-scrollbar { width: var(--content-scrollbar-w); }
 .content-list::-webkit-scrollbar-thumb {
-  background: var(--scroll); border-radius: 10px; border: 2px solid var(--panel);
+  background: var(--scroll); border-radius: 10px; border: 3px solid var(--panel);
 }
 
 .content-item {
@@ -290,7 +302,7 @@ body {
   grid-column: 1;
   min-width: 0;
   overflow: hidden;
-  font-family: ui-monospace, Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: var(--fs-xs);
   letter-spacing: 0.03em;
   color: var(--mute);
@@ -367,15 +379,15 @@ body {
   gap: 8px;
   min-height: 0;
   border: 0;
-  border-top: 1px solid rgba(0,0,0,0.07);
+  border-top: 1px solid var(--line);
   border-radius: 0;
 }
 .monitor-screen {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   background: var(--panel);
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   overflow: hidden;
   /* Le cadre 16/9 est l'élément compressible de la card : quand la hauteur
@@ -482,12 +494,12 @@ body {
   width: 48px;
   height: 48px;
   fill: none;
-  stroke: #050505;
+  stroke: var(--ink);
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 .empty-state-mark circle {
-  fill: #18c964;
+  fill: var(--live);
   stroke: none;
 }
 .empty-state-title {
@@ -580,7 +592,7 @@ body {
 .hdr-btn svg {
   width: 14px; height: 14px;
   stroke: currentColor; fill: none;
-  stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
   flex-shrink: 0;
 }
 .hdr-btn:hover { background: var(--hover); color: var(--ink); }
@@ -720,7 +732,7 @@ body {
 }
 #songEditTextarea {
   width: 100%; min-height: 400px;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-mono);
   font-size: var(--fs-md); line-height: 1.6;
   padding: 10px;
   border: 1px solid var(--line);
@@ -742,7 +754,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--overlay);
 }
 .screen-modal {
   background: var(--panel);
@@ -750,11 +762,11 @@ body {
   padding: 20px;
   max-width: 420px;
   width: 90%;
-  box-shadow: 0 10px 40px rgba(0,0,0,.2);
+  box-shadow: var(--shadow-overlay);
 }
 .screen-modal__title {
   margin: 0 0 12px;
-  font-size: var(--fs-lg);
+  font-size: var(--fs-xl);
   font-weight: 600;
   color: var(--ink);
 }
@@ -863,7 +875,7 @@ body {
   justify-content: center;
   gap: 16px;
   padding: 10px 12px;
-  border-top: 1px solid rgba(0,0,0,0.05);
+  border-top: 1px solid var(--line-2);
 }
 .search-tools .tool-item {
   position: relative;
@@ -961,9 +973,9 @@ body {
   border: 1px solid var(--line-strong);
   border-bottom-width: 3px;
   border-radius: 5px;
-  /* Touches non cliquables : fond plus foncé que les boutons (.hdr-btn en
-     --surface-1) pour les distinguer d'un contrôle actionnable. Le relief vient
-     du bord bas épaissi. */
+  /* Touches non cliquables : même fond que les boutons (.hdr-btn en
+     --surface-1) ; c'est le relief (bord bas épaissi) qui les distingue
+     d'un contrôle actionnable. */
   background: var(--sel);
   color: var(--ink);
 }
@@ -1098,7 +1110,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--overlay);
 }
 .content-modal-dialog {
   display: flex;
@@ -1107,7 +1119,7 @@ body {
   height: min(560px, 85vh);
   background: var(--panel);
   border-radius: var(--radius);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-overlay);
 }
 .content-modal-head {
   display: flex;
@@ -1119,7 +1131,7 @@ body {
 }
 .content-modal-title {
   margin: 0;
-  font-size: var(--fs-lg);
+  font-size: var(--fs-xl);
   font-weight: 600;
   color: var(--ink);
 }
@@ -1293,7 +1305,7 @@ body {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
+  box-shadow: var(--shadow-raised);
 }
 .dropdown-option {
   display: flex;
@@ -1315,6 +1327,40 @@ body {
 .dropdown-option-label { flex: 1; }
 .dropdown-check { width: 15px; height: 15px; flex: none; color: var(--accent); visibility: hidden; }
 .dropdown-option.selected .dropdown-check { visibility: visible; }
+
+/* ─── APPARITION DES SURFACES FLOTTANTES ─────────────────────────────────────
+   Fondu + léger scale au montage (le retrait de [hidden] ou l'insertion DOM
+   relance l'animation). Le voile et la boîte sont animés séparément pour que
+   le fond ne « scale » pas. */
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+.screen-modal-overlay,
+.content-modal:not([hidden]) {
+  animation: overlay-in 0.15s ease-out;
+}
+.screen-modal,
+.content-modal:not([hidden]) .content-modal-dialog {
+  animation: pop-in 0.15s ease-out;
+}
+.dropdown-menu:not([hidden]) {
+  transform-origin: top right;
+  animation: pop-in 0.12s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen-modal-overlay,
+  .screen-modal,
+  .content-modal:not([hidden]),
+  .content-modal:not([hidden]) .content-modal-dialog,
+  .dropdown-menu:not([hidden]) {
+    animation: none;
+  }
+}
 
 /* Focus clavier commun à tous les contrôles interactifs. */
 :where(.tab, .hdr-btn, .filter-btn, .settings-close, .dropdown-trigger,
