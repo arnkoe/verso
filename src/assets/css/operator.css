@@ -365,7 +365,7 @@ body {
   flex: 1 1 0;
   min-width: 0;
   height: 32px;
-  justify-content: center;
+  justify-content: space-between;
   padding: 0 11px;
   overflow: hidden;
   border: 0;
@@ -377,6 +377,18 @@ body {
   font-weight: 600;
 }
 .monitor-actions .hdr-btn:hover { background: #eae9e6; box-shadow: none; }
+.monitor-shortcut {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  color: #9a9a96;
+  font-size: var(--fs-xs);
+  font-weight: 400;
+  line-height: 1;
+}
+.monitor-shortcut-mod::after { content: "+"; }
+.platform-macos .monitor-shortcut-mod::after { content: ""; }
 
 /* Canvas de preview (reproduit fidèlement la projection 16/9, scalé).
    Même ratio que le slide ; le cadre du moniteur est lui-même en 16/9. */

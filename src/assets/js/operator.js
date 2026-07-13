@@ -1083,13 +1083,16 @@ document.addEventListener('keydown', e => {
   activateTab(TAB_ORDER[next]);
 }, true);
 
-// Cmd+Entrée (macOS) / Ctrl+Entrée ouvre la fenêtre de projection, exactement
-// comme le bouton « Projeter », qu'un contenu soit sélectionné ou non. Marche
-// aussi depuis un champ de recherche (capture).
+// Cmd/Ctrl+P ouvre la fenêtre de projection et Cmd/Ctrl+M la masque, exactement
+// comme les deux boutons sous l'aperçu. Ces raccourcis fonctionnent aussi depuis
+// un champ de recherche (capture).
 document.addEventListener('keydown', e => {
-  if (e.key !== 'Enter' || !(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return;
+  if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return;
+  const key = e.key.toLowerCase();
+  if (key !== 'p' && key !== 'm') return;
   e.preventDefault();
-  openProjection();
+  if (key === 'p') openProjection();
+  else hideProjection();
 }, true);
 
 document.addEventListener('keydown', e => {
@@ -1123,14 +1126,6 @@ document.addEventListener('keydown', e => {
     return;
   }
 
-  if (e.key === 'Escape') {
-    state.songVerse = -1;
-    state.bibleVerse = -1;
-    state.pdfPage = -1;
-    document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active'));
-    project({ type: 'blank' });
-    return;
-  }
 });
 
 // ─── ÉDITION DE STROPHES ─────────────────────────────────────────────────────
