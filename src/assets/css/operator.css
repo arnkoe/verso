@@ -57,20 +57,21 @@ body {
 .body {
   display: grid;
   grid-template-columns: var(--w-sidebar) 1fr;
-  gap: 12px;
-  /* Barre de titre macOS transparente (titleBarStyle: Transparent) : le fond de
-     fenêtre (--bg) transparaît sous la barre native au lieu du blanc système.
-     Le contenu (sidebar + main) remonte jusqu'en haut ; on ajoute juste une
-     bande draggable transparente par-dessus pour déplacer la fenêtre, et un
-     léger décalage à gauche de la sidebar pour dégager les feux tricolores. */
-  padding: 12px;
+  gap: 0;
+  padding: 0;
   min-height: 0;
 }
-:root { --titlebar-h: 16px; }
+/* La barre de titre macOS est superposée au contenu (titleBarStyle: Overlay).
+   Cette hauteur compacte place les onglets juste sous les feux tricolores,
+   tandis que le fond blanc de la sidebar remonte derrière eux. */
+:root { --titlebar-h: 0px; }
+.platform-macos { --titlebar-h: 22px; }
 .body::before {
   content: "";
   position: fixed;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  width: var(--w-sidebar);
   height: var(--titlebar-h);
   -webkit-app-region: drag;
   z-index: 10;
@@ -92,6 +93,7 @@ body {
   background: var(--bg);
   border: 0;
   border-radius: 0;
+  margin: 12px;
 }
 
 /* Les deux zones de la sidebar sont réunies dans un panneau continu. */
@@ -106,9 +108,10 @@ body {
   min-width: 0;
   height: 100%;
   background: var(--panel);
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 14px;
-  box-shadow: 0 10px 32px rgba(0,0,0,0.08);
+  border: 0;
+  border-right: 1px solid rgba(0,0,0,0.08);
+  border-radius: 0;
+  box-shadow: none;
   overflow: hidden;
 }
 

@@ -20,7 +20,7 @@
         "resizable": true,
         "maximized": true,
         "fullscreen": false,
-        "titleBarStyle": "Transparent",
+        "titleBarStyle": "Overlay",
         "hiddenTitle": true,
         "backgroundColor": "#f8f9fb"
       }
