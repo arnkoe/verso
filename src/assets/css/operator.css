@@ -469,15 +469,26 @@ body {
 }
 .main[data-loaded="true"] .empty-state { display: none; }
 .main:not([data-loaded="true"]) .panel { display: none; }
-.empty-state-icon {
+.empty-state-mark {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 4px;
+  border-radius: 14px;
+  background: var(--surface-1);
+}
+.empty-state-mark svg {
   width: 48px;
   height: 48px;
   fill: none;
-  stroke: var(--mute-2);
-  stroke-width: 1.5;
+  stroke: #050505;
   stroke-linecap: round;
   stroke-linejoin: round;
-  margin-bottom: 4px;
+}
+.empty-state-mark circle {
+  fill: #18c964;
+  stroke: none;
 }
 .empty-state-title {
   font-size: var(--fs-lg);
@@ -486,7 +497,7 @@ body {
 }
 .empty-state-text {
   font-size: var(--fs-md);
-  color: var(--mute);
+  color: var(--mute-2);
   max-width: 320px;
   line-height: 1.5;
 }

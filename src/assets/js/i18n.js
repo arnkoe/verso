@@ -45,7 +45,7 @@ const I18N = {
     'monitor.hideTitle': 'Vider la projection et afficher un écran blanc',
     // État vide / panneaux
     'empty.title': 'Aucun contenu sélectionné',
-    'empty.text': 'Faites une recherche dans la barre latérale.',
+    'empty.text': 'Faites une recherche dans la barre latérale',
     'song.edit': 'Modifier',
     'song.cancel': 'Annuler',
     'song.save': 'Sauvegarder',
@@ -198,7 +198,7 @@ const I18N = {
     'monitor.hide': 'Hide',
     'monitor.hideTitle': 'Clear the projection and display a white screen',
     'empty.title': 'No content selected',
-    'empty.text': 'Search in the sidebar.',
+    'empty.text': 'Search in the sidebar',
     'song.edit': 'Edit',
     'song.cancel': 'Cancel',
     'song.save': 'Save',
