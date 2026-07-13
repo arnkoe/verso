@@ -1,26 +1,29 @@
 :root {
-  --bg: #f8f9fb;
+  --bg: #ffffff;
   --panel: #ffffff;
-  --ink: #000000;
-  --ink-2: #3a3a3a;
-  --mute: #6b6b6b;
-  --mute-2: #9a9a9a;
-  /* Échelle de gris unifiée (teinte froide, même famille que --bg).
-     Du plus clair au plus foncé : surface < hover < sel. */
-  --surface-1: #fafbfc;   /* fills légers surélevés */
-  --hover: #eceff3;       /* survol des lignes/boutons (un peu plus clair que --sel) */
-  --sel: #e4e8ed;         /* sélection / état actif */
-  --line-2: #f2f3f5;      /* séparateur clair */
-  --line: #e8eaed;        /* bordure standard */
-  --line-strong: #d7dbe0; /* bordure au survol */
-  --scroll: #e6e8ec;      /* pouce d'ascenseur */
-  --live: #22C55E;
-  --live-weak: rgba(34,197,94,0.12);
+  --ink: #1a1a1a;
+  --ink-2: #55554f;
+  --mute: #777772;
+  --mute-2: #9a9a96;
+  /* Surfaces chaudes reprises de la sidebar. Les contrôles ont un fond plus
+     marqué que les lignes de contenu afin de rester identifiables sans bordure. */
+  --surface-1: #f2f1ef;   /* boutons et contrôles */
+  --hover: #eae9e6;       /* survol des boutons */
+  --sel: #f2f1ef;         /* sélection de contenu */
+  --row-hover: #f7f7f5;   /* survol de contenu */
+  --line-2: #f1f1ef;      /* séparateur clair */
+  --line: #e7e7e4;        /* bordure standard */
+  --line-strong: #d8d8d4; /* bordure au survol */
+  --scroll: #e5e5e1;      /* pouce d'ascenseur */
+  --live: #2aa05a;
+  --live-weak: rgba(42,160,90,0.12);
+  --live-hover: rgba(42,160,90,0.18);
   --accent: #2563eb;
   --danger: #c62828;         /* erreurs, actions destructives */
-  --danger-border: #e3b4b4;  /* bordure d'un contrôle destructif au survol */
   --danger-weak: #fdeaea;    /* fond léger d'un contrôle destructif au survol */
+  --radius-sm: 8px;
   --radius: 10px;
+  --control-h: 32px;
   --w-sidebar: 330px;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   /* Échelle typographique unifiée. N'utiliser que ces tokens. */
@@ -28,7 +31,6 @@
   --fs-sm: 12px;    /* texte UI secondaire, aides, descriptions */
   --fs-md: 14px;    /* texte UI courant, libellés de réglages, lignes accentuées */
   --fs-lg: 16px;    /* titres de modales, contenu lu : strophes, versets */
-  --fs-xl: 20px;    /* titres principaux (contenu, info) */
   --fs-2xl: 24px;   /* titre de la zone principale */
 }
 
@@ -86,14 +88,12 @@ body {
   min-height: 0;
 }
 
-/* La card principale n'est plus un panneau encadré : elle sert de surface de
-   contenu qui se fond dans la fenêtre, façon app Claude. On retire bordure,
-   rayon et fond visible pour que seule la sidebar « flotte » à gauche. */
+/* La zone principale est la surface blanche de la fenêtre, sans card visible. */
 .main.card {
-  background: var(--bg);
+  background: var(--panel);
   border: 0;
   border-radius: 0;
-  margin: 12px;
+  margin: 0;
 }
 
 /* Les deux zones de la sidebar sont réunies dans un panneau continu. */
@@ -111,7 +111,9 @@ body {
   border: 0;
   border-right: 1px solid rgba(0,0,0,0.08);
   border-radius: 0;
-  box-shadow: none;
+  box-shadow: 3px 0 14px rgba(0,0,0,0.07);
+  position: relative;
+  z-index: 1;
   overflow: hidden;
 }
 
@@ -140,19 +142,20 @@ body {
 }
 .tab {
   appearance: none;
+  height: var(--control-h);
   background: transparent;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-family: inherit;
   font-size: var(--fs-md);
-  color: #8a8a86;
-  padding: 7px 0;
+  color: var(--mute);
+  padding: 0;
   cursor: pointer;
   transition: color 0.15s, background 0.15s;
 }
 .tab.active {
-  color: #1a1a1a;
-  background: #f2f1ef;
+  color: var(--ink);
+  background: var(--surface-1);
   font-weight: 600;
 }
 .tab:hover:not(.active) { color: var(--ink); }
@@ -169,13 +172,14 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 11px;
-  background: #f2f1ef;
-  border-radius: 8px;
+  min-height: var(--control-h);
+  padding: 0 11px;
+  background: var(--surface-1);
+  border-radius: var(--radius-sm);
 }
 .field svg {
   position: static;
-  width: 14px; height: 14px; color: #8a8a86;
+  width: 14px; height: 14px; color: var(--mute);
   flex: none;
   pointer-events: none;
 }
@@ -186,9 +190,9 @@ body {
   border: 0;
   border-radius: 0;
   font-family: inherit; font-size: var(--fs-md);
-  color: #1a1a1a; background: transparent; outline: none;
+  color: var(--ink); background: transparent; outline: none;
 }
-.search-input::placeholder { color: #b0b0ab; }
+.search-input::placeholder { color: var(--mute-2); }
 
 /* compat: l'ancien code utilise input[type=text] dans .search-box */
 .search-box input[type=text] {
@@ -198,30 +202,34 @@ body {
   border: 0;
   border-radius: 0;
   font-family: inherit; font-size: var(--fs-md);
-  color: #1a1a1a; background: transparent; outline: none;
+  color: var(--ink); background: transparent; outline: none;
 }
-.search-box input[type=text]::placeholder { color: #b0b0ab; }
+.search-box input[type=text]::placeholder { color: var(--mute-2); }
 
-/* Pills de filtre (recueils, bibles) */
+/* Boutons de filtre (notamment les traductions dans l'en-tête Bible). */
 .filter-pills { display: flex; gap: 4px; flex-wrap: wrap; padding-top: 4px; }
 .filter-btn {
   appearance: none;
-  border: 1px solid var(--line);
-  background: #fff;
-  font-family: inherit; font-size: var(--fs-xs);
-  padding: 4px 9px; border-radius: 999px;
-  color: var(--mute); cursor: pointer;
-  letter-spacing: 0.02em;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  transition: border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s;
+  height: var(--control-h);
+  border: 0;
+  background: var(--surface-1);
+  font-family: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  padding: 0 11px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-2);
+  cursor: pointer;
+  box-shadow: none;
+  transition: background 0.15s, color 0.15s;
 }
 .filter-btn:hover:not(.active) {
-  background: var(--hover); border-color: var(--line-strong); color: var(--ink);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.09);
+  background: var(--hover);
+  color: var(--ink);
 }
 .filter-btn.active {
-  background: var(--ink); color: #fff; border-color: var(--ink);
-  box-shadow: none;
+  background: var(--hover);
+  color: var(--ink);
 }
 
 /* ── LISTE SIDEBAR ─────────────────────────────────────────────────────────── */
@@ -243,12 +251,12 @@ body {
   align-items: center;
   padding: 8px 11px;
   margin: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background 0.12s;
 }
-.content-item:hover { background: #f7f7f5; }
-.content-item.active { background: #f2f1ef; position: relative; }
+.content-item:hover { background: var(--row-hover); }
+.content-item.active { background: var(--sel); position: relative; }
 .content-item.active::after { display: none; }
 .content-item.active::before {
   content: "";
@@ -258,10 +266,10 @@ body {
   transform: translateY(-50%);
   width: 7px; height: 7px;
   border-radius: 50%;
-  background: #2aa05a;
+  background: var(--live);
   z-index: 1;
 }
-.content-item.cursor:not(.active) { background: #f2f1ef; }
+.content-item.cursor:not(.active) { background: var(--sel); }
 .content-list:has(.content-item.active) .content-item:not(.active) { cursor: default; }
 
 .item-source {
@@ -269,25 +277,25 @@ body {
   min-width: 0;
   overflow: hidden;
   font-family: ui-monospace, Menlo, monospace;
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   letter-spacing: 0.03em;
-  color: #8a8a86;
+  color: var(--mute);
 }
 .item-number {
   font-variant-numeric: tabular-nums;
   font-size: var(--fs-md);
-  color: #8a8a86;
+  color: var(--mute);
   text-align: left;
   grid-column: 2;
 }
 .item-title {
-  font-size: var(--fs-md); color: #55554f;
+  font-size: var(--fs-md); color: var(--ink-2);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   grid-column: 3;
   padding-right: 14px;
 }
 .content-item.active .item-number,
-.content-item.active .item-title { color: #1a1a1a; font-weight: 600; }
+.content-item.active .item-title { color: var(--ink); font-weight: 600; }
 
 /* Résultat Bible : sans numéro, texte aligné sur la colonne titre (30px + 8px gap) */
 .content-item[data-bible-ref] {
@@ -344,9 +352,9 @@ body {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 10;
-  background: #fff;
+  background: var(--panel);
   border: 1px solid rgba(0,0,0,0.1);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   /* Le cadre 16/9 est l'élément compressible de la card : quand la hauteur
      disponible est insuffisante, il se réduit (min-height:0) au lieu de forcer
@@ -364,25 +372,25 @@ body {
 .monitor-actions .hdr-btn {
   flex: 1 1 0;
   min-width: 0;
-  height: 32px;
+  height: var(--control-h);
   justify-content: space-between;
   padding: 0 11px;
   overflow: hidden;
   border: 0;
-  border-radius: 8px;
-  background: #f2f1ef;
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
   box-shadow: none;
-  color: #55554f;
+  color: var(--ink-2);
   font-size: var(--fs-md);
   font-weight: 600;
 }
-.monitor-actions .hdr-btn:hover { background: #eae9e6; box-shadow: none; }
+.monitor-actions .hdr-btn:hover { background: var(--hover); box-shadow: none; }
 .monitor-shortcut {
   flex: none;
   display: inline-flex;
   align-items: center;
   margin-left: auto;
-  color: #9a9a96;
+  color: var(--mute-2);
   font-size: var(--fs-xs);
   font-weight: 400;
   line-height: 1;
@@ -397,7 +405,7 @@ body {
   top: 0; left: 0;
   /* width/height fixés dynamiquement par scalePreview() aux dimensions logiques
      réelles du slide sur l'écran cible (pour un word-wrap identique). */
-  background: #fff;
+  background: var(--panel);
   transform-origin: top left;
   border: 0;
 }
@@ -414,7 +422,7 @@ body {
   box-sizing: border-box;
   container-type: size;
 }
-.preview-content.preview-fullbleed { padding: 0; align-items: center; justify-content: center; background: #fff; }
+.preview-content.preview-fullbleed { padding: 0; align-items: center; justify-content: center; background: var(--panel); }
 
 .monitor-foot { display: none; }
 
@@ -452,7 +460,7 @@ body {
 }
 .empty-state-title {
   font-size: var(--fs-lg);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--ink-2);
 }
 .empty-state-text {
@@ -463,9 +471,9 @@ body {
 }
 
 .content-header {
-  padding: 16px 24px 30px;
+  padding: 28px 32px 20px;
   display: grid;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
   min-width: 0;
 }
@@ -478,17 +486,17 @@ body {
   /* Hauteur fixe = hauteur des boutons d'action, pour que la position du
      titre (et l'espace kicker->titre) soit identique sur tous les onglets,
      avec ou sans boutons. */
-  min-height: 28px;
+  min-height: var(--control-h);
 }
 .content-kicker {
-  font-size: var(--fs-lg);
+  font-size: var(--fs-sm);
   letter-spacing: 0;
-  color: var(--ink);
+  color: var(--mute);
 }
 .content-title {
   font-size: var(--fs-2xl);
-  line-height: 28px;
-  font-weight: 500;
+  line-height: 1.3;
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--ink);
   white-space: nowrap;
@@ -513,44 +521,35 @@ body {
 /* Boutons rectangulaires avec texte dans l'en-tête du panneau */
 .hdr-btn {
   appearance: none;
-  background: #fff;
-  border: 1px solid var(--line);
+  background: var(--surface-1);
+  border: 0;
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 0 10px;
-  height: 28px;
+  padding: 0 11px;
+  height: var(--control-h);
   color: var(--ink-2);
   font-family: inherit;
-  font-size: var(--fs-sm);
-  border-radius: 8px;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  box-shadow: none;
+  transition: background 0.15s, color 0.15s;
   text-decoration: none;
 }
-.hdr-btn:hover { box-shadow: 0 1px 3px rgba(0,0,0,0.09); }
 .hdr-btn svg {
   width: 13px; height: 13px;
   stroke: currentColor; fill: none;
   stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
   flex-shrink: 0;
 }
-.hdr-btn:hover { border-color: var(--line-strong); background: var(--hover); color: var(--ink); }
-.hdr-btn.save { border-color: var(--live); color: var(--live); }
-.hdr-btn.save:hover { background: var(--live-weak); }
-
-/* Boutons posés sur le fond de fenêtre gris (--bg) de la zone principale : un
-   fond blanc y flotterait comme une pastille. On les fond dans la surface avec
-   un léger tint et pas d'ombre ; ils ne se soulèvent qu'au survol. */
-.main .hdr-btn {
-  background: var(--surface-1);
-  box-shadow: none;
-}
-.main .hdr-btn:hover { background: var(--hover); }
-.main .hdr-btn.save { background: var(--surface-1); }
-.main .hdr-btn.save:hover { background: var(--live-weak); }
+.hdr-btn:hover { background: var(--hover); color: var(--ink); }
+.hdr-btn.save { color: var(--live); background: var(--live-weak); }
+.hdr-btn.save:hover { background: var(--live-hover); }
+.hdr-btn:disabled { opacity: 0.5; cursor: default; }
+.hdr-btn:disabled:hover { color: var(--ink-2); background: var(--surface-1); }
 
 /* Panels */
 .panel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
@@ -560,7 +559,7 @@ body {
 .strophe-list {
   flex: 1;
   overflow-y: auto;
-  padding: 0;
+  padding: 0 24px 28px;
 }
 .strophe-list::-webkit-scrollbar { width: 12px; }
 .strophe-list::-webkit-scrollbar-thumb {
@@ -573,17 +572,17 @@ body {
    de sélecteurs de synchronisation dans operator.js. */
 .list-item {
   display: grid;
-  grid-template-columns: 80px 1fr auto;
-  gap: 18px;
+  grid-template-columns: 64px 1fr 40px;
+  gap: 16px;
   align-items: flex-start;
-  padding: 14px 16px;
-  margin: 6px 8px;
-  border-radius: 20px;
+  padding: 13px 12px;
+  margin: 2px 0;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   background: transparent;
   transition: background 0.15s;
 }
-.list-item:hover { background: var(--hover); }
+.list-item:hover { background: var(--row-hover); }
 .list-item.active { background: var(--sel); }
 
 .strophe-number,
@@ -611,22 +610,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  height: 34px;
-  width: 90px;
+  height: var(--control-h);
+  width: 40px;
   flex-shrink: 0;
 }
 @media (max-width: 900px) {
   .strophe-action { width: 28px; }
 }
-/* Indicateur « en projection » : point vert dans un disque vert clair,
-   même motif que la sélection des résultats, un peu plus grand. */
+/* Indicateur « en projection » : le même point discret que dans la sidebar. */
 .live-pill {
   display: flex;
   position: relative;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--live-weak);
+  width: var(--control-h);
+  height: var(--control-h);
+  background: transparent;
   flex-shrink: 0;
 }
 .live-pill::before {
@@ -635,8 +632,8 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 11px;
-  height: 11px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--live);
 }
@@ -683,7 +680,7 @@ body {
   font-size: var(--fs-md); line-height: 1.6;
   padding: 10px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   resize: vertical;
   box-sizing: border-box;
   outline: none;
@@ -695,8 +692,8 @@ body {
 
 /* Modale de sélection d'écran */
 .screen-modal {
-  background: #fff;
-  border-radius: 10px;
+  background: var(--panel);
+  border-radius: var(--radius);
   padding: 20px;
   max-width: 420px;
   width: 90%;
@@ -720,17 +717,17 @@ body {
   flex-direction: column;
   gap: 2px;
   padding: 10px 12px;
-  border: 1px solid var(--line);
+  border: 0;
   background: var(--surface-1);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   text-align: left;
   font-family: inherit;
   font-size: var(--fs-md);
   color: var(--ink);
-  transition: border-color 0.15s, background 0.15s;
+  transition: background 0.15s;
 }
-.screen-modal__item:hover { border-color: var(--line-strong); background: var(--hover); }
+.screen-modal__item:hover { background: var(--hover); }
 .screen-modal__item-meta {
   color: var(--ink-2);
   font-size: var(--fs-sm);
@@ -749,9 +746,10 @@ body {
 
   /* En-tête : padding latéral réduit */
   .content-header {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding: 20px 16px 16px;
   }
+
+  .strophe-list { padding: 0 8px 20px; }
 
   /* Numéros (strophe / verset / page) : label court via data-short */
   .strophe-number[data-short],
@@ -822,16 +820,16 @@ body {
   background: none;
   border-radius: 0;
   font-family: inherit;
-  font-size: 12.5px;
-  color: #8a8a86;
+  font-size: var(--fs-sm);
+  color: var(--mute);
   text-align: center;
   cursor: pointer;
   transition: color 0.12s;
 }
-.search-tools .tool-item:hover { color: #1a1a1a; background: none; }
+.search-tools .tool-item:hover { color: var(--ink); background: none; }
 /* Rubrique dont le panneau est ouvert : surbrillance persistante, comme la
    sélection d'un résultat de recherche (--sel). */
-.search-tools .tool-item.active { color: #1a1a1a; background: none; }
+.search-tools .tool-item.active { color: var(--ink); background: none; }
 .search-tools .tool-item svg {
   display: none;
 }
@@ -875,7 +873,7 @@ body {
   color: var(--ink-2);
 }
 .info-title {
-  font-size: var(--fs-xl);
+  font-size: var(--fs-2xl);
   font-weight: 600;
   color: var(--ink);
 }
@@ -943,7 +941,7 @@ body {
 }
 /* Séparateur « ou » entre deux touches équivalentes : texte discret, pas une touche. */
 .info-pane-help .info-keys .key-sep {
-  font-size: 0.85em;
+  font-size: var(--fs-sm);
   opacity: 0.7;
 }
 /* Touches à la même hauteur que les boutons des réglages (.hdr-btn). */
@@ -952,10 +950,10 @@ body {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  height: 28px;
+  height: var(--control-h);
   min-width: 44px;
   padding: 0 8px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 /* À propos */
@@ -989,16 +987,19 @@ body {
 .about-update-link {
   appearance: none;
   border: 0;
-  background: transparent;
-  padding: 0;
-  font: inherit;
+  height: var(--control-h);
+  padding: 0 11px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  font-family: inherit;
   font-size: var(--fs-md);
-  color: var(--accent);
+  font-weight: 600;
+  color: var(--ink-2);
   cursor: pointer;
-  text-decoration: underline;
+  transition: background 0.15s, color 0.15s;
 }
-.about-update-link:hover { opacity: 0.8; }
-.about-update-link:disabled { cursor: default; color: var(--mute); text-decoration: none; }
+.about-update-link:hover { color: var(--ink); background: var(--hover); }
+.about-update-link:disabled { cursor: default; color: var(--mute); opacity: 0.5; }
 .about-meta {
   font-size: var(--fs-sm);
   color: var(--mute-2);
@@ -1016,14 +1017,14 @@ body {
 .info-pane-settings .info-h:first-of-type { margin-top: 28px; }
 
 .settings-close {
-  width: 32px;
-  height: 32px;
+  width: var(--control-h);
+  height: var(--control-h);
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 8px;
-  background: transparent;
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
   color: var(--mute);
   cursor: pointer;
 }
@@ -1047,7 +1048,7 @@ body {
   flex-direction: column;
   width: min(480px, 90vw);
   height: min(560px, 85vh);
-  background: #fff;
+  background: var(--panel);
   border-radius: var(--radius);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
@@ -1155,7 +1156,7 @@ body {
 /* Pendant la confirmation, le bloc d'actions grandit : on aligne en haut pour
    que le titre du contenu reste à sa place au lieu d'être recentré. */
 .content-mgr-item:has(.content-mgr-confirm) { align-items: flex-start; }
-.content-mgr-item:has(.content-mgr-confirm) .content-mgr-name { line-height: 28px; }
+.content-mgr-item:has(.content-mgr-confirm) .content-mgr-name { line-height: var(--control-h); }
 .content-mgr-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .content-mgr-empty {
   padding: 28px 8px;
@@ -1169,22 +1170,22 @@ body {
 .content-mgr-del,
 .content-mgr-confirm-del { color: var(--danger); }
 .content-mgr-del:hover,
-.content-mgr-confirm-del:hover { color: var(--danger); border-color: var(--danger-border); background: var(--danger-weak); }
+.content-mgr-confirm-del:hover { color: var(--danger); background: var(--danger-weak); }
 .content-mgr-confirm { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .content-mgr-confirm-btns { display: inline-flex; align-items: center; gap: 6px; }
 .content-mgr-confirm-hint { font-size: var(--fs-sm); color: var(--mute-2); text-align: right; }
 .content-mgr-confirm-input {
-  width: 140px; height: 28px;
+  width: 140px; height: var(--control-h);
   padding: 0 10px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  font-family: inherit; font-size: var(--fs-sm);
-  color: var(--ink); background: #fff; outline: none;
+  border-radius: var(--radius-sm);
+  font-family: inherit; font-size: var(--fs-md);
+  color: var(--ink); background: var(--panel); outline: none;
 }
 .content-mgr-confirm-input:focus { border-color: var(--danger); }
 .content-mgr-confirm-input::placeholder { color: var(--mute-2); }
 .content-mgr-confirm-del:disabled { opacity: 0.45; cursor: not-allowed; }
-.content-mgr-confirm-del:disabled:hover { color: var(--danger); border-color: var(--line); background: none; }
+.content-mgr-confirm-del:disabled:hover { color: var(--danger); background: var(--surface-1); }
 
 /* Menu déroulant custom (langue) — aligné sur le style des boutons (.hdr-btn). */
 .dropdown { position: relative; }
@@ -1194,24 +1195,21 @@ body {
   align-items: center;
   gap: 8px;
   min-width: 130px;
-  height: 28px;
-  padding: 0 8px 0 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--ink);
+  height: var(--control-h);
+  padding: 0 8px 0 11px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  color: var(--ink-2);
   font-family: inherit;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-md);
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  box-shadow: none;
+  transition: background 0.15s, color 0.15s;
 }
-/* Dans la zone principale (fond gris --bg), le déclencheur ne doit pas flotter
-   en blanc : même traitement que .main .hdr-btn. */
-.main .dropdown-trigger { background: var(--surface-1); box-shadow: none; }
-.main .dropdown-trigger:hover { background: var(--hover); }
-.dropdown-trigger:hover { border-color: var(--line-strong); background: var(--hover); }
-.dropdown-trigger[aria-expanded="true"] { border-color: var(--line-strong); box-shadow: 0 1px 3px rgba(0,0,0,0.09); }
+.dropdown-trigger:hover { background: var(--hover); color: var(--ink); }
+.dropdown-trigger[aria-expanded="true"] { background: var(--hover); }
 .dropdown-value { flex: 1; text-align: left; }
 .dropdown-caret { width: 14px; height: 14px; flex: none; color: var(--mute); }
 
@@ -1225,7 +1223,7 @@ body {
   padding: 4px;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
 }
 .dropdown-option {
@@ -1235,7 +1233,7 @@ body {
   width: 100%;
   padding: 7px 10px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink);
   font-family: inherit;
@@ -1248,3 +1246,11 @@ body {
 .dropdown-option-label { flex: 1; }
 .dropdown-check { width: 15px; height: 15px; flex: none; color: var(--accent); visibility: hidden; }
 .dropdown-option.selected .dropdown-check { visibility: visible; }
+
+/* Focus clavier commun à tous les contrôles interactifs. */
+:where(.tab, .hdr-btn, .filter-btn, .settings-close, .dropdown-trigger,
+  .dropdown-option, .screen-modal__item, .tool-item, .about-update-link):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.field:focus-within { box-shadow: inset 0 0 0 1px var(--line-strong); }
