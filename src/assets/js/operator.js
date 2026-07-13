@@ -322,7 +322,6 @@ function projectVerse(i) {
 
 // ─── BIBLE ───────────────────────────────────────────────────────────────────
 
-const NT_FIRST_BOOK = 'Matthieu';
 const bibleBooksCache = {};
 
 // Bible par défaut : mémorise la dernière traduction sélectionnée.
@@ -501,17 +500,11 @@ function bibleRefAttr(book, chapter) {
   return esc(JSON.stringify({ book, chapter }));
 }
 
-// Construit la liste HTML des livres groupés par testament. `entry(book)` retourne
+// Construit la liste HTML des livres. `entry(book)` retourne
 // l'objet { ref, title } d'un item (référence pour data-bible-ref + libellé affiché).
-function renderBibleBookList(books, candidates, entry) {
-  const ntIdx = books.indexOf(NT_FIRST_BOOK);
-  let html = '', lastTestament = null;
+function renderBibleBookList(candidates, entry) {
+  let html = '';
   for (const b of candidates.slice(0, 20)) {
-    const testament = ntIdx >= 0 && books.indexOf(b) >= ntIdx ? 'Nouveau Testament' : 'Ancien Testament';
-    if (testament !== lastTestament) {
-      html += `<div class="source-group">${testament}</div>`;
-      lastTestament = testament;
-    }
     const { ref, title } = entry(b);
     html += `<div class="content-item" data-bible-ref='${ref}'><span class="item-title">${esc(title)}</span></div>`;
   }
@@ -532,7 +525,7 @@ document.getElementById('bibleSearchInput').addEventListener('input', async e =>
 
   if (ref) {
     const candidates = ref.ambiguous ? ref.candidates : [ref.book];
-    list.innerHTML = renderBibleBookList(books, candidates, b => ({
+    list.innerHTML = renderBibleBookList(candidates, b => ({
       ref: bibleRefAttr(b, ref.chapter),
       title: `${b} ${ref.chapter}`,
     }));
@@ -545,7 +538,7 @@ document.getElementById('bibleSearchInput').addEventListener('input', async e =>
 
   const matches = findBooks(books, q, false).slice(0, 20);
   if (!matches.length) { list.innerHTML = `<div class="search-empty">${esc(t('list.noBook'))}</div>`; return; }
-  list.innerHTML = renderBibleBookList(books, matches, b => ({
+  list.innerHTML = renderBibleBookList(matches, b => ({
     ref: bibleRefAttr(b, 1),
     title: b,
   }));

@@ -233,12 +233,6 @@ body {
   background: var(--scroll); border-radius: 10px; border: 2px solid var(--panel);
 }
 
-.source-group {
-  padding: 8px 11px 4px;
-  font-size: var(--fs-sm);
-  color: #8a8a86;
-}
-
 .content-item {
   display: grid;
   grid-template-columns: 31px 30px minmax(0, 1fr);
