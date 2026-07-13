@@ -861,7 +861,7 @@ body {
 .search-tools .tool-label {
   white-space: nowrap;
 }
-/* Point rouge signalant une mise à jour disponible (rubrique À propos). */
+/* Point bleu signalant une mise à jour disponible (rubrique À propos). */
 .tool-badge {
   position: absolute;
   top: -3px;
@@ -1012,18 +1012,18 @@ body {
 .about-update-link {
   appearance: none;
   border: 0;
-  height: var(--control-h);
-  padding: 0 var(--row-inset);
-  border-radius: var(--radius-sm);
-  background: var(--surface-1);
+  padding: 0;
+  background: none;
   font-family: inherit;
   font-size: var(--fs-md);
-  font-weight: 600;
-  color: var(--ink-2);
+  font-weight: 400;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: opacity 0.15s;
 }
-.about-update-link:hover { color: var(--ink); background: var(--hover); }
+.about-update-link:hover { opacity: 0.75; }
 .about-update-link:disabled { cursor: default; color: var(--mute); opacity: 0.5; }
 .about-meta {
   font-size: var(--fs-sm);
