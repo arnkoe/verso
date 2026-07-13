@@ -630,7 +630,11 @@ async function fetchBibleChapter(ref) {
   document.getElementById('bibleHeader').style.display = '';
   markContentLoaded();
   document.getElementById('bibleTitle').textContent = title;
-  document.getElementById('bibleSubtitle').textContent = 'Traduction ' + translationLabel;
+  // Crédit/licence de la traduction (champ bible_copyright du JSON, ex. CC
+  // BY-NC-ND) accolé au libellé, dans le même style que le reste du kicker.
+  let subtitle = 'Traduction ' + translationLabel;
+  if (data.bible_copyright) subtitle += ' - ' + data.bible_copyright;
+  document.getElementById('bibleSubtitle').textContent = subtitle;
   renderBibleTranslations();
   showPanel('panelBible');
   renderBibleVerses(data.verses);

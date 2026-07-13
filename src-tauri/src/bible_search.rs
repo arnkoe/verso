@@ -20,6 +20,8 @@ pub enum BibleSearchResult {
     Verses {
         verses: Vec<BibleVerse>,
         bible_code: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        bible_copyright: Option<String>,
     },
     Books {
         books: Vec<String>,
@@ -249,6 +251,7 @@ pub fn search(bible: &Bible, q: &str) -> Result<BibleSearchResult, String> {
         return Ok(BibleSearchResult::Verses {
             verses,
             bible_code: bible.bible_code.clone(),
+            bible_copyright: bible.bible_copyright.clone(),
         });
     }
 
@@ -271,6 +274,7 @@ mod tests {
         Bible {
             bible_code: "TST".into(),
             bible_name: None,
+            bible_copyright: None,
             books: vec![
                 BibleBook {
                     name: "Genèse".into(),

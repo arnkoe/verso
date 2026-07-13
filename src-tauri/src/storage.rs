@@ -116,6 +116,11 @@ pub struct Bible {
     /// défaut on retombe sur le code `bible_code`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bible_name: Option<String>,
+    /// Mention de crédit/licence de la traduction (ex. éditeur + licence CC).
+    /// Optionnelle ; affichée discrètement dans l'interface quand elle est
+    /// présente (traductions sous licence exigeant l'attribution).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bible_copyright: Option<String>,
     pub books: Vec<BibleBook>,
 }
 
@@ -219,13 +224,17 @@ pub fn media_dir(app: &AppHandle, kind: &str) -> PathBuf {
 
 // ─── Seed initial ─────────────────────────────────────────────────────────────
 
-/// Recueils et bibles libres de droits empaquetés dans le build, copiés dans le
+/// Recueils et bibles empaquetés dans le build (libres de droits, ou sous
+/// licence permettant la redistribution avec attribution), copiés dans le
 /// dossier de données au premier lancement. Le chemin source est relatif au
 /// dossier `resources/` du bundle ; la destination est relative à `data_dir`.
+/// La Darby révisée (DRR) porte son crédit dans son champ `bible_copyright`
+/// (licence CC BY-NC-ND, attribution affichée dans l'opérateur).
 const SEED_FILES: &[(&str, &str)] = &[
     ("resources/songbooks/songbook-ref.json", "songbooks/songbook-ref.json"),
     ("resources/songbooks/songbook-hec.json", "songbooks/songbook-hec.json"),
     ("resources/bibles/bible-drb.json", "bibles/bible-drb.json"),
+    ("resources/bibles/bible-drr.json", "bibles/bible-drr.json"),
     ("resources/bibles/bible-lsg.json", "bibles/bible-lsg.json"),
 ];
 

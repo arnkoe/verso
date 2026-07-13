@@ -80,7 +80,7 @@ Verso range tout dans un dossier nommé **`Verso`**, à l'intérieur du dossier 
 
 Pour ajouter vos propres PDF ou images, déposez simplement vos fichiers dans le dossier `pdf` ou `images`.
 
-La première fois que vous lancez Verso, si le dossier est vide, Verso y dépose automatiquement quelques contenus gratuits pour commencer : les recueils **Reflets 4** et **Hymnes et Cantiques (révisés)**, et les Bibles **Darby** et **Louis Segond 1910**. Vous pouvez les garder, les modifier ou les supprimer comme vous voulez. Verso ne touche jamais à vos fichiers si vous en avez déjà mis.
+La première fois que vous lancez Verso, si le dossier est vide, Verso y dépose automatiquement quelques contenus gratuits pour commencer : les recueils **Reflets 4** et **Hymnes et Cantiques (révisés)**, et les Bibles **Darby**, **Darby révisée** (Bibles et Publications Chrétiennes, CC BY-NC-ND 4.0) et **Louis Segond 1910**. Vous pouvez les garder, les modifier ou les supprimer comme vous voulez. Verso ne touche jamais à vos fichiers si vous en avez déjà mis.
 
 Verso se souvient aussi de ce qui était projeté la dernière fois et le reprend à la réouverture.
 
@@ -189,6 +189,7 @@ Une traduction est un fichier rangé dans `bibles`, nommé `bible-<code>.json`, 
 {
   "bible_code": "S21",
   "bible_name": "Segond 21",
+  "bible_copyright": "Éditeur — Traduction, licence CC BY-NC-ND 4.0",
   "books": [
     {
       "name": "Genèse",
@@ -218,6 +219,7 @@ Un fichier complet est disponible dans [`examples/bible-abc.json`](examples/bibl
 
 - `bible_code` — code de la traduction ; le nom du fichier en est dérivé.
 - `bible_name` — *(optionnel)* nom lisible de la traduction (par exemple `Segond 21`) ; affiché dans l'opérateur et dans la gestion des contenus. À défaut, on retombe sur le code.
+- `bible_copyright` — *(optionnel)* mention de crédit/licence de la traduction (éditeur, licence). Affichée discrètement dans l'opérateur quand la traduction est sélectionnée ; utile pour les traductions dont la licence exige l'attribution (par exemple `CC BY-NC-ND`).
 - `books` — liste **ordonnée** des livres.
   - `name` — nom du livre (utilisé pour la recherche de référence).
   - `chapters` — tableau de chapitres ; chaque chapitre est un tableau de versets (textes).

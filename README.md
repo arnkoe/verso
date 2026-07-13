@@ -80,7 +80,7 @@ Inside, you will find:
 
 To add your own PDFs or images, simply drop your files into the `pdf` or `images` folder.
 
-The first time you launch Verso, if the folder is empty, Verso automatically adds some free content to get you started: the **Reflets 4** and **Hymnes et Cantiques (révisés)** collections, and the **Darby** and **Louis Segond 1910** Bibles. You can keep, edit or delete them as you wish. Verso never touches your files if you have already added some.
+The first time you launch Verso, if the folder is empty, Verso automatically adds some free content to get you started: the **Reflets 4** and **Hymnes et Cantiques (révisés)** collections, and the **Darby**, **Darby révisée** (Bibles et Publications Chrétiennes, CC BY-NC-ND 4.0) and **Louis Segond 1910** Bibles. You can keep, edit or delete them as you wish. Verso never touches your files if you have already added some.
 
 Verso also remembers what was being projected last time and brings it back when you reopen it.
 
@@ -189,6 +189,7 @@ A translation is a file kept in `bibles`, named `bible-<code>.json`, where `<cod
 {
   "bible_code": "S21",
   "bible_name": "Segond 21",
+  "bible_copyright": "Publisher — Translation, CC BY-NC-ND 4.0 license",
   "books": [
     {
       "name": "Genesis",
@@ -218,6 +219,7 @@ A complete file is available in [`examples/bible-abc.json`](examples/bible-abc.j
 
 - `bible_code` — the translation code; the file name is derived from it.
 - `bible_name` — *(optional)* the readable translation name (for example `Segond 21`); shown in the operator and in the content manager. Falls back to the code if absent.
+- `bible_copyright` — *(optional)* a credit/license note for the translation (publisher, license). Shown discreetly in the operator when the translation is selected; useful for translations whose license requires attribution (for example `CC BY-NC-ND`).
 - `books` — the **ordered** list of books.
   - `name` — the book name (used for reference search).
   - `chapters` — an array of chapters; each chapter is an array of verses (texts).

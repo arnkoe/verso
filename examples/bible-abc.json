@@ -1,6 +1,7 @@
 {
   "bible_code": "ABC",
   "bible_name": "Nom lisible de la traduction",
+  "bible_copyright": "Éditeur — Traduction, licence (par ex. CC BY-NC-ND 4.0)",
   "books": [
     {
       "name": "Genèse",
