@@ -1153,14 +1153,15 @@ body {
 .settings-update-status.error { color: var(--danger); }
 .settings-update-status.available { color: var(--accent); font-weight: 600; }
 
-/* Indicateur textuel de synchronisation des recueils, au-dessus de la barre
-   d'outils. Même mise en forme et même espacement que le nom d'écran du pied de
-   la card monitor (.monitor-foot). L'état « échec » reçoit une teinte rouge
+/* Indicateur textuel de synchronisation des recueils. Le texte secondaire et
+   la gouttière basse reprennent les standards de la sidebar ; la liste fournit
+   déjà la même gouttière au-dessus. L'état « échec » reçoit une teinte rouge
    atténuée, sans vert (réservé à la projection active). Masqué hors
    superutilisateur ou sans état. */
 .sync-status {
-  margin-top: 6px;
-  font-size: var(--fs-xs);
+  margin: 0 0 var(--sidebar-gutter);
+  font-size: var(--fs-sm);
+  line-height: var(--ui-line-h);
   color: var(--mute-2);
   text-align: center;
 }
