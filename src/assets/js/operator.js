@@ -22,6 +22,7 @@ const state = {
   searchCursor: 0,
   overlayPanel: null,  // panneau de superposition affiché (Aide/À propos/Paramètres) ou null
 };
+let lastActiveProjection = null;
 
 // Le libellé du bouton « Ouvrir le dossier Verso » dépend de la plateforme :
 // « Finder » sur macOS, « explorateur » sur Windows. On remplace les clés i18n
@@ -63,13 +64,29 @@ function setLive(el, isLive) {
 
 // ─── PROJECTION API ──────────────────────────────────────────────────────────
 
-async function project(payload) {
+function applyProjectionState(payload) {
+  if (payload?.type && payload.type !== 'blank') {
+    lastActiveProjection = payload;
+  } else if (payload?.previous?.type && payload.previous.type !== 'blank') {
+    lastActiveProjection = payload.previous;
+  }
   state.projection = payload;
   updatePreview(payload);
   syncActiveItems(payload);
+}
+
+async function project(payload) {
+  applyProjectionState(payload);
   // Persiste + émet vers la fenêtre projection (remplace BroadcastChannel).
   await apiSetProjectionState(payload);
 }
+
+// Une mise à jour peut aussi provenir des raccourcis de la fenêtre de projection.
+// Dans ce cas, garde l'aperçu et les indicateurs « en projection » synchronisés.
+tauriEvent.listen('projection-update', e => {
+  if (JSON.stringify(e.payload) === JSON.stringify(state.projection)) return;
+  applyProjectionState(e.payload);
+});
 
 // ─── TABS ───────────────────────────────────────────────────────────────────
 
@@ -825,7 +842,7 @@ function projectImage() {
 // ─── MASQUAGE DE LA PROJECTION ───────────────────────────────────────────────
 
 function hideProjection() {
-  project({ type: 'blank' });
+  project({ type: 'blank', ...(lastActiveProjection && { previous: lastActiveProjection }) });
 }
 
 // ─── PRÉVISUALISATION ────────────────────────────────────────────────────────
@@ -1083,15 +1100,15 @@ document.addEventListener('keydown', e => {
   activateTab(TAB_ORDER[next]);
 }, true);
 
-// Cmd/Ctrl+P ouvre la fenêtre de projection et Cmd/Ctrl+M la masque, exactement
-// comme les deux boutons sous l'aperçu. Ces raccourcis fonctionnent aussi depuis
-// un champ de recherche (capture).
+// Cmd/Ctrl+P ouvre la fenêtre de projection et réaffiche le dernier contenu si
+// elle était masquée. Cmd/Ctrl+M la masque. Ces raccourcis fonctionnent aussi
+// depuis un champ de recherche (capture).
 document.addEventListener('keydown', e => {
   if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return;
   const key = e.key.toLowerCase();
   if (key !== 'p' && key !== 'm') return;
   e.preventDefault();
-  if (key === 'p') openProjection();
+  if (key === 'p') restoreAndOpenProjection();
   else hideProjection();
 }, true);
 
@@ -1334,6 +1351,13 @@ async function openProjection() {
   }
 }
 
+async function restoreAndOpenProjection() {
+  if (state.projection?.type === 'blank' && lastActiveProjection) {
+    await project(lastActiveProjection);
+  }
+  await openProjection();
+}
+
 async function pickProjectionScreen() {
   if (_openingProjection) return;
   _openingProjection = true;
@@ -1417,9 +1441,7 @@ window.addEventListener('focus', () => {
   try {
     const s = await apiGetProjectionState();
     if (s && s.type) {
-      state.projection = s;
-      updatePreview(s);
-      syncActiveItems(s);
+      applyProjectionState(s);
     }
   } catch (_) {}
 })();

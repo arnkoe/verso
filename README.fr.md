@@ -92,7 +92,7 @@ La fenêtre opérateur a quatre onglets : **Chants**, **Bible**, **PDF** et **Im
 
 Le principe est toujours le même : vous cherchez ce que vous voulez, vous le sélectionnez, et il s'affiche sur le vidéoprojecteur.
 
-Sous l'aperçu de la projection, **Projeter** ouvre la fenêtre de projection sur l'écran configuré dans les Paramètres, tandis que **Masquer** vide son contenu et affiche un écran blanc. Leurs raccourcis sont indiqués directement dans les boutons : **Cmd/Ctrl P** et **Cmd/Ctrl M**.
+Sous l'aperçu de la projection, **Projeter** ouvre la fenêtre de projection sur l'écran configuré dans les Paramètres, tandis que **Masquer** vide temporairement son contenu et affiche un écran blanc. Leurs raccourcis sont indiqués directement dans les boutons : **Cmd/Ctrl P** et **Cmd/Ctrl M**. Ils fonctionnent aussi lorsque la fenêtre de projection a le focus : **Cmd/Ctrl M** vide l'écran sans fermer ni réduire la fenêtre, et **Cmd/Ctrl P** réaffiche le dernier contenu projeté.
 
 La recherche de chants est tolérante : elle ignore les accents et les apostrophes, accepte plusieurs mots, et matche aussi bien le numéro du chant que ses premiers mots (incipit).
 

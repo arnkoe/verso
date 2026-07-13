@@ -92,7 +92,7 @@ The operator window has four tabs: **Songs**, **Bible**, **PDF** and **Images**.
 
 The principle is always the same: you search for what you want, you select it, and it appears on the projector.
 
-Below the projection preview, **Project** opens the projection window on the screen configured in Settings, while **Hide** clears its content and displays a white screen. Their shortcuts are shown directly in the buttons: **Cmd/Ctrl P** and **Cmd/Ctrl M**.
+Below the projection preview, **Project** opens the projection window on the screen configured in Settings, while **Hide** temporarily clears its content and displays a white screen. Their shortcuts are shown directly in the buttons: **Cmd/Ctrl P** and **Cmd/Ctrl M**. They also work when the projection window has focus: **Cmd/Ctrl M** clears the screen without closing or minimizing the window, and **Cmd/Ctrl P** restores the last projected content.
 
 Song search is forgiving: it ignores accents and apostrophes, accepts several words, and matches both the song number and the opening words (incipit).
 
