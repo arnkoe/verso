@@ -92,6 +92,8 @@ The operator window has four tabs: **Songs**, **Bible**, **PDF** and **Images**.
 
 The principle is always the same: you search for what you want, you select it, and it appears on the projector.
 
+Below the projection preview, **Project** opens the projection window on the screen configured in Settings, while **Hide** clears its content and displays a white screen.
+
 Song search is forgiving: it ignores accents and apostrophes, accepts several words, and matches both the song number and the opening words (incipit).
 
 ### Editing a song
@@ -126,6 +128,7 @@ Verso has keyboard shortcuts to switch tabs, search, and project without the mou
 
 The **Settings** button (gear icon) in the toolbar opens a panel with sections:
 
+- **Projection** — choose the screen used for projection. The selection is remembered for future sessions.
 - **Content** — manage your collections, Bibles, PDFs and images directly from Settings: for each category you can **Add** files, **Manage** the existing items and **Delete** them, without leaving the application. You can also open the Verso folder where these files live.
 - **Language** — change the interface language.
 - **Updates** — check manually for a new version and install it.

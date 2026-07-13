@@ -362,10 +362,10 @@ body {
   gap: 8px;
 }
 .monitor-actions .hdr-btn {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
   height: 32px;
-  justify-content: flex-start;
+  justify-content: center;
   padding: 0 11px;
   overflow: hidden;
   border: 0;
@@ -374,32 +374,9 @@ body {
   box-shadow: none;
   color: #55554f;
   font-size: var(--fs-md);
-}
-.monitor-actions .hdr-btn:hover { background: #eae9e6; box-shadow: none; }
-.monitor-actions #btnModeRien {
-  flex: 0 0 100px;
-  justify-content: center;
-  color: #1a1a1a;
   font-weight: 600;
 }
-.monitor-actions #btnModeRien svg { display: none; }
-.monitor-screen-name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.monitor-actions .monitor-chevron {
-  width: 9px;
-  height: 9px;
-  margin-left: auto;
-  color: #8a8a86;
-}
-.monitor-actions .hdr-btn.active {
-  border-color: transparent;
-  background: #eae9e6;
-  color: var(--ink);
-}
+.monitor-actions .hdr-btn:hover { background: #eae9e6; box-shadow: none; }
 
 /* Canvas de preview (reproduit fidèlement la projection 16/9, scalé).
    Même ratio que le slide ; le cadre du moniteur est lui-même en 16/9. */
@@ -1110,6 +1087,21 @@ body {
 
 .settings-row-label { font-size: var(--fs-md); color: var(--ink); }
 .settings-row-desc { font-size: var(--fs-sm); color: var(--mute-2); margin-top: 2px; }
+
+.settings-screen-button {
+  min-width: 180px;
+  max-width: min(320px, 45vw);
+}
+.settings-screen-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.settings-screen-chevron {
+  margin-left: auto;
+  color: var(--mute);
+}
 
 .settings-update-status {
   font-size: var(--fs-md);

@@ -99,13 +99,10 @@
           </div>
         </div>
         <div class="actions-bar monitor-actions" role="toolbar" aria-label="Contrôles de projection" data-i18n-aria-label="monitor.controls">
-          <button class="hdr-btn" id="btnPickScreen" data-action="pickProjectionScreen" title="Choisir l'écran de projection" data-i18n-title="monitor.screenTitle" style="display:none;">
-            <span id="monitorScreen" class="monitor-screen-name"></span>
-            <span id="monitorRes" hidden></span>
-            <svg class="monitor-chevron" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="2,3.5 5,6.5 8,3.5"/></svg>
+          <button class="hdr-btn" id="btnProject" data-action="openProjection" title="Ouvrir la projection sur l'écran sélectionné" data-i18n-title="monitor.projectTitle">
+            <span data-i18n="monitor.project">Projeter</span>
           </button>
-          <button class="hdr-btn" id="btnModeRien" data-action="toggleProjectionVisibility" title="Masquer tout le contenu" data-i18n-title="monitor.hideTitle">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 12.5-5-5"/><path d="m9.5 12.5 5-5"/><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
+          <button class="hdr-btn" id="btnHideProjection" data-action="hideProjection" title="Vider la projection et afficher un écran blanc" data-i18n-title="monitor.hideTitle">
             <span data-i18n="monitor.hide">Masquer</span>
           </button>
         </div>
@@ -245,10 +242,23 @@
         </div>
       </div>
 
-      <!-- Panel Paramètres : page déroulante (Contenus, Langue, Mises à jour). -->
+      <!-- Panel Paramètres : page déroulante (Projection, Contenus, Langue, Mises à jour). -->
       <div class="panel" id="panelSettings">
         <div class="info-pane info-pane-settings">
           <h2 class="info-title" data-i18n="settings.title">Paramètres</h2>
+
+          <!-- Section Projection : choix persistant de l'écran cible. -->
+          <h3 class="info-h" data-i18n="settings.projectionTitle">Projection</h3>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="settings.projectionScreen">Écran de projection</div>
+              <div class="settings-row-desc" data-i18n="settings.projectionScreenDesc">Choisissez l'écran utilisé pour la projection.</div>
+            </div>
+            <button class="hdr-btn settings-screen-button" id="btnPickScreen" data-action="pickProjectionScreen" title="Choisir l'écran de projection" data-i18n-title="monitor.screenTitle">
+              <span id="monitorScreen" class="settings-screen-name"></span>
+              <svg class="settings-screen-chevron" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="2,3.5 5,6.5 8,3.5"/></svg>
+            </button>
+          </div>
 
           <!-- Section Contenus : un bouton « Gérer » par type, ouvrant une modale dédiée. -->
           <h3 class="info-h" data-i18n="settings.contentTitle">Contenus</h3>

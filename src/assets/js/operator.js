@@ -18,8 +18,6 @@ const state = {
   pdfPage: -1,
   image: null,
   projection: null,
-  lastProjection: null,
-  projectionMode: 'textes',
   bibleCode: null,
   searchCursor: 0,
   overlayPanel: null,  // panneau de superposition affiché (Aide/À propos/Paramètres) ou null
@@ -66,7 +64,6 @@ function setLive(el, isLive) {
 // ─── PROJECTION API ──────────────────────────────────────────────────────────
 
 async function project(payload) {
-  if (payload && payload.type !== 'blank') state.lastProjection = payload;
   state.projection = payload;
   updatePreview(payload);
   syncActiveItems(payload);
@@ -299,15 +296,9 @@ function renderVerseList() {
   }).join('');
 }
 
-function clearProjectionModeButtons() {
-  state.projectionMode = null;
-  updateProjectionVisibilityButton(false);
-}
-
 function projectVerse(i) {
   if (!state.song) return;
   state.songVerse = i;
-  clearProjectionModeButtons();
   project({
     type: 'song',
     id: state.songId,
@@ -649,7 +640,6 @@ function projectBibleVerse(i) {
   const v = state.bible?.verses[i];
   if (!v) return;
   state.bibleVerse = i;
-  clearProjectionModeButtons();
   project({
     type: 'bible',
     verse: i,
@@ -757,7 +747,6 @@ async function renderPdfThumbnails(filename) {
 function projectPdfPage(page) {
   if (!state.pdf) return;
   state.pdfPage = page;
-  clearProjectionModeButtons();
 
   document.querySelectorAll('#pdfPageList .pdf-page-item').forEach(el => {
     setLive(el, parseInt(el.dataset.page) === page);
@@ -825,7 +814,6 @@ async function selectImage(filename) {
 
 function projectImage() {
   if (!state.image) return;
-  clearProjectionModeButtons();
 
   document.querySelectorAll('#imagePreview .strophe-item').forEach(el => {
     setLive(el, el.dataset.imagePreview === state.image.filename);
@@ -834,26 +822,9 @@ function projectImage() {
   project({ type: 'image', filename: state.image.filename });
 }
 
-// ─── BOUTON NOIR ─────────────────────────────────────────────────────────────
+// ─── MASQUAGE DE LA PROJECTION ───────────────────────────────────────────────
 
-function updateProjectionVisibilityButton(hidden) {
-  const button = document.getElementById('btnModeRien');
-  const label = button?.querySelector('span');
-  if (!button || !label) return;
-  const labelKey = hidden ? 'monitor.project' : 'monitor.hide';
-  const titleKey = hidden ? 'monitor.projectTitle' : 'monitor.hideTitle';
-  button.classList.toggle('active', hidden);
-  button.dataset.i18nTitle = titleKey;
-  button.title = t(titleKey);
-  label.dataset.i18n = labelKey;
-  label.textContent = t(labelKey);
-}
-
-function toggleProjectionVisibility() {
-  if (state.projectionMode === 'rien') {
-    if (state.lastProjection) project(state.lastProjection);
-    return;
-  }
+function hideProjection() {
   project({ type: 'blank' });
 }
 
@@ -963,8 +934,6 @@ function syncActiveItems(s) {
   } else if (s.type === 'image') {
     syncList('#imagePreview .strophe-item', el => el.dataset.imagePreview === s.filename);
   }
-  state.projectionMode = s.type === 'blank' ? 'rien' : null;
-  updateProjectionVisibilityButton(state.projectionMode === 'rien');
 }
 
 // ─── NAVIGATION CLAVIER DANS LES LISTES ──────────────────────────────────────
@@ -1328,17 +1297,14 @@ function _screenLabel(m, index) {
 
 function _updateMonitorScreen(m) {
   const el = document.getElementById('monitorScreen');
-  const resEl = document.getElementById('monitorRes');
   if (!el) return;
   if (!m) {
     el.textContent = t('screen.none');
-    if (resEl) resEl.textContent = '';
     return;
   }
-  // Réutilise le libellé exact choisi dans le sélecteur (cf. _screenLabel),
-  // pour que le nom affiché ici corresponde à celui de la modale de choix.
+  // Réutilise le libellé exact choisi dans le sélecteur (cf. _screenLabel), afin
+  // que le nom affiché dans les paramètres corresponde à celui de la modale.
   el.textContent = m.label || _screenLabel(m);
-  if (resEl) resEl.textContent = `${m.width} × ${m.height}`;
 }
 
 async function openProjection() {
@@ -1383,7 +1349,6 @@ async function pickProjectionScreen() {
     const choice = await _askScreenChoice(monitors);
     if (!choice) return;
     _saveScreen(choice);
-    await apiOpenProjection(choice.x, choice.y, choice.width, choice.height);
   } finally {
     _openingProjection = false;
   }
@@ -1429,7 +1394,6 @@ window.addEventListener('focus', () => {
 });
 
 (async function _initProjectionUI() {
-  document.getElementById('btnPickScreen').style.display = '';
   const saved = _savedScreen();
   // Affiche d'abord la valeur stockée (instantané), puis la réconcilie avec la
   // liste live : un écran sauvegardé par une ancienne version peut contenir un
