@@ -818,48 +818,56 @@ body {
     justify-content: flex-start;
   }
 
-  /* Boutons de la barre d'outils : label court (ex. "Racc.") pour tenir dans
-     la sidebar réduite sans rognage. */
-  .search-tools .tool-label[data-short] {
-    font-size: 0;
-  }
-  .search-tools .tool-label[data-short]::before {
-    content: attr(data-short);
-    font-size: var(--fs-sm);
-  }
 }
 
-/* ─── Barre d'outils (dossier, aide, à propos) en bas de la card recherche ───── */
-/* Mêmes boutons que la card monitor (.hdr-btn), répartis sur la largeur. */
+/* ─── Rubriques (paramètres, aide, à propos) en bas de la card recherche ─────── */
+/* Style « menu » : picto + libellé alignés sur les résultats de recherche
+   (.content-item), mêmes fonds de survol/sélection (--hover / --sel). */
 .search-tools {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 6px;
-  padding: 10px 12px;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 0 10px;
 }
-.search-tools .hdr-btn {
+.search-tools .tool-item {
   position: relative;
-  flex: 1 1 0;
-  min-width: 0;
-  justify-content: center;
-  padding: 0 6px;
-  /* overflow visible pour laisser sortir le .tool-badge (point de mise à jour)
-     positionné hors du bouton ; le rognage du texte se fait sur .tool-label. */
-  overflow: visible;
+  display: flex;
+  align-items: center;
+  /* Aligne le libellé sur le titre des résultats : marge 14 + padding 10
+     de .content-item, puis colonne picto 30 + gap 8. */
+  gap: 8px;
+  width: calc(100% - 28px);
+  margin: 0 14px;
+  padding: 7px 10px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: var(--fs-md);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.search-tools .tool-item:hover { background: var(--hover); }
+/* Rubrique dont le panneau est ouvert : surbrillance persistante, comme la
+   sélection d'un résultat de recherche (--sel). */
+.search-tools .tool-item.active { background: var(--sel); }
+.search-tools .tool-item svg {
+  flex: 0 0 30px;
+  width: 20px;
+  height: 20px;
 }
 .search-tools .tool-label {
   white-space: nowrap;
 }
-/* Point rouge signalant une mise à jour disponible (bouton À propos). */
+/* Point rouge signalant une mise à jour disponible (rubrique À propos). */
 .tool-badge {
-  position: absolute;
-  top: -3px;
-  right: -3px;
+  margin-left: 6px;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 0 2px var(--panel);
 }
 .tool-badge[hidden] { display: none; }
 

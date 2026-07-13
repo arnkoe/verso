@@ -139,11 +139,23 @@ function slideTabIndicator(target) {
 // sont affichés, quel que soit l'onglet actif.
 const OVERLAY_PANELS = ['panelHelp', 'panelAbout', 'panelSettings'];
 
+// Rubrique de la barre d'outils correspondant à chaque panneau de superposition,
+// pour garder la rubrique ouverte en surbrillance (sélection persistante).
+const TOOL_ITEM_FOR_PANEL = {
+  panelSettings: 'openSettings',
+  panelHelp: 'showHelp',
+  panelAbout: 'showAbout',
+};
+
 function showPanel(id) {
   ['panelCantique', 'panelBible', 'panelPdf', 'panelImages', ...OVERLAY_PANELS].forEach(p => {
     document.getElementById(p).classList.toggle('active', p === id);
   });
   state.overlayPanel = OVERLAY_PANELS.includes(id) ? id : null;
+  const activeTool = TOOL_ITEM_FOR_PANEL[id] || null;
+  document.querySelectorAll('.search-tools .tool-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.action === activeTool);
+  });
   updateEmptyState();
 }
 
