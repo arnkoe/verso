@@ -15,9 +15,9 @@
   --line: #e7e7e4;        /* bordure standard */
   --line-strong: #d8d8d4; /* bordure au survol */
   --scroll: #e5e5e1;      /* pouce d'ascenseur */
-  --live: #2aa05a;
-  --live-weak: rgba(42,160,90,0.12);
-  --live-hover: rgba(42,160,90,0.18);
+  --live: #22c55e;
+  --live-weak: rgba(34,197,94,0.12);
+  --live-hover: rgba(34,197,94,0.18);
   --accent: #2563eb;
   --danger: #c62828;         /* erreurs, actions destructives */
   --danger-weak: #fdeaea;    /* fond léger d'un contrôle destructif au survol */
