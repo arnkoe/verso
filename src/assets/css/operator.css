@@ -550,6 +550,11 @@ body {
   letter-spacing: -0.01em;
   color: var(--ink);
   white-space: nowrap;
+  /* overflow: hidden (requis pour l'ellipsis) rogne aussi les jambages avec
+     line-height: 1. On rend l'espace nécessaire aux descendantes à l'intérieur
+     de la boîte, compensé par une marge négative pour garder l'alignement bas. */
+  padding-bottom: 0.15em;
+  margin-bottom: -0.15em;
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
