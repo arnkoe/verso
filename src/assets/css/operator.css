@@ -21,7 +21,7 @@
   --danger-border: #e3b4b4;  /* bordure d'un contrôle destructif au survol */
   --danger-weak: #fdeaea;    /* fond léger d'un contrôle destructif au survol */
   --radius: 10px;
-  --w-sidebar: 320px;
+  --w-sidebar: 330px;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   /* Échelle typographique unifiée. N'utiliser que ces tokens. */
   --fs-xs: 11px;    /* métadonnées, compteurs, libellés discrets */
@@ -94,44 +94,33 @@ body {
   border-radius: 0;
 }
 
-/* Cards de la sidebar : le contraste vient du fond de fenêtre légèrement
-   grisé (--bg) sous les cards blanches ; l'ombre reste minimale, juste pour
-   décoller les cards. */
-.sidebar-left .card {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04);
-}
+/* Les deux zones de la sidebar sont réunies dans un panneau continu. */
+.sidebar-left .card { box-shadow: none; }
 
 /* ── SIDEBARS ──────────────────────────────────────────────────────────────── */
 .sidebar-left {
   display: grid;
-  /* La card monitor (2e piste) prend sa hauteur de contenu quand il y a la
-     place, mais doit pouvoir se comprimer : `auto` la fige à sa hauteur
-     max-content (cadre 16/9 + entête + pied + boutons), si bien que sur un
-     viewport CSS court (fenêtre haute/étroite à dpr 2 : innerHeight devient
-     ~320px) elle déborde sous la sidebar. minmax(0, max-content) autorise la
-     piste à rétrécir ; combinée au flex compressible de .card-monitor, le cadre
-     16/9 se réduit au lieu de laisser la card sortir par le bas. */
-  grid-template-rows: minmax(0, 1fr) minmax(0, max-content);
-  gap: 12px;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  gap: 0;
   min-height: 0;
-  /* min-width:0 pour que la sidebar respecte strictement la largeur de sa
-     colonne (var(--w-sidebar)) : sans ça, le contenu de la card recherche
-     (champ + barre de boutons en nowrap) élargit la sidebar et déborde. */
   min-width: 0;
   height: 100%;
+  background: var(--panel);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 14px;
+  box-shadow: 0 10px 32px rgba(0,0,0,0.08);
+  overflow: hidden;
 }
 
 /* ── CARD RECHERCHE ────────────────────────────────────────────────────────── */
 .card-search {
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  /* Colonne explicite bornée : sans ça, la colonne implicite du grid est
-     dimensionnée en max-content et s'étend à la largeur du contenu le plus
-     large (onglets, barre de boutons en nowrap), ce qui élargit la card
-     au-delà de la sidebar. */
+  grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-columns: minmax(0, 1fr);
   min-height: 0;
   min-width: 0;
+  border: 0;
+  border-radius: 0;
 }
 /* Tabs sur la 1re ligne ; le panneau visible occupe toujours la 2e (1fr),
    quel que soit l'onglet, pour qu'il scrolle au lieu de pousser la carte
@@ -140,100 +129,75 @@ body {
 #searchCantiques, #searchBible, #listPdf, #listImages { grid-row: 2; }
 
 .tabs {
-  --tab-count: 4;
-  --tab-index: 0;
   display: grid;
-  grid-template-columns: repeat(var(--tab-count), 1fr);
-  /* Marge haute portée à --titlebar-h : la card sidebar monte jusqu'en haut de
-     la fenêtre (barre de titre transparente), mais les onglets sont décalés
-     vers le bas pour dégager les feux tricolores macOS qui flottent au-dessus. */
-  margin: var(--titlebar-h) 12px 0;
-  padding: 2px;
-  background: var(--line-2);
-  border-radius: 8px;
-  position: relative;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2px;
+  margin: var(--titlebar-h) 0 0;
+  padding: 10px 10px 0;
 }
-/* Pastille blanche unique placée sous l'onglet actif. Elle occupe exactement
-   une cellule (1/--tab-count de la zone interne) et se positionne par translateX
-   d'un multiple de sa propre largeur (100%). Aucune constante magique : ajouter
-   un onglet ne demande que --tab-count. La marge autour de la pastille vient du
-   padding 2px du conteneur, pas d'un gap (qui casserait les pourcentages).
-   Le glissement est animé en JS (slideTabIndicator) qui interpole --tab-index
-   image par image. Surtout PAS de transition CSS sur ce transform : sur cette
-   webview elle déclenche l'animateur natif macOS qui ajoute un ressort visible
-   (dépassement puis retour) impossible à neutraliser via la courbe. */
-.tabs::before {
-  content: "";
-  position: absolute;
-  top: 2px;
-  bottom: 2px;
-  left: 2px;
-  width: calc((100% - 4px) / var(--tab-count));
-  transform: translateX(calc(var(--tab-index) * 100%));
-  background: var(--panel);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.04);
-  border-radius: 6px;
-  z-index: 0;
-}
-/* L'espace tabs → champ doit égaler champ → filtres. Ce dernier vaut 12px
-   (gap 8px de la search-box + padding-top 4px de .filter-pills). La search-box
-   apporte déjà 12px de padding-top : on le garde tel quel via la marge des tabs
-   (margin-bottom 0), donc rien à surcharger ici. */
 .tab {
   appearance: none;
   background: transparent;
   border: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   font-family: inherit;
   font-size: var(--fs-md);
-  color: var(--mute-2);
-  padding: 6px 0;
+  color: #8a8a86;
+  padding: 7px 0;
   cursor: pointer;
-  position: relative;
-  z-index: 1;
-  transition: color 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
 .tab.active {
-  color: var(--ink);
-  font-weight: 700;
+  color: #1a1a1a;
+  background: #f2f1ef;
+  font-weight: 600;
 }
 .tab:hover:not(.active) { color: var(--ink); }
 
 /* ── ZONE RECHERCHE DANS SIDEBAR ───────────────────────────────────────────── */
 .search-box {
-  padding: 12px;
+  padding: 10px;
   display: grid;
   gap: 8px;
 }
 
-.field { position: relative; display: flex; align-items: center; }
+.field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 11px;
+  background: #f2f1ef;
+  border-radius: 8px;
+}
 .field svg {
-  position: absolute; left: 9px;
-  width: 13px; height: 13px; color: var(--mute-2);
+  position: static;
+  width: 14px; height: 14px; color: #8a8a86;
+  flex: none;
   pointer-events: none;
 }
 .search-input {
-  width: 100%; height: 30px;
-  padding: 0 10px 0 28px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  width: 100%; height: auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
   font-family: inherit; font-size: var(--fs-md);
-  color: var(--ink); background: #fff; outline: none;
+  color: #1a1a1a; background: transparent; outline: none;
 }
-.search-input:focus { border-color: var(--ink-2); }
-.search-input::placeholder { color: var(--mute-2); }
+.search-input::placeholder { color: #b0b0ab; }
 
 /* compat: l'ancien code utilise input[type=text] dans .search-box */
 .search-box input[type=text] {
-  width: 100%; height: 30px;
-  padding: 0 10px 0 28px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  width: 100%; height: auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
   font-family: inherit; font-size: var(--fs-md);
-  color: var(--ink); background: #fff; outline: none;
+  color: #1a1a1a; background: transparent; outline: none;
 }
-.search-box input[type=text]:focus { border-color: var(--ink-2); }
-.search-box input[type=text]::placeholder { color: var(--mute-2); }
+.search-box input[type=text]::placeholder { color: #b0b0ab; }
 
 /* Pills de filtre (recueils, bibles) */
 .filter-pills { display: flex; gap: 4px; flex-wrap: wrap; padding-top: 4px; }
@@ -262,6 +226,7 @@ body {
   overflow-y: auto;
   min-height: 0;
   flex: 1;
+  padding: 0 10px 10px;
 }
 .content-list::-webkit-scrollbar { width: 10px; }
 .content-list::-webkit-scrollbar-thumb {
@@ -269,71 +234,75 @@ body {
 }
 
 .source-group {
-  padding: 10px 14px 4px;
+  padding: 8px 11px 4px;
   font-size: var(--fs-sm);
-  letter-spacing: 0;
-  color: var(--mute-2);
+  color: #8a8a86;
 }
 
 .content-item {
   display: grid;
-  grid-template-columns: 30px 1fr;
-  gap: 2px 8px;
-  align-items: baseline;
-  padding: 7px 10px;
-  margin: 1px 14px;
+  grid-template-columns: 31px 30px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 8px 11px;
+  margin: 0;
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.12s;
 }
-.content-item:hover { background: var(--hover); }
-.content-item.active { background: var(--sel); position: relative; }
-.content-item.active::after {
-  content: "";
-  position: absolute;
-  right: 9px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px; height: 18px;
-  border-radius: 50%;
-  background: var(--live-weak);
-}
+.content-item:hover { background: #f7f7f5; }
+.content-item.active { background: #f2f1ef; position: relative; }
+.content-item.active::after { display: none; }
 .content-item.active::before {
   content: "";
   position: absolute;
-  right: 15px;
+  right: 11px;
   top: 50%;
   transform: translateY(-50%);
-  width: 6px; height: 6px;
+  width: 7px; height: 7px;
   border-radius: 50%;
-  background: var(--live);
+  background: #2aa05a;
   z-index: 1;
 }
-.content-item.cursor:not(.active) { background: var(--sel); }
+.content-item.cursor:not(.active) { background: #f2f1ef; }
 .content-list:has(.content-item.active) .content-item:not(.active) { cursor: default; }
 
+.item-source {
+  grid-column: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  color: #8a8a86;
+}
 .item-number {
   font-variant-numeric: tabular-nums;
-  font-size: var(--fs-xs); color: var(--mute); text-align: right;
-  grid-row: 1;
+  font-size: var(--fs-md);
+  color: #8a8a86;
+  text-align: left;
+  grid-column: 2;
 }
 .item-title {
-  font-size: var(--fs-md); color: var(--ink);
+  font-size: var(--fs-md); color: #55554f;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  grid-column: 2; grid-row: 1;
-  /* Réserve la place de l'indicateur de sélection pour que l'ellipse
-     s'applique avant qu'il ne recouvre le titre */
-  padding-right: 24px;
+  grid-column: 3;
+  padding-right: 14px;
 }
+.content-item.active .item-number,
+.content-item.active .item-title { color: #1a1a1a; font-weight: 600; }
 
 /* Résultat Bible : sans numéro, texte aligné sur la colonne titre (30px + 8px gap) */
 .content-item[data-bible-ref] {
   grid-template-columns: 1fr;
-  padding-left: calc(10px + 30px + 8px);
 }
 .content-item[data-bible-ref] .item-title {
   grid-column: 1;
 }
+#pdfList .content-item,
+#imageList .content-item { grid-template-columns: minmax(0, 1fr); }
+#pdfList .content-item .item-title,
+#imageList .content-item .item-title { grid-column: 1; }
 
 .search-empty {
   padding: 22px 14px; color: var(--mute-2); font-size: var(--fs-sm); text-align: center;
@@ -365,18 +334,22 @@ body {
    le viewport CSS devient court, la ligne « recherche » 1fr s'écrase et la card
    sort par le bas, laissant un vide apparent sous les boutons). */
 .card-monitor {
-  padding: 12px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
+  gap: 8px;
   min-height: 0;
+  border: 0;
+  border-top: 1px solid rgba(0,0,0,0.07);
+  border-radius: 0;
 }
 .monitor-screen {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 10;
   background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 8px;
   overflow: hidden;
   /* Le cadre 16/9 est l'élément compressible de la card : quand la hauteur
      disponible est insuffisante, il se réduit (min-height:0) au lieu de forcer
@@ -386,21 +359,48 @@ body {
   min-height: 0;
 }
 .monitor-actions {
-  margin-top: 8px;
+  margin-top: 0;
   display: flex;
   flex-wrap: nowrap;
-  gap: 6px;
+  gap: 8px;
 }
 .monitor-actions .hdr-btn {
-  flex: 1 1 0;
+  flex: 1 1 auto;
   min-width: 0;
-  justify-content: center;
-  padding: 0 6px;
+  height: 32px;
+  justify-content: flex-start;
+  padding: 0 11px;
   overflow: hidden;
+  border: 0;
+  border-radius: 8px;
+  background: #f2f1ef;
+  box-shadow: none;
+  color: #55554f;
+  font-size: var(--fs-md);
+}
+.monitor-actions .hdr-btn:hover { background: #eae9e6; box-shadow: none; }
+.monitor-actions #btnModeRien {
+  flex: 0 0 100px;
+  justify-content: center;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+.monitor-actions #btnModeRien svg { display: none; }
+.monitor-screen-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.monitor-actions .monitor-chevron {
+  width: 9px;
+  height: 9px;
+  margin-left: auto;
+  color: #8a8a86;
 }
 .monitor-actions .hdr-btn.active {
-  border-color: var(--ink);
-  background: var(--surface-1);
+  border-color: transparent;
+  background: #eae9e6;
   color: var(--ink);
 }
 
@@ -413,8 +413,7 @@ body {
      réelles du slide sur l'écran cible (pour un word-wrap identique). */
   background: #fff;
   transform-origin: top left;
-  /* Bord fin matérialisant la zone 16/9 (cohérent avec la projection). */
-  border: 1px solid #ddd;
+  border: 0;
 }
 /* Même boîte que #screen de la projection : container-type + padding en cqh/cqw,
    pour que le contenu (.content-text de projection-content.css) hérite EXACTEMENT
@@ -431,14 +430,7 @@ body {
 }
 .preview-content.preview-fullbleed { padding: 0; align-items: center; justify-content: center; background: #fff; }
 
-.monitor-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 6px;
-  font-size: var(--fs-xs);
-  color: var(--mute-2);
-}
+.monitor-foot { display: none; }
 
 /* ── ZONE PRINCIPALE ───────────────────────────────────────────────────────── */
 .main {
@@ -764,9 +756,9 @@ body {
 
 /* ── RESPONSIVE 900px ─────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  /* Sidebar plus étroite pour libérer de la place au contenu */
+  /* La sidebar garde les proportions du panneau de référence. */
   .body {
-    grid-template-columns: 260px 1fr;
+    grid-template-columns: var(--w-sidebar) 1fr;
   }
 
   /* En-tête : padding latéral réduit */
@@ -825,45 +817,46 @@ body {
    (.content-item), mêmes fonds de survol/sélection (--hover / --sel). */
 .search-tools {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
-  padding: 6px 0 10px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(0,0,0,0.05);
 }
 .search-tools .tool-item {
   position: relative;
   display: flex;
   align-items: center;
-  /* Aligne le libellé sur le titre des résultats : marge 14 + padding 10
-     de .content-item, puis colonne picto 30 + gap 8. */
-  gap: 8px;
-  width: calc(100% - 28px);
-  margin: 0 14px;
-  padding: 7px 10px;
+  gap: 0;
+  width: auto;
+  margin: 0;
+  padding: 0;
   border: none;
   background: none;
-  border-radius: 8px;
+  border-radius: 0;
   font-family: inherit;
-  font-size: var(--fs-md);
-  color: var(--ink);
-  text-align: left;
+  font-size: 12.5px;
+  color: #8a8a86;
+  text-align: center;
   cursor: pointer;
-  transition: background 0.12s;
+  transition: color 0.12s;
 }
-.search-tools .tool-item:hover { background: var(--hover); }
+.search-tools .tool-item:hover { color: #1a1a1a; background: none; }
 /* Rubrique dont le panneau est ouvert : surbrillance persistante, comme la
    sélection d'un résultat de recherche (--sel). */
-.search-tools .tool-item.active { background: var(--sel); }
+.search-tools .tool-item.active { color: #1a1a1a; background: none; }
 .search-tools .tool-item svg {
-  flex: 0 0 30px;
-  width: 20px;
-  height: 20px;
+  display: none;
 }
 .search-tools .tool-label {
   white-space: nowrap;
 }
 /* Point rouge signalant une mise à jour disponible (rubrique À propos). */
 .tool-badge {
-  margin-left: 6px;
+  position: absolute;
+  top: -3px;
+  right: -7px;
   width: 8px;
   height: 8px;
   border-radius: 50%;

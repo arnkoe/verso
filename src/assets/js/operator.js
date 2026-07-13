@@ -18,6 +18,7 @@ const state = {
   pdfPage: -1,
   image: null,
   projection: null,
+  lastProjection: null,
   projectionMode: 'textes',
   bibleCode: null,
   searchCursor: 0,
@@ -65,6 +66,7 @@ function setLive(el, isLive) {
 // ─── PROJECTION API ──────────────────────────────────────────────────────────
 
 async function project(payload) {
+  if (payload && payload.type !== 'blank') state.lastProjection = payload;
   state.projection = payload;
   updatePreview(payload);
   syncActiveItems(payload);
@@ -79,8 +81,6 @@ function switchSideTab(tab) {
   TAB_ORDER.forEach(t => {
     document.getElementById('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
   });
-  // Fait glisser la pastille blanche vers l'onglet actif (voir .tabs::before).
-  slideTabIndicator(TAB_ORDER.indexOf(tab));
   document.getElementById('searchCantiques').style.display = tab === 'cantiques' ? '' : 'none';
   document.getElementById('searchBible').style.display     = tab === 'bible'     ? 'flex' : 'none';
   document.getElementById('listPdf').style.display         = tab === 'pdf'       ? 'flex' : 'none';
@@ -104,34 +104,6 @@ function switchSideTab(tab) {
   const idx = active ? searchItems().indexOf(active) : -1;
   state.searchCursor = idx >= 0 ? idx : 0;
   updateSearchCursor();
-}
-
-// Glisse la pastille (.tabs::before) vers l'onglet cible en interpolant
-// --tab-index image par image. On n'utilise PAS de transition CSS sur le
-// transform : sur cette webview elle déclenche l'animateur natif macOS qui
-// ajoute un ressort (dépassement puis retour). Une courbe ease-out pilotée à
-// la main reste strictement monotone, donc aucun rebond possible.
-let tabSlideRAF = null;
-function slideTabIndicator(target) {
-  const tabs = document.querySelector('.tabs');
-  const from = parseFloat(getComputedStyle(tabs).getPropertyValue('--tab-index')) || 0;
-  if (tabSlideRAF !== null) cancelAnimationFrame(tabSlideRAF);
-  if (from === target) { tabs.style.setProperty('--tab-index', target); return; }
-
-  const DURATION = 220;
-  const start = performance.now();
-  const step = now => {
-    const t = Math.min((now - start) / DURATION, 1);
-    const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic, sans dépassement
-    tabs.style.setProperty('--tab-index', from + (target - from) * eased);
-    if (t < 1) {
-      tabSlideRAF = requestAnimationFrame(step);
-    } else {
-      tabs.style.setProperty('--tab-index', target);
-      tabSlideRAF = null;
-    }
-  };
-  tabSlideRAF = requestAnimationFrame(step);
 }
 
 // Panneaux de superposition (Aide, À propos, Paramètres) : contrairement aux
@@ -270,9 +242,9 @@ function renderSongList(grouped) {
     return;
   }
   list.innerHTML = Object.entries(grouped).map(([book, items]) =>
-    `<div class="source-group">${esc(book ? songbookName(book) : t('book.other'))}</div>` +
     items.map(s => `
       <div class="content-item" data-song-id="${s.id}" data-action="loadSong">
+        <span class="item-source">${esc(book)}</span>
         <span class="item-number">${s.source_number ?? ''}</span>
         <span class="item-title">${esc(s.title)}</span>
       </div>
@@ -329,7 +301,7 @@ function renderVerseList() {
 
 function clearProjectionModeButtons() {
   state.projectionMode = null;
-  document.getElementById('btnModeRien').classList.remove('active');
+  updateProjectionVisibilityButton(false);
 }
 
 function projectVerse(i) {
@@ -871,12 +843,25 @@ function projectImage() {
 
 // ─── BOUTON NOIR ─────────────────────────────────────────────────────────────
 
-function setProjectionMode(mode) {
-  state.projectionMode = mode;
-  document.getElementById('btnModeRien').classList.toggle('active', mode === 'rien');
-  if (mode === 'rien') {
-    project({ type: 'blank' });
+function updateProjectionVisibilityButton(hidden) {
+  const button = document.getElementById('btnModeRien');
+  const label = button?.querySelector('span');
+  if (!button || !label) return;
+  const labelKey = hidden ? 'monitor.project' : 'monitor.hide';
+  const titleKey = hidden ? 'monitor.projectTitle' : 'monitor.hideTitle';
+  button.classList.toggle('active', hidden);
+  button.dataset.i18nTitle = titleKey;
+  button.title = t(titleKey);
+  label.dataset.i18n = labelKey;
+  label.textContent = t(labelKey);
+}
+
+function toggleProjectionVisibility() {
+  if (state.projectionMode === 'rien') {
+    if (state.lastProjection) project(state.lastProjection);
+    return;
   }
+  project({ type: 'blank' });
 }
 
 // ─── PRÉVISUALISATION ────────────────────────────────────────────────────────
@@ -931,9 +916,11 @@ function scalePreview() {
   const { w, h } = _targetSlideSize();
   stage.style.width  = w + 'px';
   stage.style.height = h + 'px';
-  const scale = mon.clientHeight / h;
+  const scale = Math.min(mon.clientWidth / w, mon.clientHeight / h);
   const offsetX = (mon.clientWidth - w * scale) / 2;
-  stage.style.transform = `translateX(${offsetX}px) scale(${scale})`;
+  // Le contenu reste aligné en haut dans le retour projection. Le cadre 16/10
+  // absorbe simplement l'espace restant sous le slide 16/9.
+  stage.style.transform = `translate(${offsetX}px, 0) scale(${scale})`;
 }
 
 window.addEventListener('resize', scalePreview);
@@ -984,7 +971,7 @@ function syncActiveItems(s) {
     syncList('#imagePreview .strophe-item', el => el.dataset.imagePreview === s.filename);
   }
   state.projectionMode = s.type === 'blank' ? 'rien' : null;
-  document.getElementById('btnModeRien').classList.toggle('active', state.projectionMode === 'rien');
+  updateProjectionVisibilityButton(state.projectionMode === 'rien');
 }
 
 // ─── NAVIGATION CLAVIER DANS LES LISTES ──────────────────────────────────────
