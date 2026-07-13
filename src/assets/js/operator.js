@@ -133,6 +133,19 @@ const TOOL_ITEM_FOR_PANEL = {
   panelAbout: 'showAbout',
 };
 
+// Revient au panneau de contenu de l'onglet actif quand un panneau d'outil est
+// fermé (clic autour de son contenu ou touche Échap).
+function closeOverlayPanel() {
+  if (!state.overlayPanel) return;
+  const panel = state.activeTab === 'bible' ? 'panelBible'
+              : state.activeTab === 'pdf' ? 'panelPdf'
+              : state.activeTab === 'images' ? 'panelImages'
+              : 'panelCantique';
+  _closeLangMenu();
+  _closeScreenMenu();
+  showPanel(panel);
+}
+
 function showPanel(id) {
   ['panelCantique', 'panelBible', 'panelPdf', 'panelImages', ...OVERLAY_PANELS].forEach(p => {
     document.getElementById(p).classList.toggle('active', p === id);
@@ -1429,14 +1442,36 @@ async function restoreAndOpenProjection() {
 function _askScreenChoice(monitors) {
   return new Promise(resolve => {
     const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+    overlay.className = 'screen-modal-overlay';
     const box = document.createElement('div');
     box.className = 'screen-modal';
-    box.innerHTML = `<h3 class="screen-modal__title">${esc(t('screen.pickTitle'))}</h3>
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+    box.setAttribute('aria-labelledby', 'screenModalTitle');
+    box.innerHTML = `<h3 class="screen-modal__title" id="screenModalTitle">${esc(t('screen.pickTitle'))}</h3>
       <div id="screenChoices" class="screen-modal__list"></div>
       <div class="screen-modal__footer"><button id="screenCancel" class="hdr-btn">${esc(t('common.cancel'))}</button></div>`;
     overlay.appendChild(box);
     document.body.appendChild(overlay);
+
+    let settled = false;
+    const finish = choice => {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener('keydown', onKeyDown, true);
+      overlay.remove();
+      resolve(choice);
+    };
+    const onKeyDown = e => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      e.stopPropagation();
+      finish(null);
+    };
+    window.addEventListener('keydown', onKeyDown, true);
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) finish(null);
+    });
 
     const list = box.querySelector('#screenChoices');
     monitors.forEach((m, i) => {
@@ -1446,10 +1481,10 @@ function _askScreenChoice(monitors) {
       const primary = m.is_primary ? t('screen.primary') : '';
       btn.innerHTML = `<strong>${esc(label)}${esc(primary)}</strong><span class="screen-modal__item-meta">${m.width}×${m.height} — ${esc(t('screen.position'))} ${m.x},${m.y}</span>`;
       // Mémorise le libellé exact pour le retour projection (_updateMonitorScreen).
-      btn.onclick = () => { document.body.removeChild(overlay); resolve({ ...m, label }); };
+      btn.onclick = () => finish({ ...m, label });
       list.appendChild(btn);
     });
-    box.querySelector('#screenCancel').onclick = () => { document.body.removeChild(overlay); resolve(null); };
+    box.querySelector('#screenCancel').onclick = () => finish(null);
   });
 }
 
@@ -1834,9 +1869,30 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     const modal = document.getElementById('contentModal');
-    if (modal && !modal.hidden) { e.stopPropagation(); closeContentManager(); }
+    if (modal && !modal.hidden) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      closeContentManager();
+    }
   }
-}, true);
+});
+
+// Les panneaux d'outil occupent toute la zone principale : un clic dans la
+// partie libre autour de leur contenu les ferme, comme le fond d'une modale.
+document.querySelector('.main')?.addEventListener('click', e => {
+  const panel = state.overlayPanel && document.getElementById(state.overlayPanel);
+  if (panel?.contains(e.target) && !e.target.closest('.info-pane')) {
+    closeOverlayPanel();
+  }
+});
+
+// Les modales dédiées interceptent Échap avant ce gestionnaire ; celui-ci ne
+// ferme donc que le panneau d'outil visible au premier plan.
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || !state.overlayPanel) return;
+  e.preventDefault();
+  closeOverlayPanel();
+});
 
 // ─── VÉRIFICATION MANUELLE DES MISES À JOUR (depuis la modale) ──────────────────
 

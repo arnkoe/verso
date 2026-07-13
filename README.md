@@ -133,7 +133,7 @@ The **Settings** button (gear icon) in the toolbar opens a panel with sections:
 - **Language** — change the interface language.
 - **Updates** — check manually for a new version and install it.
 
-You can close Settings by clicking the background or pressing **Esc**.
+You can close the **Settings**, **Shortcuts**, and **About** panels, as well as their dialogs, by clicking outside their content or pressing **Esc**.
 
 ---
 

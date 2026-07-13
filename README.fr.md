@@ -133,7 +133,7 @@ Le bouton **Paramètres** (roue dentée) de la barre d'outils ouvre un volet ave
 - **Langue** — changer la langue de l'interface.
 - **Mises à jour** — vérifier manuellement une nouvelle version et l'installer.
 
-Vous pouvez fermer les Paramètres en cliquant sur le fond ou en appuyant sur **Échap**.
+Vous pouvez fermer les volets **Paramètres**, **Raccourcis** et **À propos**, ainsi que leurs boîtes de dialogue, en cliquant à côté de leur contenu ou en appuyant sur **Échap**.
 
 ---
 

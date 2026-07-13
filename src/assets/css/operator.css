@@ -721,6 +721,15 @@ body {
 .action-bar { display: none; }
 
 /* Modale de sélection d'écran */
+.screen-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+}
 .screen-modal {
   background: var(--panel);
   border-radius: var(--radius);
