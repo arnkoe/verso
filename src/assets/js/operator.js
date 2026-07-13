@@ -204,10 +204,14 @@ async function loadSongCache() {
 
 loadSongCache().catch(() => {}); // préchargement, erreurs gérées à la recherche
 
+function searchPrompt(key) {
+  return `<div class="search-empty search-prompt" data-i18n="${key}">${esc(t(key))}</div>`;
+}
+
 document.getElementById('songSearchInput').addEventListener('input', async e => {
   const q = e.target.value.trim();
   if (q.length < 1) {
-    document.getElementById('songList').innerHTML = '';
+    document.getElementById('songList').innerHTML = searchPrompt('search.songsEmpty');
     return;
   }
   if (!songCache) {
@@ -522,7 +526,7 @@ function renderBibleBookList(candidates, entry) {
 document.getElementById('bibleSearchInput').addEventListener('input', async e => {
   const q = e.target.value.trim();
   const list = document.getElementById('bibleList');
-  if (!q) { list.innerHTML = ''; return; }
+  if (!q) { list.innerHTML = searchPrompt('search.bibleEmpty'); return; }
   if (!state.bibleCode) {
     list.innerHTML = `<div class="search-empty">${esc(t('list.noBibleAvailable'))}</div>`;
     return;

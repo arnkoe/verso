@@ -129,6 +129,7 @@ body {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-columns: minmax(0, 1fr);
+  position: relative;
   min-height: 0;
   min-width: 0;
   border: 0;
@@ -246,6 +247,7 @@ body {
 
 /* ── LISTE SIDEBAR ─────────────────────────────────────────────────────────── */
 .content-list {
+  position: relative;
   overflow-y: auto;
   min-height: 0;
   flex: 1;
@@ -323,6 +325,14 @@ body {
 
 .search-empty {
   padding: 22px 14px; color: var(--mute-2); font-size: var(--fs-sm); text-align: center;
+}
+.search-prompt {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  inset: 0 0 var(--sidebar-gutter);
+  padding: 14px;
+  font-size: var(--fs-md);
 }
 
 /* Conteneurs onglets sidebar : chaque panneau visible est une colonne flex
@@ -1158,6 +1168,11 @@ body {
    atténuée, sans vert (réservé à la projection active). Masqué hors
    superutilisateur ou sans état. */
 .sync-status {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
   margin: 0 0 var(--sidebar-gutter);
   font-size: var(--fs-sm);
   line-height: var(--ui-line-h);
@@ -1166,6 +1181,13 @@ body {
 }
 .sync-status[hidden] { display: none; }
 .sync-status.error { color: var(--danger); }
+
+/* Le statut flotte au-dessus du bas de la carte pour ne jamais redimensionner
+   la recherche. Les listes remplies gardent assez d'espace pour que leur
+   dernier résultat puisse défiler entièrement au-dessus du libellé. */
+.card-search:has(> .sync-status:not([hidden])) .content-list {
+  padding-bottom: 36px;
+}
 
 /* Gestion des contenus (liste dans la modale dédiée). */
 .content-mgr-list { list-style: none; margin: 0; padding: 0; }
