@@ -631,7 +631,7 @@ body {
    de sélecteurs de synchronisation dans operator.js. */
 .list-item {
   display: grid;
-  grid-template-columns: 64px 1fr var(--control-h);
+  grid-template-columns: 40px 1fr var(--control-h);
   gap: 16px;
   align-items: flex-start;
   padding: 13px var(--row-inset);
@@ -646,9 +646,9 @@ body {
 
 .strophe-number,
 .bible-verse-number {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-md);
   letter-spacing: 0;
-  color: var(--mute-2);
+  color: var(--mute);
   font-variant-numeric: tabular-nums;
   padding-top: 3px;
   text-align: right;
@@ -825,17 +825,6 @@ body {
 
   .strophe-list {
     padding: 0 calc(var(--content-gutter) - var(--content-scrollbar-w)) 20px var(--content-gutter);
-  }
-
-  /* Numéros (strophe / verset / page) : label court via data-short */
-  .strophe-number[data-short],
-  .bible-verse-number[data-short] {
-    font-size: 0;
-  }
-  .strophe-number[data-short]::before,
-  .bible-verse-number[data-short]::before {
-    content: attr(data-short);
-    font-size: var(--fs-xs);
   }
 
   /* Colonne des numéros plus étroite, alignée à gauche. Le fond de chaque

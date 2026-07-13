@@ -315,13 +315,10 @@ function renderVerseList() {
   if (!song) return;
   const verseList = document.getElementById('verseList');
   verseList.innerHTML = song.verses.map((verse, i) => {
-    const typeLabel = verseTypeLabel(verse.type);
     const shortLabel = verseShortLabel(verse.type, verse.number);
-    const label = typeLabel +
-      (verse.type === 'verse' && verse.number != null ? ' ' + verse.number : '');
     const isLive = i === state.songVerse;
     return `<div class="list-item strophe-item${isLive ? ' active' : ''}" data-verse="${i}" data-action="projectVerse">
-      <div class="strophe-number" data-short="${esc(shortLabel)}">${esc(label)}</div>
+      <div class="strophe-number">${esc(shortLabel)}</div>
       <div class="strophe-text">${esc(verse.text)}</div>
       <div class="strophe-action">
         ${isLive ? livePill() : ''}
@@ -665,7 +662,7 @@ function renderBibleVerses(verses) {
   list.innerHTML = verses.map((v, i) => {
     const isLive = i === state.bibleVerse;
     return `<div class="list-item bible-verse-item${isLive ? ' active' : ''}" data-verse="${i}" data-action="projectBibleVerse">
-      <span class="bible-verse-number" data-short="V${v.verse}">Verset ${v.verse}</span>
+      <span class="bible-verse-number">${v.verse}</span>
       <span class="bible-verse-text">${esc(v.text)}</span>
       <div class="strophe-action">
         ${isLive ? livePill() : ''}
@@ -742,7 +739,7 @@ function renderPdfPageList(filename, pageCount) {
   const list = document.getElementById('pdfPageList');
   list.innerHTML = Array.from({ length: pageCount }, (_, i) => `
     <div class="list-item pdf-page-item" data-page="${i+1}" data-action="projectPdfPage">
-      <div class="strophe-number" data-short="P${i + 1}">Page ${i + 1}</div>
+      <div class="strophe-number">${i + 1}</div>
       <div class="pdf-page-thumb" data-thumb-page="${i+1}">
         <div class="thumb-loading">…</div>
       </div>
@@ -834,7 +831,7 @@ async function selectImage(filename) {
   const preview = document.getElementById('imagePreview');
   preview.innerHTML = `
     <div class="list-item strophe-item image-page-item${isLive ? ' active' : ''}" data-image-preview="${esc(filename)}" data-action="projectImage">
-      <div class="strophe-number">Image</div>
+      <div class="strophe-number"></div>
       <img src="${esc(url)}" style="max-width:100%;max-height:400px;object-fit:contain;display:block;">
       <div class="strophe-action">${isLive ? livePill() : ''}</div>
     </div>
@@ -1185,16 +1182,12 @@ const VERSE_TYPE_ALIASES = {
   o: 'outro', outro: 'outro', final: 'outro', coda: 'outro',
   pc: 'prechorus', prechorus: 'prechorus', 'pre-chorus': 'prechorus',
   'pré-refrain': 'prechorus', 'pre-refrain': 'prechorus',
+  'pré-r': 'prechorus', 'pre-r': 'prechorus',
 };
 
 // Normalise un type canonique : retombe sur `verse` pour toute valeur inconnue.
 function canonVerseType(type) {
   return VERSE_TYPES.includes(type) ? type : 'verse';
-}
-
-// Libellé traduit complet d'un type canonique (« Refrain », « Chorus »...).
-function verseTypeLabel(type) {
-  return t('verse.' + canonVerseType(type));
 }
 
 // Libellé court traduit (badge dans la liste et la projection). Tiré d'une clé
@@ -1209,9 +1202,7 @@ function verseShortLabel(type, number) {
 
 function versesToText(verses) {
   return verses.map(v => {
-    const label = verseTypeLabel(v.type) +
-      (v.type === 'verse' && v.number != null ? ' ' + v.number : '');
-    return label + '\n' + v.text;
+    return verseShortLabel(v.type, v.number) + '\n' + v.text;
   }).join('\n\n');
 }
 
