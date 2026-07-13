@@ -128,7 +128,7 @@ Verso propose des raccourcis clavier pour changer d'onglet, chercher et projeter
 
 Le bouton **Paramètres** (roue dentée) de la barre d'outils ouvre un volet avec des rubriques :
 
-- **Projection** — choisissez l'écran utilisé pour la projection. Ce choix est mémorisé pour les prochaines sessions.
+- **Projection** — choisissez l'écran utilisé pour la projection dans la liste déroulante. Ce choix est mémorisé pour les prochaines sessions.
 - **Contenus** — gérez vos recueils, Bibles, PDF et images directement depuis les paramètres : pour chaque catégorie vous pouvez **Ajouter** des fichiers, **Gérer** les éléments existants et les **Supprimer**, sans quitter l'application. Vous pouvez aussi ouvrir le dossier Verso où se trouvent ces fichiers.
 - **Langue** — changer la langue de l'interface.
 - **Mises à jour** — vérifier manuellement une nouvelle version et l'installer.

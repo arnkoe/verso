@@ -1323,6 +1323,70 @@ function _updateMonitorScreen(m) {
   el.textContent = m.label || _screenLabel(m);
 }
 
+let _screenMenuMonitors = [];
+
+function _closeScreenMenu() {
+  const menu = document.getElementById('screenMenu');
+  const trigger = document.getElementById('screenTrigger');
+  if (menu) menu.hidden = true;
+  if (trigger) trigger.setAttribute('aria-expanded', 'false');
+}
+
+function _renderScreenMenu(monitors) {
+  const menu = document.getElementById('screenMenu');
+  if (!menu) return;
+
+  const saved = _savedScreen();
+  _screenMenuMonitors = monitors;
+  menu.replaceChildren();
+
+  monitors.forEach((m, i) => {
+    const label = _screenLabel(m, i);
+    const primary = m.is_primary ? t('screen.primary') : '';
+    const selected = saved && m.x === saved.x && m.y === saved.y
+      && m.width === saved.width && m.height === saved.height;
+    const option = document.createElement('button');
+    option.className = `dropdown-option${selected ? ' selected' : ''}`;
+    option.type = 'button';
+    option.setAttribute('role', 'option');
+    option.setAttribute('aria-selected', selected ? 'true' : 'false');
+    option.dataset.action = 'selectProjectionScreen';
+    option.dataset.arg = String(i);
+    option.title = `${m.width}×${m.height} — ${t('screen.position')} ${m.x},${m.y}`;
+    option.innerHTML = `<span class="dropdown-option-label">${esc(label)}${esc(primary)}</span>
+      <svg class="dropdown-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+    menu.appendChild(option);
+  });
+}
+
+async function toggleScreenMenu() {
+  const menu = document.getElementById('screenMenu');
+  const trigger = document.getElementById('screenTrigger');
+  if (!menu || !trigger) return;
+  if (!menu.hidden) {
+    _closeScreenMenu();
+    return;
+  }
+
+  _closeLangMenu();
+  let monitors;
+  try { monitors = await apiListMonitors(); }
+  catch (e) { alert(t('screen.listFailed', { err: String(e) })); return; }
+  if (!monitors.length) { alert(t('screen.noneDetected')); return; }
+
+  _renderScreenMenu(monitors);
+  menu.hidden = false;
+  trigger.setAttribute('aria-expanded', 'true');
+}
+
+function selectProjectionScreen(index) {
+  const i = Number(index);
+  const monitor = _screenMenuMonitors[i];
+  if (!monitor) return;
+  _saveScreen({ ...monitor, label: _screenLabel(monitor, i) });
+  _closeScreenMenu();
+}
+
 async function openProjection() {
   if (_openingProjection) return;
   _openingProjection = true;
@@ -1360,21 +1424,6 @@ async function restoreAndOpenProjection() {
     await project(lastActiveProjection);
   }
   await openProjection();
-}
-
-async function pickProjectionScreen() {
-  if (_openingProjection) return;
-  _openingProjection = true;
-  try {
-    let monitors;
-    try { monitors = await apiListMonitors(); }
-    catch (e) { alert(t('screen.listFailed', { err: String(e) })); return; }
-    const choice = await _askScreenChoice(monitors);
-    if (!choice) return;
-    _saveScreen(choice);
-  } finally {
-    _openingProjection = false;
-  }
 }
 
 function _askScreenChoice(monitors) {
@@ -1484,6 +1533,7 @@ function openSettings() {
   showPanel('panelSettings');
   _resetUpdateCheck();
   _syncLangToggle();
+  _closeScreenMenu();
 }
 
 // Aligne le menu déroulant de langue sur la langue courante : libellé du bouton
@@ -1515,6 +1565,7 @@ function toggleLangMenu() {
   const trigger = document.getElementById('langTrigger');
   if (!menu) return;
   const open = menu.hidden;
+  if (open) _closeScreenMenu();
   menu.hidden = !open;
   if (trigger) trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
@@ -1532,9 +1583,13 @@ function setUiLang(lang) {
 // Ferme le menu de langue au clic extérieur et avec Échap.
 document.addEventListener('click', e => {
   if (!e.target.closest('#langDropdown')) _closeLangMenu();
+  if (!e.target.closest('#screenDropdown')) _closeScreenMenu();
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') _closeLangMenu();
+  if (e.key === 'Escape') {
+    _closeLangMenu();
+    _closeScreenMenu();
+  }
 }, true);
 
 // Recompose les contenus générés par JS qui dépendent de la langue : strophes,

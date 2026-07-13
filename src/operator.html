@@ -256,10 +256,13 @@
               <div class="settings-row-label" data-i18n="settings.projectionScreen">Écran de projection</div>
               <div class="settings-row-desc" data-i18n="settings.projectionScreenDesc">Choisissez l'écran utilisé pour la projection.</div>
             </div>
-            <button class="hdr-btn settings-screen-button" id="btnPickScreen" data-action="pickProjectionScreen" title="Choisir l'écran de projection" data-i18n-title="monitor.screenTitle">
-              <span id="monitorScreen" class="settings-screen-name"></span>
-              <svg class="settings-screen-chevron" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="2,3.5 5,6.5 8,3.5"/></svg>
-            </button>
+            <div class="dropdown settings-screen-dropdown" id="screenDropdown">
+              <button class="dropdown-trigger settings-screen-trigger" id="screenTrigger" type="button" data-action="toggleScreenMenu" aria-haspopup="listbox" aria-expanded="false" title="Choisir l'écran de projection" data-i18n-title="monitor.screenTitle" data-i18n-aria-label="monitor.screenTitle">
+                <span class="dropdown-value settings-screen-name" id="monitorScreen"></span>
+                <svg class="dropdown-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown-menu" id="screenMenu" role="listbox" hidden></div>
+            </div>
           </div>
 
           <!-- Section Contenus : un bouton « Gérer » par type, ouvrant une modale dédiée. -->

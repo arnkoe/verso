@@ -128,7 +128,7 @@ Verso has keyboard shortcuts to switch tabs, search, and project without the mou
 
 The **Settings** button (gear icon) in the toolbar opens a panel with sections:
 
-- **Projection** — choose the screen used for projection. The selection is remembered for future sessions.
+- **Projection** — choose the screen used for projection from the drop-down menu. The selection is remembered for future sessions.
 - **Content** — manage your collections, Bibles, PDFs and images directly from Settings: for each category you can **Add** files, **Manage** the existing items and **Delete** them, without leaving the application. You can also open the Verso folder where these files live.
 - **Language** — change the interface language.
 - **Updates** — check manually for a new version and install it.

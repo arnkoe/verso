@@ -1137,19 +1137,16 @@ body {
 .settings-row-label { font-size: var(--fs-md); color: var(--ink); }
 .settings-row-desc { font-size: var(--fs-sm); color: var(--mute-2); margin-top: 2px; }
 
-.settings-screen-button {
+.settings-screen-dropdown {
   min-width: 180px;
   max-width: min(320px, 45vw);
 }
+.settings-screen-trigger { width: 100%; }
 .settings-screen-name {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.settings-screen-chevron {
-  margin-left: auto;
-  color: var(--mute);
 }
 
 .settings-update-status {
@@ -1236,7 +1233,7 @@ body {
 .content-mgr-confirm-del:disabled { opacity: 0.45; cursor: not-allowed; }
 .content-mgr-confirm-del:disabled:hover { color: var(--danger); background: var(--surface-1); }
 
-/* Menu déroulant custom (langue) — aligné sur le style des boutons (.hdr-btn). */
+/* Menus déroulants custom (écran et langue), alignés sur les boutons. */
 .dropdown { position: relative; }
 .dropdown-trigger {
   appearance: none;
