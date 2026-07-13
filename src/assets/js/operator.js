@@ -1877,15 +1877,6 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// Les panneaux d'outil occupent toute la zone principale : un clic dans la
-// partie libre autour de leur contenu les ferme, comme le fond d'une modale.
-document.querySelector('.main')?.addEventListener('click', e => {
-  const panel = state.overlayPanel && document.getElementById(state.overlayPanel);
-  if (panel?.contains(e.target) && !e.target.closest('.info-pane')) {
-    closeOverlayPanel();
-  }
-});
-
 // Les modales dédiées interceptent Échap avant ce gestionnaire ; celui-ci ne
 // ferme donc que le panneau d'outil visible au premier plan.
 document.addEventListener('keydown', e => {
