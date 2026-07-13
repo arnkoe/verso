@@ -613,10 +613,11 @@ body {
 /* ── LISTE CENTRALE ────────────────────────────────────────────────────────── */
 .strophe-list {
   flex: 1;
-  overflow-y: auto;
-  /* La barre de défilement fait partie de la gouttière droite : les fonds de
-     ligne restent ainsi sur le même axe que les actions de l'en-tête. */
-  scrollbar-gutter: stable;
+  /* overflow-y: scroll (et non auto) réserve toujours les 12px de la barre,
+     même sans débordement. Sinon la gouttière droite disparaît quand il y a peu
+     de strophes et les lignes dépassent l'axe des actions de l'en-tête. Le
+     pouce ne s'affiche que lorsqu'il y a réellement de quoi défiler. */
+  overflow-y: scroll;
   padding: 0 calc(var(--content-gutter) - var(--content-scrollbar-w)) 28px var(--content-gutter);
 }
 .strophe-list::-webkit-scrollbar { width: var(--content-scrollbar-w); }
