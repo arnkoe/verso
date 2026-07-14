@@ -5,16 +5,16 @@
   --ink-2: #55554f;
   --mute: #777772;
   --mute-2: #878782;
-  /* Surfaces chaudes reprises de la sidebar. Les contrôles ont un fond plus
+  /* Surfaces neutres reprises de la sidebar. Les contrôles ont un fond plus
      marqué que les lignes de contenu afin de rester identifiables sans bordure. */
-  --surface-1: #eae9e6;   /* boutons et contrôles (onglet actif inclus) */
-  --hover: #e2e1dd;       /* survol des boutons, focus du champ de recherche */
-  --sel: #eae9e6;         /* sélection de contenu (même fond que les contrôles) */
-  --row-hover: #f7f7f5;   /* survol de contenu */
-  --line-2: #f1f1ef;      /* séparateur clair */
-  --line: #e7e7e4;        /* bordure standard */
-  --line-strong: #d8d8d4; /* bordure au survol */
-  --scroll: #e5e5e1;      /* pouce d'ascenseur */
+  --surface-1: #eeeeec;   /* repos des boutons et contrôles (onglet actif inclus) */
+  --row-hover: #eeeeec;   /* survol de contenu/listes et curseur clavier (gris clair) */
+  --hover: #e4e4e2;       /* survol des boutons/contrôles (fonce par rapport au repos) */
+  --sel: #e4e4e2;         /* sélection de contenu (même fond que le survol des contrôles) */
+  --line-2: #f3f3f2;      /* séparateur clair */
+  --line: #ececeb;        /* bordure standard */
+  --line-strong: #dededc; /* bordure au survol */
+  --scroll: #eaeae8;      /* pouce d'ascenseur */
   --live: #22c55e;
   --live-weak: rgba(34,197,94,0.12);
   --live-hover: rgba(34,197,94,0.18);
@@ -295,7 +295,7 @@ body {
   background: var(--live);
   z-index: 1;
 }
-.content-item.cursor:not(.active) { background: var(--sel); }
+.content-item.cursor:not(.active) { background: var(--row-hover); }
 .content-list:has(.content-item.active) .content-item:not(.active) { cursor: default; }
 
 .item-source {
