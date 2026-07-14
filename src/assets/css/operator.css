@@ -818,9 +818,14 @@ body {
     grid-template-columns: var(--w-sidebar) 1fr;
   }
 
-  /* En-tête : padding latéral réduit */
+  /* En-tête : padding latéral réduit. La rangée passe en colonne (voir plus
+     bas) : le titre remonte en haut de la rangée et l'espace flex-end qui le
+     séparait du kicker disparaît. On le rétablit explicitement en row-gap de
+     la grille, égal à la valeur implicite du mode large (control-h - fs-2xl),
+     pour garder l'espace kicker → titre constant quelle que soit la largeur. */
   .content-header {
     padding: calc(var(--titlebar-h) + var(--sidebar-gutter) + (var(--control-h) - var(--ui-line-h)) / 2) var(--content-gutter) 16px;
+    gap: calc(var(--control-h) - var(--fs-2xl));
   }
 
   .strophe-list {
