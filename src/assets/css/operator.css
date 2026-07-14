@@ -874,7 +874,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  padding: 10px 12px;
+  padding: 18px 12px;
   border-top: 1px solid var(--line-2);
 }
 .search-tools .tool-item {
@@ -1205,7 +1205,9 @@ body {
   bottom: 0;
   left: 0;
   z-index: 1;
-  margin: 0 0 var(--sidebar-gutter);
+  /* Même respiration que sous les boutons du pied (padding-bottom de
+     .search-tools) : l'écart texte → séparateur égale l'écart boutons → bas. */
+  margin: 0 0 18px;
   font-size: var(--fs-sm);
   line-height: var(--ui-line-h);
   color: var(--mute-2);
