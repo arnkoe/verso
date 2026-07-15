@@ -75,6 +75,8 @@
   /* Hauteur d'une boîte de bouton : .hdr-btn, champ de recherche, pastille d'un
      contrôle segmenté. */
   --control-h: 32px;
+  --utility-row-h: calc(var(--control-h) + 2 * var(--sp-1));
+  --keycap-h: 26px;
   /* Hauteur des fonds qui encadrent une boîte de bouton : piste d'un contrôle
      segmenté, ligne de résultat survolée ou sélectionnée. La pastille creusée
      dans la piste retrouve ainsi exactement --control-h. */
@@ -198,6 +200,22 @@ html[data-window-mode="settings"] #panelSettings,
 html[data-window-mode="shortcuts"] #panelHelp,
 html[data-window-mode="about"] #panelAbout {
   display: flex;
+}
+/* Les fenêtres utilitaires gardent un seul rendu multiplateforme. Leur fond
+   reprend exactement celui de la sidebar ; seuls les contrôles HTML natifs
+   sont dessinés par le moteur du système. */
+html[data-window-mode="settings"],
+html[data-window-mode="shortcuts"],
+html[data-window-mode="about"] {
+  color-scheme: light;
+}
+html[data-window-mode="settings"] body,
+html[data-window-mode="shortcuts"] body,
+html[data-window-mode="about"] body,
+html[data-window-mode="settings"] .main.card,
+html[data-window-mode="shortcuts"] .main.card,
+html[data-window-mode="about"] .main.card {
+  background: var(--sidebar);
 }
 /* La barre de titre macOS est superposée au contenu (titleBarStyle: Overlay).
    Cette hauteur réserve la bande des feux tricolores, sous laquelle onglets et
@@ -765,8 +783,7 @@ html[data-window-mode="about"] #panelAbout {
   border: 1px solid var(--line);
   display: flex;
   align-items: center;
-  /* Même écart picto → libellé que .field et .dropdown-trigger : ces trois
-     boîtes de contrôle ne diffèrent que par leur fond. */
+  /* Même écart picto → libellé que dans le champ de recherche. */
   gap: var(--sp-2);
   padding: 0 var(--row-inset);
   height: var(--control-h);
@@ -1114,12 +1131,12 @@ html[data-window-mode="about"] #panelAbout {
   overflow-y: auto;
 }
 #panelHelp .info-pane, #panelSettings .info-pane {
-  padding-top: var(--sp-7);
+  padding-top: var(--sp-5);
 }
 .info-pane {
   width: 100%;
-  padding: var(--sp-6) var(--content-gutter);
-  max-width: 640px;
+  padding: var(--sp-5) var(--sp-6) var(--sp-6);
+  max-width: 680px;
   margin: 0 auto;
   color: var(--ink);
 }
@@ -1127,6 +1144,14 @@ html[data-window-mode="about"] #panelAbout {
   font-size: var(--fs-2xl);
   font-weight: 600;
   color: var(--ink);
+}
+.utility-section + .utility-section { margin-top: var(--sp-5); }
+.utility-group {
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 .info-h {
   font-size: var(--fs-lg);
@@ -1176,6 +1201,7 @@ html[data-window-mode="about"] #panelAbout {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  max-width: 520px;
 }
 .about-logo {
   width: 56px;
@@ -1230,12 +1256,19 @@ html[data-window-mode="about"] #panelAbout {
    une seule règle : deux règles jumelles avaient fini par diverger. */
 .info-pane-help .info-h,
 .info-pane-settings .info-h {
-  margin: var(--sp-6) 0 var(--sp-1);
-  padding-bottom: var(--sp-2);
-  border-bottom: 1px solid var(--line-2);
+  margin: 0 0 var(--sp-2);
+  padding: 0 var(--sp-3);
+  border: 0;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--ink);
 }
 .info-pane-help .info-h:first-of-type,
-.info-pane-settings .info-h:first-of-type { margin-top: var(--sp-6); }
+.info-pane-settings .info-h:first-of-type { margin-top: 0; }
+
+/* Le titre de la page ferait doublon avec celui de la barre de fenêtre. */
+html[data-window-mode="settings"] .info-pane > .info-title,
+html[data-window-mode="shortcuts"] .info-pane > .info-title { display: none; }
 
 .info-pane-help .info-keys {
   gap: 0;
@@ -1246,12 +1279,23 @@ html[data-window-mode="about"] #panelAbout {
   justify-content: space-between;
   gap: var(--sp-4);
   min-height: var(--row-h);
-  padding: var(--sp-2) 0;
-  border-top: 1px solid var(--line-2);
-  font-size: var(--fs-lg);
+  padding: var(--sp-2) var(--sp-3);
+  border-top: 1px solid var(--line);
+  font-size: var(--fs-md);
   color: var(--ink);
 }
 .info-pane-help .info-keys li:first-child { border-top: none; }
+html[data-window-mode="shortcuts"] .info-pane {
+  padding-top: var(--sp-4);
+  padding-bottom: var(--sp-5);
+}
+html[data-window-mode="shortcuts"] .utility-section + .utility-section {
+  margin-top: var(--sp-4);
+}
+html[data-window-mode="shortcuts"] .info-pane-help .info-keys li {
+  min-height: var(--utility-row-h);
+  padding-block: var(--sp-1);
+}
 /* Les touches (kbd) regroupées et poussées à droite, comme les boutons des
    réglages. Le texte descriptif reste à gauche. */
 .info-pane-help .info-keys .keys {
@@ -1265,16 +1309,18 @@ html[data-window-mode="about"] #panelAbout {
   font-size: var(--fs-md);
   opacity: 0.7;
 }
-/* Touches à la même hauteur que les boutons des réglages (.hdr-btn). */
+/* Touches compactes, proches des capuchons dessinés par le système. */
 .info-pane-help .info-keys kbd {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  height: var(--control-h);
-  min-width: var(--sp-7);
   padding: 0 var(--sp-2);
+  height: var(--keycap-h);
+  min-width: var(--sp-6);
+  border-width: 1px;
   border-radius: var(--radius-sm);
+  background: var(--surface-1);
 }
 
 /* ─── PANNEAU PARAMÈTRES ─────────────────────────────────────────────────────
@@ -1317,7 +1363,8 @@ html[data-window-mode="about"] #panelAbout {
   flex-direction: column;
   width: min(480px, 90vw);
   height: min(560px, 85vh);
-  background: var(--panel);
+  background: var(--sidebar);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow-overlay);
 }
@@ -1327,11 +1374,11 @@ html[data-window-mode="about"] #panelAbout {
   justify-content: space-between;
   gap: var(--sp-3);
   padding: var(--sp-4) var(--sp-5);
-  border-bottom: 1px solid var(--line-2);
+  border-bottom: 1px solid var(--line);
 }
 .content-modal-title {
   margin: 0;
-  font-size: var(--fs-xl);
+  font-size: var(--fs-lg);
   font-weight: 600;
   color: var(--ink);
 }
@@ -1350,11 +1397,12 @@ html[data-window-mode="about"] #panelAbout {
   justify-content: space-between;
   gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-5);
-  border-top: 1px solid var(--line-2);
+  border-top: 1px solid var(--line);
 }
 .content-modal-foot .settings-update-status {
   margin: 0;
   flex: 1;
+  font-size: var(--fs-sm);
 }
 
 .settings-row {
@@ -1363,27 +1411,54 @@ html[data-window-mode="about"] #panelAbout {
   justify-content: space-between;
   gap: var(--sp-4);
   min-height: var(--row-h);
-  padding: var(--sp-2) 0;
-  border-top: 1px solid var(--line-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-top: 1px solid var(--line);
 }
 .settings-row:first-of-type { border-top: none; }
 /* La row qui suit un en-tête de section : pas de border-top, sinon il double
    le border-bottom de l'en-tête. */
 .info-h + .settings-row { border-top: none; }
 
-.settings-row-label { font-size: var(--fs-lg); color: var(--ink); }
-.settings-row-desc { font-size: var(--fs-md); color: var(--mute-2); margin-top: var(--sp-1); }
+.settings-row-label { font-size: var(--fs-md); color: var(--ink); }
+.settings-row-desc { font-size: var(--fs-sm); color: var(--mute-2); margin-top: var(--sp-1); }
 
-.settings-screen-dropdown {
-  min-width: 180px;
-  max-width: min(320px, 45vw);
+.native-select {
+  min-width: 130px;
+  max-width: min(300px, 45vw);
+  font: inherit;
+  /* Le texte interne des selects natifs est rendu optiquement plus petit que
+     celui des boutons par WebKit. Le niveau suivant de l'échelle compense cet
+     écart et les aligne visuellement, sans valeur typographique isolée. */
+  font-size: var(--fs-lg);
+  color: var(--ink);
 }
-.settings-screen-trigger { width: 100%; }
-.settings-screen-name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.settings-screen-select { min-width: 190px; }
+
+/* Les actions d'une ligne de réglages sont de vrais boutons dessinés par le
+   moteur du système. Les icônes décoratives disparaissent : les boutons natifs
+   sont plus lisibles avec leur seul libellé. */
+:is(
+  html[data-window-mode="settings"] .settings-row > .hdr-btn,
+  html[data-window-mode="settings"] .content-modal .hdr-btn
+) {
+  all: revert;
+  box-sizing: border-box;
+  font-family: var(--font);
+  font-size: var(--fs-md);
   white-space: nowrap;
+}
+:is(
+  html[data-window-mode="settings"] .settings-row > .hdr-btn,
+  html[data-window-mode="settings"] .content-modal .hdr-btn
+) svg { display: none; }
+
+html[data-window-mode="settings"] .utility-group > .settings-update-status {
+  margin: 0;
+  padding: 0 var(--sp-3) var(--sp-2);
+  font-size: var(--fs-sm);
+}
+html[data-window-mode="settings"] .utility-group > .settings-update-status:empty {
+  display: none;
 }
 
 .settings-update-status {
@@ -1435,7 +1510,7 @@ html[data-window-mode="about"] #panelAbout {
   padding: var(--sp-2) var(--sp-3);
   font-size: var(--fs-md);
   color: var(--ink);
-  border-bottom: 1px solid var(--line-2);
+  border-bottom: 1px solid var(--line);
 }
 .content-mgr-item:last-child { border-bottom: none; }
 /* Pendant la confirmation, le bloc d'actions grandit : on aligne en haut pour
@@ -1472,73 +1547,6 @@ html[data-window-mode="about"] #panelAbout {
 .content-mgr-confirm-del:disabled { opacity: 0.45; cursor: not-allowed; }
 .content-mgr-confirm-del:disabled:hover { color: var(--danger); background: var(--surface-1); }
 
-/* Menus déroulants custom (écran et langue), alignés sur les boutons. */
-.dropdown { position: relative; }
-.dropdown-trigger {
-  appearance: none;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  min-width: 130px;
-  height: var(--control-h);
-  padding: 0 var(--sp-2) 0 var(--row-inset);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel);
-  color: var(--ink);
-  font-family: inherit;
-  font-size: var(--fs-md);
-  font-weight: 400;
-  cursor: pointer;
-  box-shadow: var(--shadow-btn);
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
-}
-.dropdown-trigger:hover {
-  border-color: var(--line-strong);
-  background: var(--row-hover);
-  box-shadow: var(--shadow-btn-hover);
-}
-.dropdown-trigger[aria-expanded="true"] {
-  border-color: var(--line-strong);
-  box-shadow: var(--shadow-btn-hover);
-}
-.dropdown-value { flex: 1; text-align: left; }
-.dropdown-caret { width: 14px; height: 14px; flex: none; color: var(--mute); }
-
-.dropdown-menu[hidden] { display: none; }
-.dropdown-menu {
-  position: absolute;
-  top: calc(100% + var(--sp-1));
-  right: 0;
-  min-width: 100%;
-  z-index: 50;
-  padding: var(--sp-1);
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-raised);
-}
-.dropdown-option {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  width: 100%;
-  padding: var(--sp-2) var(--sp-3);
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--ink);
-  font-family: inherit;
-  font-size: var(--fs-md);
-  text-align: left;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.dropdown-option:hover { background: var(--hover); }
-.dropdown-option-label { flex: 1; }
-.dropdown-check { width: 15px; height: 15px; flex: none; color: var(--accent); visibility: hidden; }
-.dropdown-option.selected .dropdown-check { visibility: visible; }
-
 /* ─── APPARITION DES SURFACES FLOTTANTES ─────────────────────────────────────
    Fondu + léger scale au montage (le retrait de [hidden] ou l'insertion DOM
    relance l'animation). Le voile et la boîte sont animés séparément pour que
@@ -1559,16 +1567,11 @@ html[data-window-mode="about"] #panelAbout {
 .content-modal:not([hidden]) .content-modal-dialog {
   animation: pop-in 0.15s ease-out;
 }
-.dropdown-menu:not([hidden]) {
-  transform-origin: top right;
-  animation: pop-in 0.12s ease-out;
-}
 @media (prefers-reduced-motion: reduce) {
   .screen-modal-overlay,
   .screen-modal,
   .content-modal:not([hidden]),
-  .content-modal:not([hidden]) .content-modal-dialog,
-  .dropdown-menu:not([hidden]) {
+  .content-modal:not([hidden]) .content-modal-dialog {
     animation: none;
   }
   /* La pastille des contrôles segmentés saute au segment actif sans glisser. */
@@ -1579,8 +1582,8 @@ html[data-window-mode="about"] #panelAbout {
 }
 
 /* Focus clavier commun à tous les contrôles interactifs. */
-:where(.tab, .hdr-btn, .filter-btn, .settings-close, .dropdown-trigger,
-  .dropdown-option, .screen-modal__item, .about-update-link):focus-visible {
+:where(.tab, .hdr-btn, .filter-btn, .settings-close,
+  .screen-modal__item, .about-update-link):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }

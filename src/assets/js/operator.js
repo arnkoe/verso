@@ -140,8 +140,6 @@ function closeOverlayPanel() {
               : state.activeTab === 'pdf' ? 'panelPdf'
               : state.activeTab === 'images' ? 'panelImages'
               : 'panelCantique';
-  _closeLangMenu();
-  _closeScreenMenu();
   showPanel(panel);
 }
 
@@ -1339,80 +1337,75 @@ function _screenLabel(m, index) {
 }
 
 function _updateMonitorScreen(m) {
-  const el = document.getElementById('monitorScreen');
-  if (!el) return;
-  if (!m) {
-    el.textContent = t('screen.none');
+  const select = document.getElementById('screenSelect');
+  if (!select) return;
+  if (_screenSelectMonitors.length) {
+    _renderScreenSelect(_screenSelectMonitors);
     return;
   }
-  // Réutilise le libellé exact choisi dans le sélecteur (cf. _screenLabel), afin
-  // que le nom affiché dans les paramètres corresponde à celui de la modale.
-  el.textContent = m.label || _screenLabel(m);
+
+  const option = document.createElement('option');
+  option.value = '';
+  option.textContent = m ? (m.label || _screenLabel(m)) : t('screen.none');
+  select.replaceChildren(option);
 }
 
-let _screenMenuMonitors = [];
+let _screenSelectMonitors = [];
 
-function _closeScreenMenu() {
-  const menu = document.getElementById('screenMenu');
-  const trigger = document.getElementById('screenTrigger');
-  if (menu) menu.hidden = true;
-  if (trigger) trigger.setAttribute('aria-expanded', 'false');
-}
-
-function _renderScreenMenu(monitors) {
-  const menu = document.getElementById('screenMenu');
-  if (!menu) return;
-
+function _renderScreenSelect(monitors) {
+  const select = document.getElementById('screenSelect');
+  if (!select) return;
   const saved = _savedScreen();
-  _screenMenuMonitors = monitors;
-  menu.replaceChildren();
+  _screenSelectMonitors = monitors;
+  select.replaceChildren();
+
+  let selectedIndex = -1;
 
   monitors.forEach((m, i) => {
     const label = _screenLabel(m, i);
     const primary = m.is_primary ? t('screen.primary') : '';
     const selected = saved && m.x === saved.x && m.y === saved.y
       && m.width === saved.width && m.height === saved.height;
-    const option = document.createElement('button');
-    option.className = `dropdown-option${selected ? ' selected' : ''}`;
-    option.type = 'button';
-    option.setAttribute('role', 'option');
-    option.setAttribute('aria-selected', selected ? 'true' : 'false');
-    option.dataset.action = 'selectProjectionScreen';
-    option.dataset.arg = String(i);
+    const option = document.createElement('option');
+    option.value = String(i);
+    option.textContent = `${label}${primary}`;
     option.title = `${m.width}×${m.height} — ${t('screen.position')} ${m.x},${m.y}`;
-    option.innerHTML = `<span class="dropdown-option-label">${esc(label)}${esc(primary)}</span>
-      <svg class="dropdown-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
-    menu.appendChild(option);
+    select.appendChild(option);
+    if (selected) selectedIndex = i;
   });
+
+  if (selectedIndex >= 0) {
+    select.value = String(selectedIndex);
+  } else {
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = t('screen.none');
+    placeholder.disabled = true;
+    select.prepend(placeholder);
+    select.value = '';
+  }
 }
 
-async function toggleScreenMenu() {
-  const menu = document.getElementById('screenMenu');
-  const trigger = document.getElementById('screenTrigger');
-  if (!menu || !trigger) return;
-  if (!menu.hidden) {
-    _closeScreenMenu();
-    return;
+async function _refreshScreenSelect() {
+  try {
+    const monitors = await apiListMonitors();
+    _renderScreenSelect(monitors);
+  } catch (_) {
+    _screenSelectMonitors = [];
+    _updateMonitorScreen(_savedScreen());
   }
-
-  _closeLangMenu();
-  let monitors;
-  try { monitors = await apiListMonitors(); }
-  catch (e) { alert(t('screen.listFailed', { err: String(e) })); return; }
-  if (!monitors.length) { alert(t('screen.noneDetected')); return; }
-
-  _renderScreenMenu(monitors);
-  menu.hidden = false;
-  trigger.setAttribute('aria-expanded', 'true');
 }
 
 function selectProjectionScreen(index) {
   const i = Number(index);
-  const monitor = _screenMenuMonitors[i];
+  const monitor = _screenSelectMonitors[i];
   if (!monitor) return;
   _saveScreen({ ...monitor, label: _screenLabel(monitor, i) });
-  _closeScreenMenu();
 }
+
+document.getElementById('screenSelect')?.addEventListener('change', e => {
+  selectProjectionScreen(e.currentTarget.value);
+});
 
 async function openProjection() {
   if (_openingProjection) return;
@@ -1581,47 +1574,17 @@ function openSettings() {
   showPanel('panelSettings');
   _resetUpdateCheck();
   _syncLangToggle();
-  _closeScreenMenu();
+  _refreshScreenSelect();
 }
 
-// Aligne le menu déroulant de langue sur la langue courante : libellé du bouton
-// et coche de l'option active.
+// Aligne le sélecteur natif de langue sur la langue courante.
 function _syncLangToggle() {
-  const cur = currentLang();
-  const menu = document.getElementById('langMenu');
-  if (!menu) return;
-  let label = '';
-  menu.querySelectorAll('.dropdown-option').forEach(opt => {
-    const active = opt.dataset.arg === cur;
-    opt.classList.toggle('selected', active);
-    opt.setAttribute('aria-selected', active ? 'true' : 'false');
-    if (active) label = opt.querySelector('.dropdown-option-label').textContent;
-  });
-  const value = document.getElementById('langValue');
-  if (value && label) value.textContent = label;
+  const select = document.getElementById('langSelect');
+  if (select) select.value = currentLang();
 }
 
-function _closeLangMenu() {
-  const menu = document.getElementById('langMenu');
-  const trigger = document.getElementById('langTrigger');
-  if (menu) menu.hidden = true;
-  if (trigger) trigger.setAttribute('aria-expanded', 'false');
-}
-
-function toggleLangMenu() {
-  const menu = document.getElementById('langMenu');
-  const trigger = document.getElementById('langTrigger');
-  if (!menu) return;
-  const open = menu.hidden;
-  if (open) _closeScreenMenu();
-  menu.hidden = !open;
-  if (trigger) trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
-}
-
-// Action d'une option de langue : applique, persiste, ferme le menu et
-// reconstruit les contenus dynamiques (libellés traduits à la volée).
+// Applique la langue choisie et reconstruit les contenus dynamiques.
 function setUiLang(lang) {
-  _closeLangMenu();
   setLang(lang, () => {
     apiSetMenuLanguage(lang).catch(() => {});
     _syncLangToggle();
@@ -1629,17 +1592,9 @@ function setUiLang(lang) {
   });
 }
 
-// Ferme le menu de langue au clic extérieur et avec Échap.
-document.addEventListener('click', e => {
-  if (!e.target.closest('#langDropdown')) _closeLangMenu();
-  if (!e.target.closest('#screenDropdown')) _closeScreenMenu();
+document.getElementById('langSelect')?.addEventListener('change', e => {
+  setUiLang(e.currentTarget.value);
 });
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    _closeLangMenu();
-    _closeScreenMenu();
-  }
-}, true);
 
 // Recompose les contenus générés par JS qui dépendent de la langue : strophes,
 // boutons de statut de mise à jour et libellé d'écran. Les listes de recherche

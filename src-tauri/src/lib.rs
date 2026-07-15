@@ -755,6 +755,9 @@ fn open_auxiliary_window(
     title: &str,
     width: f64,
     height: f64,
+    min_width: f64,
+    min_height: f64,
+    resizable: bool,
 ) -> tauri::Result<()> {
     if let Some(window) = app.get_webview_window(label) {
         window.show()?;
@@ -770,8 +773,8 @@ fn open_auxiliary_window(
     )
     .title(title)
     .inner_size(width, height)
-    .min_inner_size(520.0, 480.0)
-    .resizable(true)
+    .min_inner_size(min_width, min_height)
+    .resizable(resizable)
     .center()
     .build()?;
 
@@ -1005,16 +1008,28 @@ pub fn run() {
         .menu(build_app_menu)
         .on_menu_event(|app, event| {
             if event.id() == MENU_SETTINGS {
-                let _ =
-                    open_auxiliary_window(app, "settings", "settings", "Réglages", 720.0, 720.0);
+                let _ = open_auxiliary_window(
+                    app,
+                    "settings",
+                    "settings",
+                    "Réglages",
+                    680.0,
+                    720.0,
+                    560.0,
+                    520.0,
+                    true,
+                );
             } else if event.id() == MENU_SHORTCUTS {
                 let _ = open_auxiliary_window(
                     app,
                     "shortcuts",
                     "shortcuts",
                     "Raccourcis clavier",
-                    640.0,
-                    640.0,
+                    620.0,
+                    660.0,
+                    540.0,
+                    480.0,
+                    true,
                 );
             } else if event.id() == MENU_ABOUT || event.id() == MENU_ABOUT_HELP {
                 let _ = open_auxiliary_window(
@@ -1022,8 +1037,11 @@ pub fn run() {
                     "about",
                     "about",
                     "À propos de Verso",
-                    480.0,
-                    520.0,
+                    440.0,
+                    300.0,
+                    440.0,
+                    300.0,
+                    false,
                 );
             }
         })
