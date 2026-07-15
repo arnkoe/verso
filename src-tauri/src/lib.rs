@@ -1026,7 +1026,7 @@ pub fn run() {
                     "shortcuts",
                     "Raccourcis clavier",
                     620.0,
-                    660.0,
+                    720.0,
                     540.0,
                     480.0,
                     true,
