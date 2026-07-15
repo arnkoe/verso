@@ -818,9 +818,9 @@ fn auxiliary_spec(kind: AuxiliaryKind, french: bool) -> AuxiliarySpec {
                 "About Verso"
             },
             width: 440.0,
-            height: 300.0,
+            height: 340.0,
             min_width: 440.0,
-            min_height: 300.0,
+            min_height: 340.0,
             resizable: false,
         },
     }
