@@ -84,6 +84,11 @@
   --sidebar-gutter: 10px;
   --content-gutter: 32px;
   --content-scrollbar-w: 12px;
+  /* Largeur maximale du texte de contenu (versets, strophes), ~100 caractères
+     à --fs-lg. Les rangées, leurs filets et leur fond de survol continuent de
+     filer sur toute la largeur ; seule la colonne de texte est plafonnée, et
+     la colonne d'action (point vert) suit le texte au lieu du bord droit. */
+  --content-measure: 760px;
   --row-inset: 11px;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, Menlo, Consolas, monospace;
@@ -743,7 +748,7 @@ body {
    de sélecteurs de synchronisation dans operator.js. */
 .list-item {
   display: grid;
-  grid-template-columns: 40px 1fr var(--control-h);
+  grid-template-columns: 40px minmax(0, var(--content-measure)) var(--control-h);
   gap: 16px;
   align-items: flex-start;
   /* Le retrait gauche compense la bordure de 3px : le texte reste sur l'axe du
