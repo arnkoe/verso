@@ -1,20 +1,31 @@
 :root {
   --bg: #ffffff;
   --panel: #ffffff;
+  --sidebar: #fcfcfc;     /* fond de la sidebar, très légèrement grisé */
   --ink: #000000;
-  --ink-2: #55554f;
-  --mute: #777772;
-  --mute-2: #878782;
-  /* Surfaces neutres reprises de la sidebar. Les contrôles ont un fond plus
-     marqué que les lignes de contenu afin de rester identifiables sans bordure. */
-  --surface-1: #eeeeec;   /* repos des boutons et contrôles (onglet actif inclus) */
-  --row-hover: #eeeeec;   /* survol de contenu/listes et curseur clavier (gris clair) */
-  --hover: #e4e4e2;       /* survol des boutons/contrôles (fonce par rapport au repos) */
-  --sel: #e4e4e2;         /* sélection de contenu (même fond que le survol des contrôles) */
-  --line-2: #f3f3f2;      /* séparateur clair */
-  --line: #ececeb;        /* bordure standard */
-  --line-strong: #dededc; /* bordure au survol */
-  --scroll: #eaeae8;      /* pouce d'ascenseur */
+  --ink-2: #555757;
+  --mute: #777979;
+  --mute-2: #878989;
+  /* Gris de --ink-2 à --line-strong, texte comme fonds : une seule teinte, jamais
+     brune. Le vert et le bleu sont égaux et le rouge est deux crans en retrait ;
+     seule la luminosité distingue ces tokens les uns des autres. Toute nouvelle
+     valeur doit suivre cette règle, sans quoi elle jurera à côté des autres.
+     --surface-1 est LE gris des fonds interactifs : piste des contrôles
+     segmentés, ligne de résultat survolée, ligne de résultat sélectionnée,
+     survol des boutons (qui sont transparents au repos). Ne pas en dériver de
+     variante : ces fonds doivent rester rigoureusement identiques. */
+  --surface-1: #eef0f0;   /* gris unique des fonds interactifs */
+  --row-hover: var(--surface-1); /* survol de contenu/listes et curseur clavier */
+  --sel: var(--surface-1);       /* sélection de contenu */
+  --hover: var(--surface-1);     /* survol des boutons/contrôles */
+  /* Traits : calibrés pour porter sur le fond de la sidebar, pas seulement sur le
+     blanc. --line sert aussi de liseré à la pastille des contrôles segmentés : il
+     doit rester plus foncé que --surface-1 pour que la pastille se détache de sa
+     piste comme une boîte de bouton. */
+  --line-2: #edefef;      /* séparateur clair */
+  --line: #dee0e0;        /* bordure standard */
+  --line-strong: #cdcfcf; /* bordure au survol */
+  --scroll: #dfe1e1;      /* pouce d'ascenseur */
   --live: #22c55e;
   --live-weak: rgba(34,197,94,0.12);
   --live-hover: rgba(34,197,94,0.18);
@@ -23,27 +34,30 @@
   --danger-weak: #fdeaea;    /* fond léger d'un contrôle destructif au survol */
   --radius-sm: 8px;
   --radius: 10px;
-  --segmented-pad: 1px;                      /* retrait de la piste d'un contrôle segmenté */
-  --segmented-track: rgba(11, 11, 11, 0.05); /* piste d'un contrôle segmenté */
+  --segmented-pad: 1px;                /* retrait de la piste d'un contrôle segmenté */
+  --segmented-track: var(--surface-1); /* piste d'un contrôle segmenté */
   /* Ombres : btn = relief léger des contrôles (boutons, pills, dropdowns),
      panel = relief latéral de la sidebar, raised = menus flottants,
      overlay = modales. Ne pas en introduire d'autres. */
   --shadow-btn: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-btn-hover: 0 1px 3px rgba(0, 0, 0, 0.09);
-  /* Pastille active d'un contrôle segmenté : exactement la boîte d'un bouton au
-     repos (fond --panel, liseré --line, relief --shadow-btn). Le liseré est une
-     ombre interne et non une bordure : il ne prend pas de place, donc les
-     segments ne bougent pas d'un pixel quand la pastille change de position. */
+  /* Pastille active d'un contrôle segmenté : exactement la boîte du champ de
+     recherche (fond --panel, liseré --line, relief --shadow-btn). Un .hdr-btn au
+     repos a la même boîte, au fond près : le sien est celui de la surface qui le
+     porte. Le liseré est ici une ombre interne et non une bordure : il ne prend
+     pas de place, donc les segments ne bougent pas d'un pixel quand la pastille
+     change de position. */
   --shadow-segmented: inset 0 0 0 1px var(--line), var(--shadow-btn);
   --shadow-panel: -2px 0 10px rgba(0, 0, 0, 0.04);
   --shadow-raised: 0 8px 28px rgba(0, 0, 0, 0.14);
   --shadow-overlay: 0 10px 40px rgba(0, 0, 0, 0.2);
   --overlay: rgba(0, 0, 0, 0.35); /* voile derrière les modales */
+  /* Hauteur d'une boîte de bouton : .hdr-btn, champ de recherche, pastille d'un
+     contrôle segmenté. */
   --control-h: 32px;
-  /* Hauteur des fonds qui encadrent un contrôle : piste d'un contrôle segmenté,
-     champ de recherche, ligne de résultat survolée ou sélectionnée. La pastille
-     creusée dans la piste retrouve ainsi exactement --control-h, et tous ces
-     fonds partagent une seule et même hauteur. */
+  /* Hauteur des fonds qui encadrent une boîte de bouton : piste d'un contrôle
+     segmenté, ligne de résultat survolée ou sélectionnée. La pastille creusée
+     dans la piste retrouve ainsi exactement --control-h. */
   --segmented-track-h: calc(var(--control-h) + 2 * var(--segmented-pad));
   --ui-line-h: 16px;
   --w-sidebar: 330px;
@@ -127,8 +141,9 @@ body {
   margin: 0;
 }
 
-/* Les deux zones de la sidebar sont réunies dans un panneau continu. */
-.sidebar-left .card { box-shadow: none; }
+/* Les deux zones de la sidebar sont réunies dans un panneau continu : les cards
+   qu'elle contient sont transparentes et laissent passer son fond grisé. */
+.sidebar-left .card { box-shadow: none; background: transparent; }
 
 /* ── SIDEBARS ──────────────────────────────────────────────────────────────── */
 .sidebar-left {
@@ -138,7 +153,7 @@ body {
   min-height: 0;
   min-width: 0;
   height: 100%;
-  background: var(--panel);
+  background: var(--sidebar);
   border: 0;
   border-right: 1px solid var(--line);
   border-radius: 0;
@@ -239,20 +254,25 @@ body {
   gap: 8px;
 }
 
+/* Le champ de recherche est exactement la boîte d'un bouton au repos : même
+   hauteur (--control-h), même fond blanc, même liseré et même relief que la
+   pastille d'un contrôle segmenté et que .hdr-btn. Le liseré est une vraie
+   bordure et non une ombre interne, la boîte n'ayant ici rien à contenir de
+   concentrique. */
 .field {
   position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: var(--segmented-track-h);
-  padding: 0 var(--row-inset);
-  background: var(--surface-1);
+  min-height: var(--control-h);
+  padding: 0 calc(var(--row-inset) - 1px);
+  background: var(--panel);
+  border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  transition: background 0.15s;
+  box-shadow: var(--shadow-btn);
 }
-/* Focus : fond un cran plus marqué (même teinte que le survol des boutons),
-   sans bordure ni anneau. */
-.field:focus-within { background: var(--hover); }
+/* Le focus ne change ni le fond ni le liseré : le curseur suffit à signaler la
+   saisie. */
 .field svg {
   position: static;
   width: 18px; height: 18px; color: var(--mute);
@@ -303,7 +323,7 @@ body {
 }
 .content-list::-webkit-scrollbar { width: var(--content-scrollbar-w); }
 .content-list::-webkit-scrollbar-thumb {
-  background: var(--scroll); border-radius: 10px; border: 3px solid var(--panel);
+  background: var(--scroll); border-radius: 10px; border: 3px solid var(--sidebar);
 }
 
 .content-item {
@@ -311,8 +331,9 @@ body {
   grid-template-columns: 31px 30px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
-  /* Même hauteur de fond que le champ de recherche au-dessus et que la piste
-     des onglets : les trois fonds de la sidebar se répondent. */
+  /* Même hauteur de fond que la piste des onglets : les fonds gris de la sidebar
+     se répondent, et une ligne survolée encadre son texte comme la piste encadre
+     sa pastille. */
   min-height: var(--segmented-track-h);
   padding: 0 var(--row-inset);
   margin: 0;
@@ -633,10 +654,13 @@ body {
   align-items: stretch;
 }
 
-/* Boutons rectangulaires avec texte dans l'en-tête du panneau */
+/* Boutons rectangulaires avec texte dans l'en-tête du panneau et en bas de
+   sidebar. Au repos le fond est celui de la surface qui les porte (blanc dans
+   l'en-tête, gris de la sidebar en bas de sidebar) : seuls le liseré et le
+   relief dessinent la boîte. */
 .hdr-btn {
   appearance: none;
-  background: var(--panel);
+  background: transparent;
   border: 1px solid var(--line);
   display: flex;
   align-items: center;
@@ -670,7 +694,7 @@ body {
 .hdr-btn:disabled { opacity: 0.5; cursor: default; }
 .hdr-btn:disabled:hover {
   border-color: var(--line);
-  background: var(--panel);
+  background: transparent;
   box-shadow: var(--shadow-btn);
 }
 
@@ -857,7 +881,7 @@ body {
   gap: 2px;
   padding: 10px 12px;
   border: 0;
-  background: var(--surface-1);
+  background: transparent;
   border-radius: var(--radius-sm);
   cursor: pointer;
   text-align: left;
@@ -1017,7 +1041,7 @@ body {
   color: var(--ink);
 }
 .info-h {
-  font-size: var(--fs-md);
+  font-size: var(--fs-lg);
   font-weight: 600;
   letter-spacing: 0;
   color: var(--ink);
@@ -1155,6 +1179,10 @@ body {
 }
 .info-pane-settings .info-h:first-of-type { margin-top: 28px; }
 
+/* Le statut de mise à jour suit le texte courant de la page ; la même classe
+   dans la modale de gestion des contenus garde la taille des modales. */
+.info-pane-settings .settings-update-status { font-size: var(--fs-lg); }
+
 .settings-close {
   width: var(--control-h);
   height: var(--control-h);
@@ -1163,7 +1191,7 @@ body {
   justify-content: center;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--surface-1);
+  background: transparent;
   color: var(--ink);
   cursor: pointer;
 }
@@ -1179,10 +1207,6 @@ body {
   z-index: 1000;
   display: flex;
   align-items: center;
-/* Le statut de mise à jour suit le texte courant de la page ; la même classe
-   dans la modale de gestion des contenus garde la taille des modales. */
-.info-pane-settings .settings-update-status { font-size: var(--fs-lg); }
-
   justify-content: center;
   background: var(--overlay);
 }
@@ -1259,7 +1283,7 @@ body {
 }
 
 .settings-update-status {
-  font-size: var(--fs-lg);
+  font-size: var(--fs-md);
   margin-top: 10px;
   min-height: 1.2em;
   color: var(--mute);
