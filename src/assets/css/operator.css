@@ -35,7 +35,7 @@
      ombre interne et non une bordure : il ne prend pas de place, donc les
      segments ne bougent pas d'un pixel quand la pastille change de position. */
   --shadow-segmented: inset 0 0 0 1px var(--line), var(--shadow-btn);
-  --shadow-panel: 2px 0 10px rgba(0, 0, 0, 0.04);
+  --shadow-panel: -2px 0 10px rgba(0, 0, 0, 0.04);
   --shadow-raised: 0 8px 28px rgba(0, 0, 0, 0.14);
   --shadow-overlay: 0 10px 40px rgba(0, 0, 0, 0.2);
   --overlay: rgba(0, 0, 0, 0.35); /* voile derrière les modales */
@@ -142,7 +142,6 @@ body {
   border: 0;
   border-right: 1px solid var(--line);
   border-radius: 0;
-  box-shadow: var(--shadow-panel);
   position: relative;
   z-index: 1;
   overflow: hidden;
@@ -493,11 +492,16 @@ body {
 .monitor-foot { display: none; }
 
 /* ── ZONE PRINCIPALE ───────────────────────────────────────────────────────── */
+/* La zone principale passe au-dessus de la sidebar : son ombre tombe donc
+   sur la sidebar et non sur le contenu. */
 .main {
   display: grid;
   grid-template-rows: auto 1fr;
   min-height: 0;
   min-width: 0;
+  position: relative;
+  z-index: 2;
+  box-shadow: var(--shadow-panel);
 }
 
 /* Empty state : visible tant qu'aucun contenu n'a été chargé */
