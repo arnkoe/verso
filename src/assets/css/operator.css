@@ -45,8 +45,10 @@
   --live-hover: rgba(34,197,94,0.18);
   /* Même vert, décliné pour le texte : #22c55e ne fait que ~2,3:1 sur blanc,
      acceptable pour un point ou un filet, illisible pour des lettres. Tout
-     usage de --live en couleur de texte passe par ce token (~5:1). */
-  --live-text: #15803d;
+     usage de --live en couleur de texte passe par ce token (~3,3:1, le point
+     d'équilibre : plus foncé, le vert vire au sapin et se dissocie du point et
+     du filet qu'il accompagne). */
+  --live-text: #16a34a;
   --accent: #2563eb;
   --danger: #c62828;         /* erreurs, actions destructives */
   --danger-weak: #fdeaea;    /* fond léger d'un contrôle destructif au survol */
