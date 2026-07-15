@@ -5,6 +5,10 @@ mod sync;
 use std::fs;
 
 use serde::Serialize;
+use tauri::menu::{
+    Menu, MenuItem, MenuItemKind, PredefinedMenuItem, Submenu, HELP_SUBMENU_ID,
+    WINDOW_SUBMENU_ID,
+};
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 
 use bible_search::BibleSearchResult;
@@ -564,12 +568,429 @@ async fn open_projection(
     Ok(())
 }
 
-// ─── VERSION ────────────────────────────────────────────────────────────────
-
-/// Version courante de l'application (affichée en bas à droite de l'opérateur).
 #[tauri::command]
 fn app_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
+}
+
+// ─── MENU & FENÊTRES SECONDAIRES ───────────────────────────────────────────
+
+const APP_SUBMENU_ID: &str = "verso-app-menu";
+const FILE_SUBMENU_ID: &str = "verso-file-menu";
+const EDIT_SUBMENU_ID: &str = "verso-edit-menu";
+const VIEW_SUBMENU_ID: &str = "verso-view-menu";
+const MENU_SETTINGS: &str = "settings";
+const MENU_SHORTCUTS: &str = "shortcuts";
+const MENU_ABOUT: &str = "about-verso";
+const MENU_ABOUT_HELP: &str = "about-verso-help";
+
+/// Construit explicitement le menu natif pour que tous ses titres suivent la
+/// langue choisie dans Verso. Les commandes système restent des éléments
+/// prédéfinis Tauri et conservent donc leurs raccourcis et comportements natifs.
+fn build_app_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
+    let settings = MenuItem::with_id(app, MENU_SETTINGS, "Réglages…", true, Some("CmdOrCtrl+,"))?;
+    let shortcuts = MenuItem::with_id(
+        app,
+        MENU_SHORTCUTS,
+        "Raccourcis clavier",
+        true,
+        None::<&str>,
+    )?;
+    #[cfg(target_os = "macos")]
+    let app_about =
+        MenuItem::with_id(app, MENU_ABOUT, "À propos de Verso", true, None::<&str>)?;
+    let help_about = MenuItem::with_id(
+        app,
+        MENU_ABOUT_HELP,
+        "À propos de Verso",
+        true,
+        None::<&str>,
+    )?;
+
+    #[cfg(target_os = "macos")]
+    let app_menu = Submenu::with_id_and_items(
+        app,
+        APP_SUBMENU_ID,
+        "Verso",
+        true,
+        &[
+            &app_about,
+            &PredefinedMenuItem::separator(app)?,
+            &settings,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::services(app, None)?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::hide(app, None)?,
+            &PredefinedMenuItem::hide_others(app, None)?,
+            &PredefinedMenuItem::show_all(app, None)?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::quit(app, None)?,
+        ],
+    )?;
+
+    #[cfg(target_os = "macos")]
+    let file_menu = Submenu::with_id_and_items(
+        app,
+        FILE_SUBMENU_ID,
+        "File",
+        true,
+        &[&PredefinedMenuItem::close_window(app, None)?],
+    )?;
+
+    #[cfg(target_os = "windows")]
+    let file_menu = Submenu::with_id_and_items(
+        app,
+        FILE_SUBMENU_ID,
+        "File",
+        true,
+        &[
+            &settings,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::close_window(app, None)?,
+            &PredefinedMenuItem::quit(app, None)?,
+        ],
+    )?;
+
+    let edit_menu = Submenu::with_id_and_items(
+        app,
+        EDIT_SUBMENU_ID,
+        "Edit",
+        true,
+        &[
+            &PredefinedMenuItem::undo(app, None)?,
+            &PredefinedMenuItem::redo(app, None)?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::cut(app, None)?,
+            &PredefinedMenuItem::copy(app, None)?,
+            &PredefinedMenuItem::paste(app, None)?,
+            &PredefinedMenuItem::select_all(app, None)?,
+        ],
+    )?;
+
+    #[cfg(target_os = "macos")]
+    let view_menu = Submenu::with_id_and_items(
+        app,
+        VIEW_SUBMENU_ID,
+        "View",
+        true,
+        &[&PredefinedMenuItem::fullscreen(app, None)?],
+    )?;
+
+    let window_menu = Submenu::with_id_and_items(
+        app,
+        WINDOW_SUBMENU_ID,
+        "Window",
+        true,
+        &[
+            &PredefinedMenuItem::minimize(app, None)?,
+            &PredefinedMenuItem::maximize(app, None)?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::close_window(app, None)?,
+        ],
+    )?;
+
+    #[cfg(target_os = "macos")]
+    let help_menu = Submenu::with_id_and_items(
+        app,
+        HELP_SUBMENU_ID,
+        "Help",
+        true,
+        &[
+            &shortcuts,
+            &PredefinedMenuItem::separator(app)?,
+            &help_about,
+        ],
+    )?;
+
+    #[cfg(target_os = "windows")]
+    let help_menu = Submenu::with_id_and_items(
+        app,
+        HELP_SUBMENU_ID,
+        "Help",
+        true,
+        &[
+            &shortcuts,
+            &PredefinedMenuItem::separator(app)?,
+            &help_about,
+        ],
+    )?;
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    let help_menu = Submenu::with_id_and_items(
+        app,
+        HELP_SUBMENU_ID,
+        "Help",
+        true,
+        &[
+            &settings,
+            &PredefinedMenuItem::separator(app)?,
+            &shortcuts,
+            &PredefinedMenuItem::separator(app)?,
+            &help_about,
+        ],
+    )?;
+
+    Menu::with_items(
+        app,
+        &[
+            #[cfg(target_os = "macos")]
+            &app_menu,
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            &file_menu,
+            &edit_menu,
+            #[cfg(target_os = "macos")]
+            &view_menu,
+            &window_menu,
+            &help_menu,
+        ],
+    )
+}
+
+/// Ouvre une seule instance d'une fenêtre secondaire et la ramène au premier
+/// plan si elle existe déjà.
+fn open_auxiliary_window(
+    app: &AppHandle,
+    label: &str,
+    mode: &str,
+    title: &str,
+    width: f64,
+    height: f64,
+) -> tauri::Result<()> {
+    if let Some(window) = app.get_webview_window(label) {
+        window.show()?;
+        window.unminimize()?;
+        window.set_focus()?;
+        return Ok(());
+    }
+
+    WebviewWindowBuilder::new(
+        app,
+        label,
+        WebviewUrl::App(format!("operator.html?window={mode}").into()),
+    )
+    .title(title)
+    .inner_size(width, height)
+    .min_inner_size(520.0, 480.0)
+    .resizable(true)
+    .center()
+    .build()?;
+
+    Ok(())
+}
+
+fn set_predefined_text(
+    submenu: &Submenu<tauri::Wry>,
+    position: usize,
+    text: &str,
+) -> Result<(), String> {
+    if let Some(MenuItemKind::Predefined(item)) = submenu
+        .items()
+        .map_err(|e| e.to_string())?
+        .into_iter()
+        .nth(position)
+    {
+        item.set_text(text).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+/// Aligne les commandes ajoutées au menu natif et les titres des fenêtres sur
+/// la langue choisie dans l'interface web.
+#[tauri::command]
+fn set_menu_language(app: AppHandle, lang: String) -> Result<(), String> {
+    let french = lang == "fr";
+    let settings_text = if french {
+        "Réglages…"
+    } else {
+        "Settings…"
+    };
+    let shortcuts_text = if french {
+        "Raccourcis clavier"
+    } else {
+        "Keyboard Shortcuts"
+    };
+    let about_text = if french {
+        "À propos de Verso"
+    } else {
+        "About Verso"
+    };
+
+    if let Some(menu) = app.menu() {
+        let submenu_titles = [
+            (FILE_SUBMENU_ID, if french { "Fichier" } else { "File" }),
+            (EDIT_SUBMENU_ID, if french { "Édition" } else { "Edit" }),
+            (
+                VIEW_SUBMENU_ID,
+                if french { "Présentation" } else { "View" },
+            ),
+            (
+                WINDOW_SUBMENU_ID,
+                if french { "Fenêtre" } else { "Window" },
+            ),
+            (HELP_SUBMENU_ID, if french { "Aide" } else { "Help" }),
+        ];
+        for (id, title) in submenu_titles {
+            if let Some(MenuItemKind::Submenu(submenu)) = menu.get(id) {
+                submenu.set_text(title).map_err(|e| e.to_string())?;
+            }
+        }
+
+        for item in menu.items().map_err(|e| e.to_string())? {
+            let MenuItemKind::Submenu(submenu) = item else {
+                continue;
+            };
+            if let Some(MenuItemKind::MenuItem(item)) = submenu.get(MENU_SETTINGS) {
+                item.set_text(settings_text).map_err(|e| e.to_string())?;
+            }
+            if let Some(MenuItemKind::MenuItem(item)) = submenu.get(MENU_SHORTCUTS) {
+                item.set_text(shortcuts_text).map_err(|e| e.to_string())?;
+            }
+            if let Some(MenuItemKind::MenuItem(item)) = submenu.get(MENU_ABOUT) {
+                item.set_text(about_text).map_err(|e| e.to_string())?;
+            }
+            if let Some(MenuItemKind::MenuItem(item)) = submenu.get(MENU_ABOUT_HELP) {
+                item.set_text(about_text).map_err(|e| e.to_string())?;
+            }
+        }
+
+        #[cfg(target_os = "macos")]
+        if let Some(MenuItemKind::Submenu(app_menu)) = menu.get(APP_SUBMENU_ID) {
+            set_predefined_text(&app_menu, 4, "Services")?;
+            set_predefined_text(
+                &app_menu,
+                6,
+                if french { "Masquer Verso" } else { "Hide Verso" },
+            )?;
+            set_predefined_text(
+                &app_menu,
+                7,
+                if french { "Masquer les autres" } else { "Hide Others" },
+            )?;
+            set_predefined_text(
+                &app_menu,
+                8,
+                if french { "Tout afficher" } else { "Show All" },
+            )?;
+            set_predefined_text(
+                &app_menu,
+                10,
+                if french { "Quitter Verso" } else { "Quit Verso" },
+            )?;
+        }
+
+        if let Some(MenuItemKind::Submenu(file_menu)) = menu.get(FILE_SUBMENU_ID) {
+            #[cfg(target_os = "macos")]
+            set_predefined_text(
+                &file_menu,
+                0,
+                if french { "Fermer la fenêtre" } else { "Close Window" },
+            )?;
+
+            #[cfg(target_os = "windows")]
+            {
+                set_predefined_text(
+                    &file_menu,
+                    2,
+                    if french { "Fermer la fenêtre" } else { "Close Window" },
+                )?;
+                set_predefined_text(
+                    &file_menu,
+                    3,
+                    if french { "Quitter Verso" } else { "Exit Verso" },
+                )?;
+            }
+        }
+
+        if let Some(MenuItemKind::Submenu(edit_menu)) = menu.get(EDIT_SUBMENU_ID) {
+            let labels = if french {
+                [
+                    (0, "Annuler"),
+                    (1, "Rétablir"),
+                    (3, "Couper"),
+                    (4, "Copier"),
+                    (5, "Coller"),
+                    (6, "Tout sélectionner"),
+                ]
+            } else {
+                [
+                    (0, "Undo"),
+                    (1, "Redo"),
+                    (3, "Cut"),
+                    (4, "Copy"),
+                    (5, "Paste"),
+                    (6, "Select All"),
+                ]
+            };
+            for (position, label) in labels {
+                set_predefined_text(&edit_menu, position, label)?;
+            }
+        }
+
+        #[cfg(target_os = "macos")]
+        if let Some(MenuItemKind::Submenu(view_menu)) = menu.get(VIEW_SUBMENU_ID) {
+            set_predefined_text(
+                &view_menu,
+                0,
+                if french {
+                    "Activer le mode plein écran"
+                } else {
+                    "Enter Full Screen"
+                },
+            )?;
+        }
+
+        if let Some(MenuItemKind::Submenu(window_menu)) = menu.get(WINDOW_SUBMENU_ID) {
+            set_predefined_text(
+                &window_menu,
+                0,
+                if french { "Réduire" } else { "Minimize" },
+            )?;
+            set_predefined_text(
+                &window_menu,
+                1,
+                if french {
+                    #[cfg(target_os = "macos")]
+                    {
+                        "Zoom"
+                    }
+                    #[cfg(not(target_os = "macos"))]
+                    {
+                        "Agrandir"
+                    }
+                } else {
+                    #[cfg(target_os = "macos")]
+                    {
+                        "Zoom"
+                    }
+                    #[cfg(not(target_os = "macos"))]
+                    {
+                        "Maximize"
+                    }
+                },
+            )?;
+            set_predefined_text(
+                &window_menu,
+                3,
+                if french { "Fermer la fenêtre" } else { "Close Window" },
+            )?;
+        }
+    }
+
+    if let Some(window) = app.get_webview_window("settings") {
+        window
+            .set_title(if french { "Réglages" } else { "Settings" })
+            .map_err(|e| e.to_string())?;
+    }
+    if let Some(window) = app.get_webview_window("shortcuts") {
+        window
+            .set_title(shortcuts_text)
+            .map_err(|e| e.to_string())?;
+    }
+    if let Some(window) = app.get_webview_window("about") {
+        window.set_title(about_text).map_err(|e| e.to_string())?;
+    }
+
+    Ok(())
 }
 
 // ─── ENTRÉE ─────────────────────────────────────────────────────────────────
@@ -581,6 +1002,31 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .manage(AppState::default())
+        .menu(build_app_menu)
+        .on_menu_event(|app, event| {
+            if event.id() == MENU_SETTINGS {
+                let _ =
+                    open_auxiliary_window(app, "settings", "settings", "Réglages", 720.0, 720.0);
+            } else if event.id() == MENU_SHORTCUTS {
+                let _ = open_auxiliary_window(
+                    app,
+                    "shortcuts",
+                    "shortcuts",
+                    "Raccourcis clavier",
+                    640.0,
+                    640.0,
+                );
+            } else if event.id() == MENU_ABOUT || event.id() == MENU_ABOUT_HELP {
+                let _ = open_auxiliary_window(
+                    app,
+                    "about",
+                    "about",
+                    "À propos de Verso",
+                    480.0,
+                    520.0,
+                );
+            }
+        })
         .setup(|app| {
             // Premier lancement : dépose les recueils et bibles libres de droits
             // empaquetés dans le dossier de données de l'utilisateur.
@@ -610,16 +1056,18 @@ pub fn run() {
             list_monitors,
             open_projection,
             app_version,
+            set_menu_language,
         ])
-        // Fermer la fenêtre opérateur ferme aussi la projection : on évite une
-        // projection « zombie » qui survivrait au processus et donnerait une
-        // seconde fenêtre au prochain lancement de l'application.
+        // Fermer la fenêtre opérateur ferme aussi les fenêtres secondaires : on
+        // évite des fenêtres « zombies » qui survivraient à l'interface principale.
         .on_window_event(|window, event| {
             if matches!(event, tauri::WindowEvent::CloseRequested { .. })
                 && window.label() == "operator"
             {
-                if let Some(proj) = window.app_handle().get_webview_window("projection") {
-                    let _ = proj.close();
+                for label in ["projection", "settings", "shortcuts", "about"] {
+                    if let Some(other) = window.app_handle().get_webview_window(label) {
+                        let _ = other.close();
+                    }
                 }
             }
         })

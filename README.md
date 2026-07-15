@@ -59,17 +59,15 @@ You will never have to do this again: future updates install by themselves.
 
 ## Updating Verso
 
-You have nothing to monitor. Every time it starts, Verso checks on its own whether a newer version exists.
+Verso silently checks whether a newer version exists. Open **Settings** (`⌘,` on macOS, `Ctrl+,` elsewhere) and go to **Updates**: when a version is available, the button offers to install it and restart Verso.
 
-If one is available, a small **dot** appears on the **"About"** button. Click that button: a link offers to install the update, then Verso restarts. That's all.
-
-You can also check for updates manually from **Settings → Updates**.
+You can also start a manual check from this section.
 
 ---
 
 ## Your songs, Bibles and documents
 
-Verso keeps everything in a folder named **`Verso`** inside the application data folder for your account. You don't need to know its exact location: open **Settings** (at the bottom of the sidebar), then under **Content** click **Open** next to "Verso folder" to open it directly.
+Verso keeps everything in a folder named **`Verso`** inside the application data folder for your account. You don't need to know its exact location: open **Settings** (`⌘,` on macOS, `Ctrl+,` elsewhere), then under **Content** click **Open** next to "Verso folder" to open it directly.
 
 Inside, you will find:
 
@@ -122,18 +120,18 @@ Full names also work (`Verse 1`, `Chorus`, `Bridge`…) if you prefer.
 
 ### Keyboard shortcuts
 
-Verso has keyboard shortcuts to switch tabs, search, and project without the mouse. The full, always up-to-date list is built into the application: open the operator window and click **Shortcuts** at the bottom of the sidebar.
+Verso has keyboard shortcuts to switch tabs, search, and project without the mouse. The full, always up-to-date list is built into the application: choose **Help → Keyboard Shortcuts**. It opens in a separate window.
 
 ### Settings
 
-The **Settings** button at the bottom of the sidebar opens a panel with sections:
+On macOS, choose **Verso → Settings…** or press `⌘,`. On Windows, choose **File → Settings…** or press `Ctrl+,`; on Linux, the command is under **Help**. A separate window opens with these sections:
 
 - **Projection** — choose the screen used for projection from the drop-down menu. The selection is remembered for future sessions.
 - **Content** — manage your collections, Bibles, PDFs and images directly from Settings: for each category you can **Add** files, **Manage** the existing items and **Delete** them, without leaving the application. You can also open the Verso folder where these files live.
 - **Language** — change the interface language.
 - **Updates** — check manually for a new version and install it.
 
-You can close the **Settings**, **Shortcuts**, and **About** panels, as well as their dialogs, by clicking outside their content or pressing **Esc**.
+Close the **Settings**, **Keyboard Shortcuts**, and **About Verso** windows like any native window, using their close button or `Cmd/Ctrl W`. The **About Verso** window includes the version, author, contact details, and available updates; it is available from **Help** and, on macOS, also from the **Verso** menu. Dialogs inside these windows close with **Esc**. Native menu labels follow the language selected in Settings.
 
 ---
 

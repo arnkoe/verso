@@ -111,9 +111,14 @@ async function apiOpenProjection(x, y, width, height) {
 // ─── VERSION & MISE À JOUR ────────────────────────────────────────────────────
 // Plugins exposés sur window.__TAURI__ grâce à `withGlobalTauri: true`.
 
-/** Version courante de l'application (ex. "0.1.0"). */
+/** Retourne la version de l'application compilée. */
 async function apiAppVersion() {
   return await invoke('app_version');
+}
+
+/** Traduit les commandes ajoutées au menu natif et les titres secondaires. */
+async function apiSetMenuLanguage(lang) {
+  return await invoke('set_menu_language', { lang });
 }
 
 /** Ouvre le dossier Verso (racine des données) dans le gestionnaire de fichiers. */

@@ -59,17 +59,15 @@ Vous n'aurez plus jamais à refaire cela : les prochaines mises à jour s'instal
 
 ## Mettre à jour Verso
 
-Vous n'avez rien à surveiller. À chaque démarrage, Verso regarde tout seul si une version plus récente existe.
+Verso vérifie silencieusement si une version plus récente existe. Ouvrez les **Réglages** (`⌘,` sur macOS, `Ctrl+,` ailleurs) puis la rubrique **Mises à jour** : si une version est disponible, le bouton propose de l'installer et de redémarrer Verso.
 
-Si c'est le cas, un petit **point** apparaît sur le bouton **« À propos »**. Cliquez sur ce bouton : un lien vous propose d'installer la mise à jour, puis Verso redémarre. C'est tout.
-
-Vous pouvez aussi vérifier les mises à jour manuellement depuis **Paramètres → Mises à jour**.
+Vous pouvez aussi lancer la vérification manuellement depuis cette rubrique.
 
 ---
 
 ## Vos chants, vos Bibles, vos documents
 
-Verso range tout dans un dossier nommé **`Verso`**, à l'intérieur du dossier de données de l'application pour votre compte. Vous n'avez pas besoin d'en connaître l'emplacement exact : ouvrez les **Paramètres** (en bas de la barre latérale), puis dans la rubrique **Contenus** cliquez sur **Ouvrir** à côté de « Dossier Verso » pour l'ouvrir directement.
+Verso range tout dans un dossier nommé **`Verso`**, à l'intérieur du dossier de données de l'application pour votre compte. Vous n'avez pas besoin d'en connaître l'emplacement exact : ouvrez les **Réglages** (`⌘,` sur macOS, `Ctrl+,` ailleurs), puis dans la rubrique **Contenus** cliquez sur **Ouvrir** à côté de « Dossier Verso » pour l'ouvrir directement.
 
 À l'intérieur, vous trouverez :
 
@@ -122,18 +120,18 @@ Les noms complets fonctionnent aussi (`Strophe 1`, `Refrain`, `Pont`…) si vous
 
 ### Raccourcis clavier
 
-Verso propose des raccourcis clavier pour changer d'onglet, chercher et projeter sans la souris. La liste complète et toujours à jour est intégrée à l'application : ouvrez la fenêtre opérateur et cliquez sur **Raccourcis** en bas de la barre latérale.
+Verso propose des raccourcis clavier pour changer d'onglet, chercher et projeter sans la souris. La liste complète et toujours à jour est intégrée à l'application : choisissez **Aide → Raccourcis clavier**. Elle s'ouvre dans une fenêtre séparée.
 
 ### Paramètres
 
-Le bouton **Paramètres** en bas de la barre latérale ouvre un volet avec des rubriques :
+Sur macOS, choisissez **Verso → Réglages…** ou utilisez `⌘,`. Sous Windows, choisissez **Fichier → Réglages…** ou utilisez `Ctrl+,` ; sous Linux, la commande se trouve dans **Aide**. Une fenêtre séparée s'ouvre avec les rubriques suivantes :
 
 - **Projection** — choisissez l'écran utilisé pour la projection dans la liste déroulante. Ce choix est mémorisé pour les prochaines sessions.
 - **Contenus** — gérez vos recueils, Bibles, PDF et images directement depuis les paramètres : pour chaque catégorie vous pouvez **Ajouter** des fichiers, **Gérer** les éléments existants et les **Supprimer**, sans quitter l'application. Vous pouvez aussi ouvrir le dossier Verso où se trouvent ces fichiers.
 - **Langue** — changer la langue de l'interface.
 - **Mises à jour** — vérifier manuellement une nouvelle version et l'installer.
 
-Vous pouvez fermer les volets **Paramètres**, **Raccourcis** et **À propos**, ainsi que leurs boîtes de dialogue, en cliquant à côté de leur contenu ou en appuyant sur **Échap**.
+Fermez les fenêtres **Réglages**, **Raccourcis clavier** et **À propos de Verso** comme toute fenêtre native, avec leur bouton de fermeture ou `Cmd/Ctrl W`. La fenêtre **À propos de Verso**, qui regroupe la version, l'auteur, le contact et les mises à jour disponibles, est accessible dans **Aide** et, sur macOS, également dans le menu **Verso**. Les boîtes de dialogue internes se ferment avec **Échap**. Les intitulés des menus natifs suivent la langue choisie dans les réglages.
 
 ---
 

@@ -6,6 +6,10 @@
  * et l'ouverture multi-écran par les commandes list_monitors / open_projection.
  */
 
+// Les fenêtres Réglages et Raccourcis réutilisent leurs panneaux respectifs,
+// mais sont ouvertes par le menu natif dans des fenêtres Tauri dédiées.
+const WINDOW_MODE = document.documentElement.dataset.windowMode || 'operator';
+
 // État global
 const state = {
   activeTab: 'cantiques',
@@ -20,7 +24,7 @@ const state = {
   projection: null,
   bibleCode: null,
   searchCursor: 0,
-  overlayPanel: null,  // panneau de superposition affiché (Aide/À propos/Paramètres) ou null
+  overlayPanel: null,  // panneau secondaire affiché (Aide/Réglages/À propos) ou null
 };
 let lastActiveProjection = null;
 
@@ -47,6 +51,7 @@ let lastActiveProjection = null;
 // Traduit l'interface statique selon la langue stockée (anglais par défaut),
 // avant que le reste du script ne peuple les listes dynamiques.
 applyI18n();
+apiSetMenuLanguage(currentLang()).catch(() => {});
 
 // Indicateur « en projection » affiché sur l'item live d'une liste.
 // Le libellé (aria-label) dépend de la langue active, d'où la construction
@@ -122,18 +127,10 @@ function switchSideTab(tab) {
   updateSearchCursor();
 }
 
-// Panneaux de superposition (Aide, À propos, Paramètres) : contrairement aux
+// Panneaux secondaires (Aide, Réglages, À propos) : contrairement aux
 // panneaux de contenu (un par onglet), ils masquent l'empty state tant qu'ils
 // sont affichés, quel que soit l'onglet actif.
-const OVERLAY_PANELS = ['panelHelp', 'panelAbout', 'panelSettings'];
-
-// Rubrique de la barre d'outils correspondant à chaque panneau de superposition,
-// pour garder la rubrique ouverte en surbrillance (sélection persistante).
-const TOOL_ITEM_FOR_PANEL = {
-  panelSettings: 'openSettings',
-  panelHelp: 'showHelp',
-  panelAbout: 'showAbout',
-};
+const OVERLAY_PANELS = ['panelHelp', 'panelSettings', 'panelAbout'];
 
 // Revient au panneau de contenu de l'onglet actif quand un panneau d'outil est
 // fermé (clic autour de son contenu ou touche Échap).
@@ -153,10 +150,6 @@ function showPanel(id) {
     document.getElementById(p).classList.toggle('active', p === id);
   });
   state.overlayPanel = OVERLAY_PANELS.includes(id) ? id : null;
-  const activeTool = TOOL_ITEM_FOR_PANEL[id] || null;
-  document.querySelectorAll('.search-tools .tool-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.action === activeTool);
-  });
   updateEmptyState();
 }
 
@@ -172,7 +165,7 @@ function activeTabHasContent() {
 
 // L'empty state apparaît pour tout onglet sans contenu sélectionné, y compris
 // après qu'un contenu a été chargé dans un autre onglet. Il est masqué quand un
-// panneau de superposition (Aide/À propos/Paramètres) est affiché.
+// panneau secondaire (Aide/Réglages/À propos) est affiché.
 function updateEmptyState() {
   const loaded = state.overlayPanel != null || activeTabHasContent();
   document.querySelector('.main').dataset.loaded = loaded ? 'true' : 'false';
@@ -1568,22 +1561,21 @@ function showHelp() {
   showPanel('panelHelp');
 }
 
-/** Affiche le panneau « À propos » au centre de la zone principale. */
+/** Affiche les informations de l'application dans leur fenêtre dédiée. */
 function showAbout() {
   markContentLoaded();
   showPanel('panelAbout');
 }
 
 // ─── VERSION & MISE À JOUR ─────────────────────────────────────────────────────
-// Vérification silencieuse au lancement. Si une mise à jour existe : un point
-// rouge sur le bouton « À propos », et un lien cliquable dans le panneau À propos
-// pour l'installer et relancer. En cas d'échec réseau, rien ne change.
+// Vérification silencieuse au lancement. Dans la fenêtre Réglages, une mise à
+// jour disponible devient directement installable. En cas d'échec réseau, rien
+// ne change.
 
-// ─── PARAMÈTRES (modale) ────────────────────────────────────────────────────────
-// Superposition dans la fenêtre opérateur (pas une fenêtre OS séparée) : volet de
-// rubriques à gauche, fermeture au clic sur le fond ou avec Échap.
+// ─── PARAMÈTRES ────────────────────────────────────────────────────────────────
+// Panneau réutilisé dans la fenêtre OS dédiée ouverte depuis le menu natif.
 
-// Affiche le panneau Paramètres dans la zone principale (comme Aide/À propos).
+// Affiche le panneau Paramètres dans la zone principale.
 function openSettings() {
   markContentLoaded();
   showPanel('panelSettings');
@@ -1631,6 +1623,7 @@ function toggleLangMenu() {
 function setUiLang(lang) {
   _closeLangMenu();
   setLang(lang, () => {
+    apiSetMenuLanguage(lang).catch(() => {});
     _syncLangToggle();
     _retranslateDynamic();
   });
@@ -1901,7 +1894,7 @@ document.addEventListener('keydown', e => {
 // Les modales dédiées interceptent Échap avant ce gestionnaire ; celui-ci ne
 // ferme donc que le panneau d'outil visible au premier plan.
 document.addEventListener('keydown', e => {
-  if (e.key !== 'Escape' || !state.overlayPanel) return;
+  if (WINDOW_MODE !== 'operator' || e.key !== 'Escape' || !state.overlayPanel) return;
   e.preventDefault();
   closeOverlayPanel();
 });
@@ -1958,18 +1951,23 @@ let _pendingUpdate = null;
 
 async function installUpdate() {
   if (!_pendingUpdate) return;
-  // Deux points d'entrée : le lien du panneau « À propos » et le bouton de la modale.
-  const link = document.getElementById('aboutUpdateLink');
   const btn = document.getElementById('btnCheckUpdate');
-  if (link) { link.textContent = t('update.installing'); link.disabled = true; }
+  const link = document.getElementById('aboutUpdateLink');
   if (btn) btn.disabled = true;
+  if (link) {
+    link.textContent = t('update.installing');
+    link.disabled = true;
+  }
   _setUpdateStatus(t('update.installing'));
   try {
     await apiInstallUpdate(_pendingUpdate);
     // relaunch() redémarre l'app ; le code ci-dessous n'est normalement pas atteint.
   } catch (_) {
-    if (link) { link.textContent = t('update.installRetry'); link.disabled = false; }
     if (btn) btn.disabled = false;
+    if (link) {
+      link.textContent = t('update.installRetry');
+      link.disabled = false;
+    }
     _setUpdateStatus(t('update.installFailed'), 'error');
   }
 }
@@ -2044,23 +2042,42 @@ async function _runSyncPullOnLaunch() {
   _runSyncPullOnLaunch();
 })();
 
-(async function _initAbout() {
-  document.getElementById('aboutYear').textContent = new Date().getFullYear();
-  try {
-    const v = await apiAppVersion();
-    document.getElementById('aboutVersion').textContent = v;
-  } catch (_) {}
+(async function _initUpdate() {
+  const year = document.getElementById('aboutYear');
+  if (year) year.textContent = new Date().getFullYear();
+
+  const version = document.getElementById('aboutVersion');
+  if (version) {
+    try { version.textContent = await apiAppVersion(); } catch (_) {}
+  }
 
   const update = await apiCheckUpdate();
   if (!update) return;
   _pendingUpdate = update;
-  document.getElementById('aboutBadge').hidden = false;
-  const wrap = document.getElementById('aboutUpdate');
-  const link = document.getElementById('aboutUpdateLink');
-  if (link) link.textContent = update.version
-    ? t('update.updateTo', { version: update.version })
-    : t('update.update');
-  if (wrap) wrap.hidden = false;
+
+  const aboutUpdate = document.getElementById('aboutUpdate');
+  const aboutUpdateLink = document.getElementById('aboutUpdateLink');
+  if (aboutUpdateLink) {
+    aboutUpdateLink.textContent = update.version
+      ? t('update.updateTo', { version: update.version })
+      : t('update.update');
+  }
+  if (aboutUpdate) aboutUpdate.hidden = false;
+
+  if (WINDOW_MODE === 'settings') {
+    _setUpdateStatus(
+      update.version
+        ? t('update.availableVersion', { version: update.version })
+        : t('update.available'),
+      'available'
+    );
+    const btn = document.getElementById('btnCheckUpdate');
+    if (btn) {
+      btn.dataset.action = 'installUpdate';
+      btn.disabled = false;
+      btn.querySelector('.settings-btn-label').textContent = t('settings.installRestart');
+    }
+  }
 })();
 
 // ─── DELEGATION DES CLICS (remplace les onclick inline bloqués par la CSP) ─────
@@ -2100,3 +2117,8 @@ document.addEventListener('click', e => {
       else fn();
   }
 });
+
+// Affiche immédiatement le seul panneau utile dans les fenêtres secondaires.
+if (WINDOW_MODE === 'settings') openSettings();
+else if (WINDOW_MODE === 'shortcuts') showHelp();
+else if (WINDOW_MODE === 'about') showAbout();
