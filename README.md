@@ -69,7 +69,7 @@ You can also check for updates manually from **Settings → Updates**.
 
 ## Your songs, Bibles and documents
 
-Verso keeps everything in a folder named **`Verso`** inside the application data folder for your account. You don't need to know its exact location: open **Settings** (the gear button in the toolbar), then under **Content** click **Open** next to "Verso folder" to open it directly.
+Verso keeps everything in a folder named **`Verso`** inside the application data folder for your account. You don't need to know its exact location: open **Settings** (at the bottom of the sidebar), then under **Content** click **Open** next to "Verso folder" to open it directly.
 
 Inside, you will find:
 
@@ -122,11 +122,11 @@ Full names also work (`Verse 1`, `Chorus`, `Bridge`…) if you prefer.
 
 ### Keyboard shortcuts
 
-Verso has keyboard shortcuts to switch tabs, search, and project without the mouse. The full, always up-to-date list is built into the application: open the operator window and click the **Shortcuts** button (keyboard icon) in the toolbar.
+Verso has keyboard shortcuts to switch tabs, search, and project without the mouse. The full, always up-to-date list is built into the application: open the operator window and click **Shortcuts** at the bottom of the sidebar.
 
 ### Settings
 
-The **Settings** button (gear icon) in the toolbar opens a panel with sections:
+The **Settings** button at the bottom of the sidebar opens a panel with sections:
 
 - **Projection** — choose the screen used for projection from the drop-down menu. The selection is remembered for future sessions.
 - **Content** — manage your collections, Bibles, PDFs and images directly from Settings: for each category you can **Add** files, **Manage** the existing items and **Delete** them, without leaving the application. You can also open the Verso folder where these files live.

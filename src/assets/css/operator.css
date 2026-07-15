@@ -30,15 +30,21 @@
      overlay = modales. Ne pas en introduire d'autres. */
   --shadow-btn: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-btn-hover: 0 1px 3px rgba(0, 0, 0, 0.09);
-  /* Pastille active d'un contrôle segmenté. Le liseré est une ombre interne et
-     non une bordure : il ne prend pas de place, donc les segments ne bougent
-     pas d'un pixel quand la pastille change de position. */
-  --shadow-segmented: inset 0 0 0 1px rgba(11, 11, 11, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
+  /* Pastille active d'un contrôle segmenté : exactement la boîte d'un bouton au
+     repos (fond --panel, liseré --line, relief --shadow-btn). Le liseré est une
+     ombre interne et non une bordure : il ne prend pas de place, donc les
+     segments ne bougent pas d'un pixel quand la pastille change de position. */
+  --shadow-segmented: inset 0 0 0 1px var(--line), var(--shadow-btn);
   --shadow-panel: 2px 0 10px rgba(0, 0, 0, 0.04);
   --shadow-raised: 0 8px 28px rgba(0, 0, 0, 0.14);
   --shadow-overlay: 0 10px 40px rgba(0, 0, 0, 0.2);
   --overlay: rgba(0, 0, 0, 0.35); /* voile derrière les modales */
   --control-h: 32px;
+  /* Hauteur des fonds qui encadrent un contrôle : piste d'un contrôle segmenté,
+     champ de recherche, ligne de résultat survolée ou sélectionnée. La pastille
+     creusée dans la piste retrouve ainsi exactement --control-h, et tous ces
+     fonds partagent une seule et même hauteur. */
+  --segmented-track-h: calc(var(--control-h) + 2 * var(--segmented-pad));
   --ui-line-h: 16px;
   --w-sidebar: 330px;
   /* Gouttières communes : les fonds interactifs partagent un même axe et
@@ -168,12 +174,14 @@ body {
    (voir switchSideTab et renderBibleTranslations), jamais de pixels.
    Le retrait de la piste (--segmented-pad) est ce qui creuse la pastille, et
    son rayon vaut celui de la piste moins ce retrait pour que les arrondis
-   restent concentriques. */
+   restent concentriques. La piste est donc plus haute que --control-h de ce
+   retrait, de part et d'autre : c'est la pastille, et non la piste, qui a la
+   hauteur d'un bouton. */
 .tabs, .filter-pills {
   --seg-count: 1;
   --seg-index: 0;
   position: relative;
-  height: var(--control-h);
+  height: var(--segmented-track-h);
   padding: var(--segmented-pad);
   background: var(--segmented-track);
   border-radius: var(--radius-sm);
@@ -237,7 +245,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: var(--control-h);
+  min-height: var(--segmented-track-h);
   padding: 0 var(--row-inset);
   background: var(--surface-1);
   border-radius: var(--radius-sm);
@@ -304,7 +312,10 @@ body {
   grid-template-columns: 31px 30px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
-  padding: 8px var(--row-inset);
+  /* Même hauteur de fond que le champ de recherche au-dessus et que la piste
+     des onglets : les trois fonds de la sidebar se répondent. */
+  min-height: var(--segmented-track-h);
+  padding: 0 var(--row-inset);
   margin: 0;
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -555,9 +566,9 @@ body {
 }
 .content-header-row {
   grid-column: 1 / -1;
-  /* Annule le demi-interligne que la hauteur de contrôle ajoute sous le
-     kicker : l'écart kicker -> titre reste celui d'un kicker posé seul. */
-  margin-top: calc((var(--ui-line-h) - var(--control-h)) / 2);
+  /* Annule le demi-interligne que la hauteur du kicker ajoute sous son texte :
+     l'écart kicker -> titre reste celui d'un kicker posé seul. */
+  margin-top: calc((var(--ui-line-h) - var(--segmented-track-h)) / 2);
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -570,12 +581,12 @@ body {
 }
 .content-kicker {
   font-size: var(--fs-md);
-  /* Hauteur d'un contrôle, comme les onglets et le sélecteur de traduction :
-     l'interligne centre le texte sur le leur, y compris sur les panneaux sans
+  /* Hauteur de la piste des onglets et du sélecteur de traduction : l'interligne
+     centre le texte sur celui de leurs segments, y compris sur les panneaux sans
      sélecteur. Le kicker se tronque plutôt que de passer sur deux lignes, ce
      qui décalerait le titre. */
-  height: var(--control-h);
-  line-height: var(--control-h);
+  height: var(--segmented-track-h);
+  line-height: var(--segmented-track-h);
   letter-spacing: 0;
   color: var(--mute);
   white-space: nowrap;
@@ -928,8 +939,9 @@ body {
 }
 
 /* ─── Rubriques (paramètres, aide, à propos) en bas de la card recherche ─────── */
-/* Style « menu » : picto + libellé alignés sur les résultats de recherche
-   (.content-item), mêmes fonds de survol/sélection (--hover / --sel). */
+/* Libellés seuls, centrés en ligne : ce pied est une barre de liens discrets et
+   non une liste. L'état actif ou survolé ne se marque que par la couleur du
+   texte, sans fond ni picto, pour ne pas concurrencer les contrôles au-dessus. */
 .search-tools {
   display: flex;
   flex-direction: row;
@@ -940,30 +952,22 @@ body {
   border-top: 1px solid var(--line-2);
 }
 .search-tools .tool-item {
+  /* Repère du point de mise à jour (.tool-badge). */
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0;
-  width: auto;
-  margin: 0;
   padding: 0;
   border: none;
   background: none;
-  border-radius: 0;
   font-family: inherit;
   font-size: var(--fs-sm);
   color: var(--mute);
-  text-align: center;
   cursor: pointer;
   transition: color 0.12s;
 }
-.search-tools .tool-item:hover { color: var(--ink); background: none; }
-/* Rubrique dont le panneau est ouvert : surbrillance persistante, comme la
-   sélection d'un résultat de recherche (--sel). */
-.search-tools .tool-item.active { color: var(--ink); background: none; }
-.search-tools .tool-item svg {
-  display: none;
-}
+.search-tools .tool-item:hover { color: var(--ink); }
+/* Rubrique dont le panneau est ouvert : même encre que le survol. */
+.search-tools .tool-item.active { color: var(--ink); }
 .search-tools .tool-label {
   white-space: nowrap;
 }
@@ -1035,9 +1039,9 @@ body {
   border: 1px solid var(--line-strong);
   border-bottom-width: 3px;
   border-radius: 5px;
-  /* Touches non cliquables : même fond que les boutons (.hdr-btn en
-     --surface-1) ; c'est le relief (bord bas épaissi) qui les distingue
-     d'un contrôle actionnable. */
+  /* Touches non cliquables : leur fond gris les distingue du blanc des boutons
+     (.hdr-btn en --panel), et le bord bas épaissi achève de les lire comme un
+     capuchon de clavier plutôt que comme un contrôle actionnable. */
   background: var(--sel);
   color: var(--ink);
 }

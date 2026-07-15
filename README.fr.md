@@ -69,7 +69,7 @@ Vous pouvez aussi vérifier les mises à jour manuellement depuis **Paramètres 
 
 ## Vos chants, vos Bibles, vos documents
 
-Verso range tout dans un dossier nommé **`Verso`**, à l'intérieur du dossier de données de l'application pour votre compte. Vous n'avez pas besoin d'en connaître l'emplacement exact : ouvrez les **Paramètres** (le bouton roue dentée de la barre d'outils), puis dans la rubrique **Contenus** cliquez sur **Ouvrir** à côté de « Dossier Verso » pour l'ouvrir directement.
+Verso range tout dans un dossier nommé **`Verso`**, à l'intérieur du dossier de données de l'application pour votre compte. Vous n'avez pas besoin d'en connaître l'emplacement exact : ouvrez les **Paramètres** (en bas de la barre latérale), puis dans la rubrique **Contenus** cliquez sur **Ouvrir** à côté de « Dossier Verso » pour l'ouvrir directement.
 
 À l'intérieur, vous trouverez :
 
@@ -122,11 +122,11 @@ Les noms complets fonctionnent aussi (`Strophe 1`, `Refrain`, `Pont`…) si vous
 
 ### Raccourcis clavier
 
-Verso propose des raccourcis clavier pour changer d'onglet, chercher et projeter sans la souris. La liste complète et toujours à jour est intégrée à l'application : ouvrez la fenêtre opérateur et cliquez sur le bouton **Raccourcis** (icône clavier) dans la barre d'outils.
+Verso propose des raccourcis clavier pour changer d'onglet, chercher et projeter sans la souris. La liste complète et toujours à jour est intégrée à l'application : ouvrez la fenêtre opérateur et cliquez sur **Raccourcis** en bas de la barre latérale.
 
 ### Paramètres
 
-Le bouton **Paramètres** (roue dentée) de la barre d'outils ouvre un volet avec des rubriques :
+Le bouton **Paramètres** en bas de la barre latérale ouvre un volet avec des rubriques :
 
 - **Projection** — choisissez l'écran utilisé pour la projection dans la liste déroulante. Ce choix est mémorisé pour les prochaines sessions.
 - **Contenus** — gérez vos recueils, Bibles, PDF et images directement depuis les paramètres : pour chaque catégorie vous pouvez **Ajouter** des fichiers, **Gérer** les éléments existants et les **Supprimer**, sans quitter l'application. Vous pouvez aussi ouvrir le dossier Verso où se trouvent ces fichiers.
