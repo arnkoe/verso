@@ -753,13 +753,16 @@ body {
 .list-item:hover { background: var(--content-row-hover); }
 .list-item.active { background: var(--sel); border-left-color: var(--live); }
 
+/* Le numéro suit toujours la taille et l'interligne du texte qu'il annote, à
+   toute largeur : c'est ce qui aligne sa première ligne de base sur celle du
+   verset, sans décalage codé en dur. */
 .strophe-number,
 .bible-verse-number {
-  font-size: var(--fs-md);
+  font-size: var(--fs-lg);
+  line-height: 1.55;
   letter-spacing: 0;
   color: var(--mute);
   font-variant-numeric: tabular-nums;
-  padding-top: 3px;
   text-align: right;
 }
 .list-item.active .strophe-number,
@@ -961,9 +964,11 @@ body {
     text-align: left;
   }
 
-  /* Texte du contenu un peu plus compact */
+  /* Texte du contenu un peu plus compact ; les numéros suivent. */
   .strophe-text,
-  .bible-verse-text {
+  .bible-verse-text,
+  .strophe-number,
+  .bible-verse-number {
     font-size: var(--fs-md);
   }
 
