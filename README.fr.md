@@ -131,7 +131,7 @@ Sur macOS, choisissez **Verso → Réglages…** ou utilisez `⌘,`. Sous Window
 - **Langue** — changer la langue de l'interface.
 - **Mises à jour** — vérifier manuellement une nouvelle version et l'installer.
 
-Fermez les fenêtres **Réglages**, **Raccourcis clavier** et **À propos de Verso** comme toute fenêtre native, avec leur bouton de fermeture ou `Cmd/Ctrl W`. La fenêtre **À propos de Verso**, qui regroupe la version, l'auteur, le contact et les mises à jour disponibles, est accessible dans **Aide** et, sur macOS, également dans le menu **Verso**. Les boîtes de dialogue internes se ferment avec **Échap**. Les intitulés des menus natifs suivent la langue choisie dans les réglages.
+Fermez les fenêtres **Réglages**, **Raccourcis clavier** et **À propos de Verso** comme toute fenêtre native, avec leur bouton de fermeture ou `Cmd/Ctrl W`. Verso conserve ces fenêtres légères prêtes en arrière-plan afin que leur réouverture soit immédiate. La fenêtre **À propos de Verso**, qui regroupe la version, l'auteur, le contact et les mises à jour disponibles, est accessible dans **Aide** et, sur macOS, également dans le menu **Verso**. Les boîtes de dialogue internes se ferment avec **Échap**. Les intitulés des menus natifs suivent la langue choisie dans les réglages.
 
 ---
 
@@ -243,7 +243,9 @@ cargo test --manifest-path src-tauri/Cargo.toml
 src/                       frontend (HTML/JS, pas d'étape de build)
   operator.html            fenêtre opérateur
   projection.html          fenêtre de projection
+  utility.html             fenêtres Réglages, Raccourcis et À propos
   assets/js/               logique opérateur, rendu, accès aux données
+  assets/js/utility.js     logique légère des fenêtres utilitaires
   assets/js/i18n.js        traductions de l'interface (anglais/français)
   vendor/pdfjs/            pdf.js embarqué localement
 

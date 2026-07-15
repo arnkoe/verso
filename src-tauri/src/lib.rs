@@ -3,6 +3,7 @@ mod storage;
 mod sync;
 
 use std::fs;
+use std::sync::atomic::Ordering;
 
 use serde::Serialize;
 use tauri::menu::{
@@ -13,6 +14,13 @@ use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 
 use bible_search::BibleSearchResult;
 use storage::{AppState, Song, SongSummary, Verse};
+
+#[derive(Default)]
+struct UiState {
+    /// Langue courante, nécessaire pour titrer correctement une fenêtre créée
+    /// en arrière-plan après la traduction initiale du menu.
+    french: std::sync::atomic::AtomicBool,
+}
 
 // ─── CHANTS ─────────────────────────────────────────────────────────────────
 
@@ -746,38 +754,125 @@ fn build_app_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     )
 }
 
-/// Ouvre une seule instance d'une fenêtre secondaire et la ramène au premier
-/// plan si elle existe déjà.
-fn open_auxiliary_window(
-    app: &AppHandle,
-    label: &str,
-    mode: &str,
-    title: &str,
+#[derive(Clone, Copy)]
+enum AuxiliaryKind {
+    Settings,
+    Shortcuts,
+    About,
+}
+
+impl AuxiliaryKind {
+    fn from_mode(mode: &str) -> Option<Self> {
+        match mode {
+            "settings" => Some(Self::Settings),
+            "shortcuts" => Some(Self::Shortcuts),
+            "about" => Some(Self::About),
+            _ => None,
+        }
+    }
+
+    fn mode(self) -> &'static str {
+        match self {
+            Self::Settings => "settings",
+            Self::Shortcuts => "shortcuts",
+            Self::About => "about",
+        }
+    }
+}
+
+struct AuxiliarySpec {
+    title: &'static str,
     width: f64,
     height: f64,
     min_width: f64,
     min_height: f64,
     resizable: bool,
-) -> tauri::Result<()> {
+}
+
+fn auxiliary_spec(kind: AuxiliaryKind, french: bool) -> AuxiliarySpec {
+    match kind {
+        AuxiliaryKind::Settings => AuxiliarySpec {
+            title: if french { "Réglages" } else { "Settings" },
+            width: 680.0,
+            height: 720.0,
+            min_width: 560.0,
+            min_height: 520.0,
+            resizable: true,
+        },
+        AuxiliaryKind::Shortcuts => AuxiliarySpec {
+            title: if french {
+                "Raccourcis clavier"
+            } else {
+                "Keyboard Shortcuts"
+            },
+            width: 620.0,
+            height: 720.0,
+            min_width: 540.0,
+            min_height: 480.0,
+            resizable: true,
+        },
+        AuxiliaryKind::About => AuxiliarySpec {
+            title: if french {
+                "À propos de Verso"
+            } else {
+                "About Verso"
+            },
+            width: 440.0,
+            height: 300.0,
+            min_width: 440.0,
+            min_height: 300.0,
+            resizable: false,
+        },
+    }
+}
+
+/// Construit au plus une fois chaque fenêtre utilitaire. La page dédiée ne
+/// charge aucun des contenus lourds de l'opérateur.
+fn ensure_auxiliary_window(
+    app: &AppHandle,
+    kind: AuxiliaryKind,
+    visible: bool,
+) -> tauri::Result<tauri::WebviewWindow> {
+    let label = kind.mode();
     if let Some(window) = app.get_webview_window(label) {
-        window.show()?;
-        window.unminimize()?;
-        window.set_focus()?;
-        return Ok(());
+        return Ok(window);
     }
 
+    let french = app.state::<UiState>().french.load(Ordering::Relaxed);
+    let spec = auxiliary_spec(kind, french);
     WebviewWindowBuilder::new(
         app,
         label,
-        WebviewUrl::App(format!("operator.html?window={mode}").into()),
+        WebviewUrl::App(format!("utility.html?window={label}").into()),
     )
-    .title(title)
-    .inner_size(width, height)
-    .min_inner_size(min_width, min_height)
-    .resizable(resizable)
+    .title(spec.title)
+    .inner_size(spec.width, spec.height)
+    .min_inner_size(spec.min_width, spec.min_height)
+    .resizable(spec.resizable)
+    .visible(visible)
+    .focused(visible)
     .center()
-    .build()?;
+    .build()
+}
 
+/// Préchauffe une fenêtre en arrière-plan après le chargement de l'opérateur.
+#[tauri::command]
+fn warm_auxiliary_window(app: AppHandle, mode: String) -> Result<(), String> {
+    let kind = AuxiliaryKind::from_mode(&mode)
+        .ok_or_else(|| format!("Fenêtre utilitaire inconnue : {mode}"))?;
+    ensure_auxiliary_window(&app, kind, false)
+        .map(|_| ())
+        .map_err(|e| e.to_string())
+}
+
+/// Affiche une instance déjà préchauffée, ou la construit au premier usage si
+/// l'utilisateur ouvre le menu avant la fin du préchauffage.
+fn open_auxiliary_window(app: &AppHandle, kind: AuxiliaryKind) -> tauri::Result<()> {
+    let window = ensure_auxiliary_window(app, kind, true)?;
+    window.emit("utility-opened", kind.mode())?;
+    window.show()?;
+    window.unminimize()?;
+    window.set_focus()?;
     Ok(())
 }
 
@@ -800,8 +895,13 @@ fn set_predefined_text(
 /// Aligne les commandes ajoutées au menu natif et les titres des fenêtres sur
 /// la langue choisie dans l'interface web.
 #[tauri::command]
-fn set_menu_language(app: AppHandle, lang: String) -> Result<(), String> {
+fn set_menu_language(
+    app: AppHandle,
+    state: tauri::State<UiState>,
+    lang: String,
+) -> Result<(), String> {
     let french = lang == "fr";
+    state.french.store(french, Ordering::Relaxed);
     let settings_text = if french {
         "Réglages…"
     } else {
@@ -993,6 +1093,9 @@ fn set_menu_language(app: AppHandle, lang: String) -> Result<(), String> {
         window.set_title(about_text).map_err(|e| e.to_string())?;
     }
 
+    app.emit("language-changed", &lang)
+        .map_err(|e| e.to_string())?;
+
     Ok(())
 }
 
@@ -1005,44 +1108,15 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .manage(AppState::default())
+        .manage(UiState::default())
         .menu(build_app_menu)
         .on_menu_event(|app, event| {
             if event.id() == MENU_SETTINGS {
-                let _ = open_auxiliary_window(
-                    app,
-                    "settings",
-                    "settings",
-                    "Réglages",
-                    680.0,
-                    720.0,
-                    560.0,
-                    520.0,
-                    true,
-                );
+                let _ = open_auxiliary_window(app, AuxiliaryKind::Settings);
             } else if event.id() == MENU_SHORTCUTS {
-                let _ = open_auxiliary_window(
-                    app,
-                    "shortcuts",
-                    "shortcuts",
-                    "Raccourcis clavier",
-                    620.0,
-                    720.0,
-                    540.0,
-                    480.0,
-                    true,
-                );
+                let _ = open_auxiliary_window(app, AuxiliaryKind::Shortcuts);
             } else if event.id() == MENU_ABOUT || event.id() == MENU_ABOUT_HELP {
-                let _ = open_auxiliary_window(
-                    app,
-                    "about",
-                    "about",
-                    "À propos de Verso",
-                    440.0,
-                    300.0,
-                    440.0,
-                    300.0,
-                    false,
-                );
+                let _ = open_auxiliary_window(app, AuxiliaryKind::About);
             }
         })
         .setup(|app| {
@@ -1075,17 +1149,23 @@ pub fn run() {
             open_projection,
             app_version,
             set_menu_language,
+            warm_auxiliary_window,
         ])
-        // Fermer la fenêtre opérateur ferme aussi les fenêtres secondaires : on
-        // évite des fenêtres « zombies » qui survivraient à l'interface principale.
+        // Les fenêtres utilitaires restent chargées quand l'utilisateur les
+        // ferme : une réouverture n'est alors qu'un show(). La fermeture de
+        // l'opérateur les détruit explicitement afin que l'application quitte.
         .on_window_event(|window, event| {
-            if matches!(event, tauri::WindowEvent::CloseRequested { .. })
-                && window.label() == "operator"
-            {
-                for label in ["projection", "settings", "shortcuts", "about"] {
-                    if let Some(other) = window.app_handle().get_webview_window(label) {
-                        let _ = other.close();
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                if window.label() == "operator" {
+                    for label in ["projection", "settings", "shortcuts", "about"] {
+                        if let Some(other) = window.app_handle().get_webview_window(label) {
+                            let _ = other.destroy();
+                        }
                     }
+                } else if matches!(window.label(), "settings" | "shortcuts" | "about") {
+                    api.prevent_close();
+                    let _ = window.emit("utility-closing", window.label());
+                    let _ = window.hide();
                 }
             }
         })

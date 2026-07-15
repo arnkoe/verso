@@ -6,10 +6,6 @@
  * et l'ouverture multi-écran par les commandes list_monitors / open_projection.
  */
 
-// Les fenêtres Réglages et Raccourcis réutilisent leurs panneaux respectifs,
-// mais sont ouvertes par le menu natif dans des fenêtres Tauri dédiées.
-const WINDOW_MODE = document.documentElement.dataset.windowMode || 'operator';
-
 // État global
 const state = {
   activeTab: 'cantiques',
@@ -24,7 +20,6 @@ const state = {
   projection: null,
   bibleCode: null,
   searchCursor: 0,
-  overlayPanel: null,  // panneau secondaire affiché (Aide/Réglages/À propos) ou null
 };
 let lastActiveProjection = null;
 
@@ -93,6 +88,20 @@ tauriEvent.listen('projection-update', e => {
   applyProjectionState(e.payload);
 });
 
+// Les réglages vivent dans des WebViews légers et persistants. Leurs mutations
+// sont diffusées explicitement afin que l'opérateur ne dépende pas d'un partage
+// implicite de l'état JavaScript entre fenêtres.
+tauriEvent.listen('language-changed', e => {
+  if (e.payload !== currentLang()) setLang(e.payload, _retranslateDynamic);
+});
+tauriEvent.listen('content-changed', e => {
+  _reloadMainAfterContent(e.payload);
+});
+tauriEvent.listen('projection-screen-changed', e => {
+  try { localStorage.setItem(PROJ_SCREEN_KEY, JSON.stringify(e.payload)); } catch (_) {}
+  _updateMonitorScreen(e.payload);
+});
+
 // ─── TABS ───────────────────────────────────────────────────────────────────
 
 function switchSideTab(tab) {
@@ -127,27 +136,10 @@ function switchSideTab(tab) {
   updateSearchCursor();
 }
 
-// Panneaux secondaires (Aide, Réglages, À propos) : contrairement aux
-// panneaux de contenu (un par onglet), ils masquent l'empty state tant qu'ils
-// sont affichés, quel que soit l'onglet actif.
-const OVERLAY_PANELS = ['panelHelp', 'panelSettings', 'panelAbout'];
-
-// Revient au panneau de contenu de l'onglet actif quand un panneau d'outil est
-// fermé (clic autour de son contenu ou touche Échap).
-function closeOverlayPanel() {
-  if (!state.overlayPanel) return;
-  const panel = state.activeTab === 'bible' ? 'panelBible'
-              : state.activeTab === 'pdf' ? 'panelPdf'
-              : state.activeTab === 'images' ? 'panelImages'
-              : 'panelCantique';
-  showPanel(panel);
-}
-
 function showPanel(id) {
-  ['panelCantique', 'panelBible', 'panelPdf', 'panelImages', ...OVERLAY_PANELS].forEach(p => {
+  ['panelCantique', 'panelBible', 'panelPdf', 'panelImages'].forEach(p => {
     document.getElementById(p).classList.toggle('active', p === id);
   });
-  state.overlayPanel = OVERLAY_PANELS.includes(id) ? id : null;
   updateEmptyState();
 }
 
@@ -162,16 +154,9 @@ function activeTabHasContent() {
 }
 
 // L'empty state apparaît pour tout onglet sans contenu sélectionné, y compris
-// après qu'un contenu a été chargé dans un autre onglet. Il est masqué quand un
-// panneau secondaire (Aide/Réglages/À propos) est affiché.
+// après qu'un contenu a été chargé dans un autre onglet.
 function updateEmptyState() {
-  const loaded = state.overlayPanel != null || activeTabHasContent();
-  document.querySelector('.main').dataset.loaded = loaded ? 'true' : 'false';
-}
-
-// Conservé pour les appels existants : recalcule simplement l'empty state.
-function markContentLoaded() {
-  updateEmptyState();
+  document.querySelector('.main').dataset.loaded = activeTabHasContent() ? 'true' : 'false';
 }
 
 // ─── CANTIQUES ───────────────────────────────────────────────────────────────
@@ -290,7 +275,7 @@ async function loadSong(id) {
   });
 
   document.getElementById('songHeader').style.display = '';
-  markContentLoaded();
+  updateEmptyState();
   // Kicker = nom lisible du recueil (résolu via songbookNames) ; abrév = code.
   const kicker = songbookName(song.songbook_code);
   const abbr = song.songbook_code || '';
@@ -630,7 +615,7 @@ async function fetchBibleChapter(ref) {
   // Sous-titre = nom lisible de la traduction (résolu via bibleNames), sinon le code.
   const translationLabel = bibleName(data.bible_code);
   document.getElementById('bibleHeader').style.display = '';
-  markContentLoaded();
+  updateEmptyState();
   document.getElementById('bibleTitle').textContent = title;
   // Crédit/licence de la traduction (champ bible_copyright du JSON, ex. CC
   // BY-NC-ND) accolé au libellé, dans le même style que le reste du kicker.
@@ -729,7 +714,7 @@ function selectPdf(filename) {
   });
 
   document.getElementById('pdfHeader').style.display = '';
-  markContentLoaded();
+  updateEmptyState();
   document.getElementById('pdfTitle').textContent = filename;
   document.getElementById('pdfSubtitle').textContent = '…';
   showPanel('panelPdf');
@@ -828,7 +813,7 @@ async function selectImage(filename) {
   });
 
   document.getElementById('imageHeader').style.display = '';
-  markContentLoaded();
+  updateEmptyState();
   document.getElementById('imageTitle').textContent = filename;
   document.getElementById('imageSubtitle').textContent = '…';
   showPanel('panelImages');
@@ -1541,151 +1526,8 @@ window.addEventListener('focus', () => {
   } catch (_) {}
 })();
 
-// ─── OUTILS : DOSSIER, AIDE, À PROPOS ──────────────────────────────────────────
-
-/** Ouvre le dossier Verso (racine des données) dans le gestionnaire de fichiers. */
-async function openVersoDir() {
-  try { await apiRevealVersoDir(); } catch (_) {}
-}
-
-/** Affiche le panneau d'aide (raccourcis) au centre de la zone principale. */
-function showHelp() {
-  markContentLoaded();
-  showPanel('panelHelp');
-}
-
-/** Affiche les informations de l'application dans leur fenêtre dédiée. */
-function showAbout() {
-  markContentLoaded();
-  showPanel('panelAbout');
-}
-
-// ─── VERSION & MISE À JOUR ─────────────────────────────────────────────────────
-// Vérification silencieuse au lancement. Dans la fenêtre Réglages, une mise à
-// jour disponible devient directement installable. En cas d'échec réseau, rien
-// ne change.
-
-// ─── PARAMÈTRES ────────────────────────────────────────────────────────────────
-// Panneau réutilisé dans la fenêtre OS dédiée ouverte depuis le menu natif.
-
-// Affiche le panneau Paramètres dans la zone principale.
-function openSettings() {
-  markContentLoaded();
-  showPanel('panelSettings');
-  _resetUpdateCheck();
-  _syncLangToggle();
-  _refreshScreenSelect();
-}
-
-// Aligne le sélecteur natif de langue sur la langue courante.
-function _syncLangToggle() {
-  const select = document.getElementById('langSelect');
-  if (select) select.value = currentLang();
-}
-
-// Applique la langue choisie et reconstruit les contenus dynamiques.
-function setUiLang(lang) {
-  setLang(lang, () => {
-    apiSetMenuLanguage(lang).catch(() => {});
-    _syncLangToggle();
-    _retranslateDynamic();
-  });
-}
-
-document.getElementById('langSelect')?.addEventListener('change', e => {
-  setUiLang(e.currentTarget.value);
-});
-
-// Recompose les contenus générés par JS qui dépendent de la langue : strophes,
-// boutons de statut de mise à jour et libellé d'écran. Les listes de recherche
-// se reconstruisent à la frappe suivante.
-function _retranslateDynamic() {
-  if (state.song) renderVerseList();
-  _resetUpdateCheck();
-  _updateMonitorScreen(_savedScreen());
-}
-
-// ─── GESTION DES CONTENUS (modale dédiée par type) ────────────────────────────
-// Quatre types : recueils (songbooks), bibles, pdf, images. Le panneau Paramètres
-// ouvre, pour chaque type, une modale unique réutilisée (liste + ajout + drop +
-// suppression avec confirmation en ligne). Après chaque changement, on recharge
-// la liste de la modale ET la liste correspondante de l'interface principale.
-
-const CONTENT_KINDS = ['songbooks', 'bibles', 'pdf', 'images'];
-
-// Extensions proposées par le sélecteur natif, par type.
-const CONTENT_FILTERS = {
-  songbooks: { name: 'Recueils', extensions: ['json'] },
-  bibles:    { name: 'Bibles',   extensions: ['json'] },
-  pdf:       { name: 'PDF',      extensions: ['pdf'] },
-  images:    { name: 'Images',   extensions: ['jpg', 'jpeg', 'png', 'webp'] },
-};
-
-// Clé i18n du titre de la modale selon le type.
-const CONTENT_TITLE_KEY = {
-  songbooks: 'settings.songbooks',
-  bibles:    'settings.bibles',
-  pdf:       'settings.pdfs',
-  images:    'settings.images',
-};
-
-// Type actuellement géré par la modale (null = fermée).
-let _contentKind = null;
-
-function _setContentStatus(text, kind) {
-  const el = document.getElementById('contentStatus');
-  if (!el) return;
-  el.textContent = text || '';
-  el.className = 'settings-update-status' + (kind ? ' ' + kind : '');
-}
-
-// Ouvre la modale de gestion pour un type donné (bouton « Gérer »).
-async function manageContent(kind) {
-  if (!CONTENT_KINDS.includes(kind)) return;
-  _contentKind = kind;
-  const modal = document.getElementById('contentModal');
-  if (!modal) return;
-  document.getElementById('contentModalTitle').textContent = t(CONTENT_TITLE_KEY[kind]);
-  _setContentStatus('', '');
-  await refreshContentList();
-  modal.hidden = false;
-}
-
-function closeContentManager() {
-  const modal = document.getElementById('contentModal');
-  if (modal) modal.hidden = true;
-  _contentKind = null;
-}
-
-// Recharge la liste affichée dans la modale (type courant).
-async function refreshContentList() {
-  const ul = document.getElementById('contentModalList');
-  if (!ul || !_contentKind) return;
-  const kind = _contentKind;
-  let items;
-  try {
-    items = await apiListContent(kind);
-  } catch (_) {
-    ul.innerHTML = `<li class="content-mgr-empty">${esc(t('settings.contentError'))}</li>`;
-    return;
-  }
-  if (!items.length) {
-    ul.innerHTML = `<li class="content-mgr-empty">${esc(t('settings.contentEmpty'))}</li>`;
-    return;
-  }
-  ul.innerHTML = items.map(it => `
-    <li class="content-mgr-item" data-file="${esc(it.filename)}">
-      <span class="content-mgr-name">${esc(it.label)}</span>
-      <span class="content-mgr-actions">
-        <button class="hdr-btn content-mgr-del" data-del-file="${esc(it.filename)}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          <span>${esc(t('settings.delete'))}</span>
-        </button>
-      </span>
-    </li>`).join('');
-}
-
-// Recharge la liste de l'interface principale impactée par le type courant.
+// Les fenêtres utilitaires notifient l'opérateur après une mutation de contenu.
+// Seul le cache concerné est invalidé ou relu.
 function _reloadMainAfterContent(kind) {
   if (kind === 'songbooks') {
     songCache = null;
@@ -1700,231 +1542,10 @@ function _reloadMainAfterContent(kind) {
   }
 }
 
-// Importe une liste de chemins source pour le type courant.
-async function _importPaths(paths) {
-  const kind = _contentKind;
-  if (!kind || !paths || !paths.length) return;
-  let ok = 0;
-  let lastErr = '';
-  for (const p of paths) {
-    try { await apiImportContent(kind, p); ok++; }
-    catch (err) { lastErr = String(err); }
-  }
-  if (ok) {
-    await refreshContentList();
-    _reloadMainAfterContent(kind);
-  }
-  if (lastErr && ok < paths.length) {
-    _setContentStatus(t('settings.importError', { err: lastErr }), 'error');
-  } else if (ok) {
-    _setContentStatus(t('settings.imported', { count: String(ok) }), 'ok');
-  }
-}
-
-// Bouton « Ajouter » de la modale : ouvre le sélecteur de fichiers natif.
-async function addCurrentContent() {
-  if (!_contentKind) return;
-  let selected;
-  try {
-    selected = await window.__TAURI__.dialog.open({
-      multiple: true,
-      filters: [CONTENT_FILTERS[_contentKind]],
-    });
-  } catch (_) { return; }
-  if (!selected) return;
-  const paths = Array.isArray(selected) ? selected : [selected];
-  await _importPaths(paths);
-}
-
-// Suppression effective d'un contenu (après confirmation en ligne).
-async function _deleteContent(filename) {
-  const kind = _contentKind;
-  if (!kind) return;
-  try {
-    await apiDeleteContent(kind, filename);
-  } catch (err) {
-    _setContentStatus(t('settings.deleteError', { err: String(err) }), 'error');
-    return;
-  }
-  await refreshContentList();
-  _reloadMainAfterContent(kind);
-  _setContentStatus('', '');
-}
-
-// Affiche la confirmation en ligne sur une entrée. Pour éviter toute suppression
-// accidentelle, l'opérateur doit saisir le mot de confirmation au clavier : le
-// bouton Supprimer reste désactivé tant que le texte saisi ne correspond pas.
-function _askDeleteConfirm(item, filename) {
-  if (item.querySelector('.content-mgr-confirm')) return; // déjà en confirmation
-  const actions = item.querySelector('.content-mgr-actions');
-  if (!actions) return;
-  const word = t('settings.deleteConfirmWord');
-  actions.innerHTML = `
-    <span class="content-mgr-confirm">
-      <span class="content-mgr-confirm-btns">
-        <button class="hdr-btn content-mgr-cancel" data-confirm="cancel">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-          <span>${esc(t('common.cancel'))}</span>
-        </button>
-        <button class="hdr-btn content-mgr-confirm-del" data-confirm="delete" data-del-file="${esc(filename)}" disabled>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          <span>${esc(t('settings.delete'))}</span>
-        </button>
-      </span>
-      <span class="content-mgr-confirm-hint">${esc(t('settings.deleteConfirmPrompt', { word }))}</span>
-      <input type="text" class="content-mgr-confirm-input" data-confirm-word="${esc(word)}"
-        placeholder="${esc(word)}"
-        autocomplete="off" autocapitalize="characters" spellcheck="false" />
-    </span>`;
-  actions.querySelector('.content-mgr-confirm-input')?.focus();
-}
-
-// Délégation des clics dans la liste : corbeille → confirmation, puis Annuler /
-// Supprimer.
-// Le mot de confirmation correspond-il (sans tenir compte de la casse ni des
-// espaces) au mot attendu ? Conditionne l'activation du bouton Supprimer.
-function _confirmMatches(input) {
-  if (!input) return false;
-  const expected = (input.dataset.confirmWord || '').trim().toLowerCase();
-  return input.value.trim().toLowerCase() === expected && expected !== '';
-}
-
-const _contentModalList = document.getElementById('contentModalList');
-
-_contentModalList?.addEventListener('click', e => {
-  const cancel = e.target.closest('[data-confirm="cancel"]');
-  if (cancel) { refreshContentList(); return; }
-  const confirm = e.target.closest('[data-confirm="delete"]');
-  if (confirm) {
-    if (confirm.disabled) return;
-    _deleteContent(confirm.dataset.delFile);
-    return;
-  }
-  const del = e.target.closest('.content-mgr-del');
-  if (del) {
-    _askDeleteConfirm(del.closest('.content-mgr-item'), del.dataset.delFile);
-  }
-});
-
-// Active le bouton Supprimer dès que le mot saisi correspond.
-_contentModalList?.addEventListener('input', e => {
-  const input = e.target.closest('.content-mgr-confirm-input');
-  if (!input) return;
-  const btn = input.closest('.content-mgr-confirm')?.querySelector('[data-confirm="delete"]');
-  if (btn) btn.disabled = !_confirmMatches(input);
-});
-
-// Entrée valide la suppression si le mot correspond ; Échap annule.
-_contentModalList?.addEventListener('keydown', e => {
-  const input = e.target.closest('.content-mgr-confirm-input');
-  if (!input) return;
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    if (_confirmMatches(input)) {
-      const btn = input.closest('.content-mgr-confirm')?.querySelector('[data-confirm="delete"]');
-      if (btn) _deleteContent(btn.dataset.delFile);
-    }
-  } else if (e.key === 'Escape') {
-    e.preventDefault();
-    e.stopPropagation();
-    refreshContentList();
-  }
-});
-
-// Fermeture de la modale de contenu au clic sur le fond et avec Échap.
-document.addEventListener('click', e => {
-  if (e.target.id === 'contentModal') closeContentManager();
-});
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    const modal = document.getElementById('contentModal');
-    if (modal && !modal.hidden) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      closeContentManager();
-    }
-  }
-});
-
-// Les modales dédiées interceptent Échap avant ce gestionnaire ; celui-ci ne
-// ferme donc que le panneau d'outil visible au premier plan.
-document.addEventListener('keydown', e => {
-  if (WINDOW_MODE !== 'operator' || e.key !== 'Escape' || !state.overlayPanel) return;
-  e.preventDefault();
-  closeOverlayPanel();
-});
-
-// ─── VÉRIFICATION MANUELLE DES MISES À JOUR (depuis la modale) ──────────────────
-
-function _setUpdateStatus(text, kind) {
-  const el = document.getElementById('settingsUpdateStatus');
-  if (!el) return;
-  el.textContent = text;
-  el.className = 'settings-update-status' + (kind ? ' ' + kind : '');
-}
-
-function _resetUpdateCheck() {
-  const btn = document.getElementById('btnCheckUpdate');
-  if (btn) {
-    btn.dataset.action = 'checkUpdate';
-    btn.disabled = false;
-    btn.querySelector('.settings-btn-label').textContent = t('settings.checkNow');
-  }
-  _setUpdateStatus('', '');
-}
-
-async function checkUpdate() {
-  const btn = document.getElementById('btnCheckUpdate');
-  if (btn) btn.disabled = true;
-  _setUpdateStatus(t('update.checking'));
-  try {
-    const update = await apiCheckUpdate();
-    if (!update) {
-      _setUpdateStatus(t('update.upToDate'), 'ok');
-      if (btn) btn.disabled = false;
-      return;
-    }
-    _pendingUpdate = update;
-    _setUpdateStatus(
-      update.version
-        ? t('update.availableVersion', { version: update.version })
-        : t('update.available'),
-      'available'
-    );
-    if (btn) {
-      btn.dataset.action = 'installUpdate';
-      btn.disabled = false;
-      btn.querySelector('.settings-btn-label').textContent = t('settings.installRestart');
-    }
-  } catch (_) {
-    _setUpdateStatus(t('update.checkFailed'), 'error');
-    if (btn) btn.disabled = false;
-  }
-}
-
-let _pendingUpdate = null;
-
-async function installUpdate() {
-  if (!_pendingUpdate) return;
-  const btn = document.getElementById('btnCheckUpdate');
-  const link = document.getElementById('aboutUpdateLink');
-  if (btn) btn.disabled = true;
-  if (link) {
-    link.textContent = t('update.installing');
-    link.disabled = true;
-  }
-  _setUpdateStatus(t('update.installing'));
-  try {
-    await apiInstallUpdate(_pendingUpdate);
-    // relaunch() redémarre l'app ; le code ci-dessous n'est normalement pas atteint.
-  } catch (_) {
-    if (btn) btn.disabled = false;
-    if (link) {
-      link.textContent = t('update.installRetry');
-      link.disabled = false;
-    }
-    _setUpdateStatus(t('update.installFailed'), 'error');
-  }
+function _retranslateDynamic() {
+  if (state.song) renderVerseList();
+  if (state.bible?.verses?.length) renderBibleTranslations();
+  _updateMonitorScreen(_savedScreen());
 }
 
 // ─── SYNCHRONISATION DES RECUEILS (superutilisateurs) ──────────────────────────
@@ -1997,44 +1618,6 @@ async function _runSyncPullOnLaunch() {
   _runSyncPullOnLaunch();
 })();
 
-(async function _initUpdate() {
-  const year = document.getElementById('aboutYear');
-  if (year) year.textContent = new Date().getFullYear();
-
-  const version = document.getElementById('aboutVersion');
-  if (version) {
-    try { version.textContent = await apiAppVersion(); } catch (_) {}
-  }
-
-  const update = await apiCheckUpdate();
-  if (!update) return;
-  _pendingUpdate = update;
-
-  const aboutUpdate = document.getElementById('aboutUpdate');
-  const aboutUpdateLink = document.getElementById('aboutUpdateLink');
-  if (aboutUpdateLink) {
-    aboutUpdateLink.textContent = update.version
-      ? t('update.updateTo', { version: update.version })
-      : t('update.update');
-  }
-  if (aboutUpdate) aboutUpdate.hidden = false;
-
-  if (WINDOW_MODE === 'settings') {
-    _setUpdateStatus(
-      update.version
-        ? t('update.availableVersion', { version: update.version })
-        : t('update.available'),
-      'available'
-    );
-    const btn = document.getElementById('btnCheckUpdate');
-    if (btn) {
-      btn.dataset.action = 'installUpdate';
-      btn.disabled = false;
-      btn.querySelector('.settings-btn-label').textContent = t('settings.installRestart');
-    }
-  }
-})();
-
 // ─── DELEGATION DES CLICS (remplace les onclick inline bloqués par la CSP) ─────
 // En build de production, Tauri injecte un nonce dans la CSP script-src, ce qui
 // fait ignorer 'unsafe-inline' et désactive les gestionnaires inline (onclick).
@@ -2073,7 +1656,19 @@ document.addEventListener('click', e => {
   }
 });
 
-// Affiche immédiatement le seul panneau utile dans les fenêtres secondaires.
-if (WINDOW_MODE === 'settings') openSettings();
-else if (WINDOW_MODE === 'shortcuts') showHelp();
-else if (WINDOW_MODE === 'about') showAbout();
+// Prépare les trois petites fenêtres une par une, lorsque le navigateur est au
+// repos. Le lancement de l'opérateur reste prioritaire et chaque ouverture de
+// menu devient ensuite un simple affichage de fenêtre déjà chargée.
+function _scheduleAuxiliaryWarmup(modes, index = 0) {
+  if (index >= modes.length) return;
+  const warm = async () => {
+    try { await apiWarmAuxiliaryWindow(modes[index]); } catch (_) {}
+    setTimeout(() => _scheduleAuxiliaryWarmup(modes, index + 1), 200);
+  };
+  if ('requestIdleCallback' in window) requestIdleCallback(warm, { timeout: 2000 });
+  else setTimeout(warm, 250);
+}
+
+window.addEventListener('load', () => {
+  setTimeout(() => _scheduleAuxiliaryWarmup(['settings', 'shortcuts', 'about']), 500);
+}, { once: true });

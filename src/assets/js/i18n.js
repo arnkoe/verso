@@ -1,12 +1,13 @@
 /**
- * i18n.js — internationalisation de l'interface opérateur (FR / EN).
+ * i18n.js — internationalisation des interfaces Verso (FR / EN).
  *
  * La langue est stockée dans localStorage (clé LANG_KEY) et appliquée au DOM
  * via les attributs data-i18n (texte), data-i18n-title (attribut title),
  * data-i18n-placeholder (attribut placeholder) et data-i18n-aria-label.
  * Les chaînes générées dynamiquement passent par t(key, vars).
  *
- * Chargé avant operator.js : t() et applyI18n() sont disponibles globalement.
+ * Chargé avant operator.js ou utility.js : t() et applyI18n() sont disponibles
+ * globalement.
  */
 
 const LANG_KEY = 'verso.lang';

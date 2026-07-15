@@ -166,9 +166,9 @@ body {
   min-height: 0;
 }
 
-/* Les fenêtres secondaires réutilisent les panneaux d'aide et de réglages de
-   l'opérateur, sans sa navigation ni ses contenus. Leur mode est posé dans le
-   <head> par platform.js avant le premier rendu. */
+/* La page utilitaire partage les styles visuels de l'opérateur, sans charger
+   sa navigation ni ses contenus. Son mode est posé dans le <head> par
+   platform.js avant le premier rendu. */
 html[data-window-mode="settings"] .body,
 html[data-window-mode="shortcuts"] .body,
 html[data-window-mode="about"] .body {

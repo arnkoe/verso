@@ -121,6 +121,11 @@ async function apiSetMenuLanguage(lang) {
   return await invoke('set_menu_language', { lang });
 }
 
+/** Prépare une fenêtre utilitaire masquée sans charger l'interface opérateur. */
+async function apiWarmAuxiliaryWindow(mode) {
+  return await invoke('warm_auxiliary_window', { mode });
+}
+
 /** Ouvre le dossier Verso (racine des données) dans le gestionnaire de fichiers. */
 async function apiRevealVersoDir() {
   return await invoke('reveal_verso_dir');

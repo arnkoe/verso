@@ -131,7 +131,7 @@ On macOS, choose **Verso → Settings…** or press `⌘,`. On Windows, choose *
 - **Language** — change the interface language.
 - **Updates** — check manually for a new version and install it.
 
-Close the **Settings**, **Keyboard Shortcuts**, and **About Verso** windows like any native window, using their close button or `Cmd/Ctrl W`. The **About Verso** window includes the version, author, contact details, and available updates; it is available from **Help** and, on macOS, also from the **Verso** menu. Dialogs inside these windows close with **Esc**. Native menu labels follow the language selected in Settings.
+Close the **Settings**, **Keyboard Shortcuts**, and **About Verso** windows like any native window, using their close button or `Cmd/Ctrl W`. Verso keeps these lightweight windows ready in the background so that reopening them is immediate. The **About Verso** window includes the version, author, contact details, and available updates; it is available from **Help** and, on macOS, also from the **Verso** menu. Dialogs inside these windows close with **Esc**. Native menu labels follow the language selected in Settings.
 
 ---
 
@@ -243,7 +243,9 @@ cargo test --manifest-path src-tauri/Cargo.toml
 src/                       frontend (HTML/JS, no build step)
   operator.html            operator window
   projection.html          projection window
+  utility.html             Settings, Shortcuts and About windows
   assets/js/               operator logic, rendering, data access
+  assets/js/utility.js     lightweight utility-window logic
   assets/js/i18n.js        interface translations (English/French)
   vendor/pdfjs/            pdf.js bundled locally
 
