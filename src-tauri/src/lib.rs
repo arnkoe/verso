@@ -253,17 +253,24 @@ fn sync_status(app: AppHandle) -> bool {
     sync::is_configured(&app)
 }
 
-/// Récupère la dernière version distante des recueils et l'applique localement
-/// (invalide le cache). L'UI recharge ensuite la liste des chants.
+/// Récupère la dernière version distante des recueils et l'applique localement.
+/// Le cache n'est invalidé et rechargé que si les fichiers ont réellement changé.
 #[tauri::command]
-fn sync_pull(app: AppHandle, state: tauri::State<AppState>) -> Result<String, String> {
-    sync::pull(&app, &state)
+async fn sync_pull(app: AppHandle) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app.state::<AppState>();
+        sync::pull(&app, &state)
+    })
+    .await
+    .map_err(|e| format!("Tâche de synchronisation interrompue : {e}"))?
 }
 
 /// Publie l'état local des recueils vers le dépôt de données.
 #[tauri::command]
-fn sync_push(app: AppHandle) -> Result<String, String> {
-    sync::push(&app)
+async fn sync_push(app: AppHandle) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || sync::push(&app))
+        .await
+        .map_err(|e| format!("Tâche de synchronisation interrompue : {e}"))?
 }
 
 // ─── PROJECTION ─────────────────────────────────────────────────────────────

@@ -1559,6 +1559,7 @@ function _retranslateDynamic() {
 let _syncEnabled = false;        // résolu une fois au démarrage via apiSyncStatus
 let _syncPushTimer = null;
 const SYNC_PUSH_DEBOUNCE_MS = 3000;
+const SYNC_PULL_START_DELAY_MS = 2000;
 
 // Met à jour l'indicateur textuel discret (ok | error). On n'affiche jamais
 // d'état transitoire (la synchro est trop brève pour être lue). Masqué tant
@@ -1608,6 +1609,20 @@ async function _runSyncPullOnLaunch() {
   }
 }
 
+// Laisse l'interface et ses fenêtres auxiliaires finir leur initialisation,
+// puis lance le pull lorsque la WebView est au repos. Le timeout de
+// requestIdleCallback garantit que la synchronisation démarre même si le poste
+// reste continuellement occupé.
+function _scheduleSyncPullOnLaunch() {
+  setTimeout(() => {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => _runSyncPullOnLaunch(), { timeout: 2000 });
+    } else {
+      _runSyncPullOnLaunch();
+    }
+  }, SYNC_PULL_START_DELAY_MS);
+}
+
 (async function _initSync() {
   try {
     _syncEnabled = await apiSyncStatus();
@@ -1615,7 +1630,7 @@ async function _runSyncPullOnLaunch() {
     _syncEnabled = false;
   }
   if (!_syncEnabled) return;
-  _runSyncPullOnLaunch();
+  _scheduleSyncPullOnLaunch();
 })();
 
 // ─── DELEGATION DES CLICS (remplace les onclick inline bloqués par la CSP) ─────

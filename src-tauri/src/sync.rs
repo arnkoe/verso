@@ -18,6 +18,11 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::Mutex;
+
+/// Les pulls et pushes utilisent le même clone Git. Leur travail s'exécute sur
+/// des threads dédiés, mais leurs accès au dépôt doivent rester sérialisés.
+static SYNC_LOCK: Mutex<()> = Mutex::new(());
 
 /// Crée une `Command` qui n'ouvre pas de fenêtre console sur Windows. Sans le
 /// flag `CREATE_NO_WINDOW`, chaque appel à `git`/`hostname` fait clignoter une
@@ -171,17 +176,58 @@ fn copy_songbooks(from: &Path, to: &Path) -> Result<usize, String> {
     Ok(src_files.len())
 }
 
+/// Vérifie que les deux dossiers contiennent exactement les mêmes recueils.
+/// Cette comparaison préserve la règle « le distant gagne » : même lorsque le
+/// commit distant n'a pas changé, un fichier local modifié doit être remplacé.
+fn songbooks_match(left: &Path, right: &Path) -> Result<bool, String> {
+    let left_files = storage::songbook_files(left);
+    let right_files = storage::songbook_files(right);
+    if left_files.len() != right_files.len() {
+        return Ok(false);
+    }
+
+    for (left_path, right_path) in left_files.iter().zip(&right_files) {
+        if left_path.file_name() != right_path.file_name() {
+            return Ok(false);
+        }
+        let left_bytes =
+            fs::read(left_path).map_err(|e| format!("Lecture de {} : {e}", left_path.display()))?;
+        let right_bytes = fs::read(right_path)
+            .map_err(|e| format!("Lecture de {} : {e}", right_path.display()))?;
+        if left_bytes != right_bytes {
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}
+
 /// Récupère la dernière version distante et l'applique au dossier de chants.
-/// « Dernier qui écrit gagne » : on aligne le clone sur `origin/<branche>` par un
-/// reset dur (pas de fusion), puis on recopie les recueils dans `songbooks/` et
-/// on invalide le cache mémoire.
+/// « Dernier qui écrit gagne » : si nécessaire, on aligne le clone sur
+/// `origin/<branche>` par un reset dur (pas de fusion), puis on recopie les
+/// recueils dans `songbooks/` et on invalide le cache mémoire.
 pub fn pull(app: &AppHandle, state: &AppState) -> Result<String, String> {
+    let _sync_guard = SYNC_LOCK
+        .lock()
+        .map_err(|_| "Verrou de synchronisation indisponible".to_string())?;
     let cfg = require_config(app)?;
     let dir = ensure_clone(app, &cfg)?;
     let branch = cfg.branch();
+    let remote_ref = format!("origin/{branch}");
+    let previous_head = git(&dir, &["rev-parse", "HEAD"])?;
 
     git(&dir, &["fetch", "origin", branch])?;
-    git(&dir, &["reset", "--hard", &format!("origin/{branch}")])?;
+    let remote_head = git(&dir, &["rev-parse", &remote_ref])?;
+
+    // Cas courant : le dépôt distant et les fichiers actifs sont déjà alignés.
+    // On évite alors reset, copies, invalidation et relecture du cache des chants.
+    if previous_head.trim() == remote_head.trim()
+        && git(&dir, &["status", "--porcelain"])?.trim().is_empty()
+        && songbooks_match(&dir, &storage::songbooks_dir(app))?
+    {
+        return Ok("Déjà à jour : aucun recueil à recharger.".into());
+    }
+
+    git(&dir, &["reset", "--hard", &remote_ref])?;
 
     let n = copy_songbooks(&dir, &storage::songbooks_dir(app))?;
     storage::invalidate_songs_cache(state);
@@ -193,6 +239,9 @@ pub fn pull(app: &AppHandle, state: &AppState) -> Result<String, String> {
 /// (`fetch` + `reset --hard`), on y recopie les recueils locaux, puis on commite
 /// et on pousse. Aucun blocage de conflit : le contenu local l'emporte.
 pub fn push(app: &AppHandle) -> Result<String, String> {
+    let _sync_guard = SYNC_LOCK
+        .lock()
+        .map_err(|_| "Verrou de synchronisation indisponible".to_string())?;
     let cfg = require_config(app)?;
     let dir = ensure_clone(app, &cfg)?;
     let branch = cfg.branch();

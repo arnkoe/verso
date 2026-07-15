@@ -615,6 +615,23 @@ pub struct ContentName {
     pub name: String,
 }
 
+/// Code et nom d'une bible lus en une seule passe. Les fichiers bibliques sont
+/// volumineux : les désérialiser séparément pour chaque champ doublait le coût
+/// de `list_bibles_named` au démarrage.
+fn bible_content_name(path: &Path) -> Option<ContentName> {
+    let bytes = fs::read(path).ok()?;
+    let bible: Bible = serde_json::from_slice(&bytes).ok()?;
+    let code = bible.bible_code;
+    if code.is_empty() {
+        return None;
+    }
+    let name = bible
+        .bible_name
+        .filter(|name| !name.is_empty())
+        .unwrap_or_else(|| code.clone());
+    Some(ContentName { code, name })
+}
+
 /// Recueils présents : `{ code, nom lisible }`, triés par nom.
 pub fn list_songbooks(app: &AppHandle) -> Vec<ContentName> {
     let dir = songbooks_dir(app);
@@ -636,11 +653,7 @@ pub fn list_bibles_named(app: &AppHandle) -> Vec<ContentName> {
     let dir = bibles_dir(app);
     let mut out: Vec<ContentName> = bible_files(&dir)
         .into_iter()
-        .filter_map(|p| {
-            let code = bible_code(&p)?;
-            let name = bible_label(&p).unwrap_or_else(|| code.clone());
-            Some(ContentName { code, name })
-        })
+        .filter_map(|path| bible_content_name(&path))
         .collect();
     out.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     out
