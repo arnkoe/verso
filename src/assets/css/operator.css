@@ -13,11 +13,18 @@
      --surface-1 est LE gris des fonds interactifs : piste des contrôles
      segmentés, ligne de résultat survolée, ligne de résultat sélectionnée,
      survol des boutons (qui sont transparents au repos). Ne pas en dériver de
-     variante : ces fonds doivent rester rigoureusement identiques. */
+     variante : ces fonds doivent rester rigoureusement identiques. Seul le
+     survol des lignes de la carte de contenu fait exception, avec son propre
+     gris (--content-row-hover). */
   --surface-1: #eaeaea;   /* gris unique des fonds interactifs */
   --row-hover: var(--surface-1); /* survol de contenu/listes et curseur clavier */
   --sel: var(--surface-1);       /* sélection de contenu */
   --hover: var(--surface-1);     /* survol des boutons/contrôles */
+  /* Survol d'une ligne de la carte de contenu. Bien plus clair que --surface-1 :
+     ces lignes filent sur toute la largeur d'une grande surface blanche, et le
+     survol, qui ne fait que suivre la souris, doit rester nettement en dessous
+     de la ligne sélectionnée, qui garde --sel. */
+  --content-row-hover: #f7f7f7;
   /* Traits : calibrés pour porter sur le fond de la sidebar, pas seulement sur le
      blanc. --line sert aussi de liseré à la pastille des contrôles segmentés : il
      doit rester plus foncé que --surface-1 pour que la pastille se détache de sa
@@ -710,7 +717,9 @@ body {
      de strophes et les lignes dépassent l'axe des actions de l'en-tête. Le
      pouce ne s'affiche que lorsqu'il y a réellement de quoi défiler. */
   overflow-y: scroll;
-  padding: 0 calc(var(--content-gutter) - var(--content-scrollbar-w)) 28px var(--content-gutter);
+  /* Pas de gouttière horizontale ici : ce sont les lignes qui portent le retrait,
+     pour que leur fond de survol file d'un bord à l'autre de la carte. */
+  padding: 0 0 28px;
 }
 .strophe-list::-webkit-scrollbar { width: var(--content-scrollbar-w); }
 .strophe-list::-webkit-scrollbar-thumb {
@@ -726,15 +735,23 @@ body {
   grid-template-columns: 40px 1fr var(--control-h);
   gap: 16px;
   align-items: flex-start;
-  padding: 13px var(--row-inset);
-  margin: 2px 0;
-  border-radius: var(--radius-sm);
+  /* Le retrait gauche compense la bordure de 3px : le texte reste sur l'axe du
+     kicker et du titre, que la ligne soit survolée ou non. */
+  padding: 13px calc(var(--content-gutter) - var(--content-scrollbar-w)) 13px calc(var(--content-gutter) - 3px);
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid var(--line-2);
   cursor: pointer;
   background: transparent;
   transition: background 0.15s;
 }
-.list-item:hover { background: var(--row-hover); }
-.list-item.active { background: var(--sel); }
+/* La première ligne ferme la liste vers le haut : sans elle, seul l'espace de
+   l'en-tête la séparerait du titre alors que toutes les autres lignes sont
+   encadrées de filets. */
+.list-item:first-child { border-top: 1px solid var(--line-2); }
+/* Le survol ne fait que révéler la ligne ; le filet vert reste réservé à la
+   ligne réellement sélectionnée. */
+.list-item:hover { background: var(--content-row-hover); }
+.list-item.active { background: var(--sel); border-left-color: var(--live); }
 
 .strophe-number,
 .bible-verse-number {
@@ -930,16 +947,14 @@ body {
   }
 
   .strophe-list {
-    padding: 0 calc(var(--content-gutter) - var(--content-scrollbar-w)) 20px var(--content-gutter);
+    padding: 0 0 20px;
   }
 
-  /* Colonne des numéros plus étroite, alignée à gauche. Le fond de chaque
-     ligne partage désormais l'axe du kicker, du titre et des filtres ; son
-     contenu reprend le même retrait que les lignes de la sidebar. */
+  /* Colonne des numéros plus étroite, alignée à gauche. */
   .list-item {
     grid-template-columns: 22px 1fr auto;
     gap: 10px;
-    padding-inline: var(--row-inset);
+    padding-inline: calc(var(--content-gutter) - 3px) calc(var(--content-gutter) - var(--content-scrollbar-w));
   }
   .strophe-number,
   .bible-verse-number {
