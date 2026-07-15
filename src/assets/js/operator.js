@@ -320,11 +320,11 @@ function renderVerseList() {
     const shortLabel = verseShortLabel(verse.type, verse.number);
     const isLive = i === state.songVerse;
     return `<div class="list-item strophe-item${isLive ? ' active' : ''}" data-verse="${i}" data-action="projectVerse">
-      <div class="strophe-number">${esc(shortLabel)}</div>
-      <div class="strophe-text">${esc(verse.text)}</div>
-      <div class="strophe-action">
-        ${isLive ? livePill() : ''}
+      <div class="strophe-index">
+        <div class="strophe-action">${isLive ? livePill() : ''}</div>
+        <div class="strophe-number">${esc(shortLabel)}</div>
       </div>
+      <div class="strophe-text">${esc(verse.text)}</div>
     </div>`;
   }).join('');
 }
@@ -676,11 +676,11 @@ function renderBibleVerses(verses) {
   list.innerHTML = verses.map((v, i) => {
     const isLive = i === state.bibleVerse;
     return `<div class="list-item bible-verse-item${isLive ? ' active' : ''}" data-verse="${i}" data-action="projectBibleVerse">
-      <span class="bible-verse-number">${v.verse}</span>
-      <span class="bible-verse-text">${esc(v.text)}</span>
-      <div class="strophe-action">
-        ${isLive ? livePill() : ''}
+      <div class="strophe-index">
+        <div class="strophe-action">${isLive ? livePill() : ''}</div>
+        <span class="bible-verse-number">${v.verse}</span>
       </div>
+      <span class="bible-verse-text">${esc(v.text)}</span>
     </div>`;
   }).join('');
 }
@@ -753,11 +753,13 @@ function renderPdfPageList(filename, pageCount) {
   const list = document.getElementById('pdfPageList');
   list.innerHTML = Array.from({ length: pageCount }, (_, i) => `
     <div class="list-item pdf-page-item" data-page="${i+1}" data-action="projectPdfPage">
-      <div class="strophe-number">${i + 1}</div>
+      <div class="strophe-index">
+        <div class="strophe-action"></div>
+        <div class="strophe-number">${i + 1}</div>
+      </div>
       <div class="pdf-page-thumb" data-thumb-page="${i+1}">
         <div class="thumb-loading">…</div>
       </div>
-      <div class="strophe-action"></div>
     </div>
   `).join('');
 }
@@ -845,9 +847,10 @@ async function selectImage(filename) {
   const preview = document.getElementById('imagePreview');
   preview.innerHTML = `
     <div class="list-item strophe-item image-page-item${isLive ? ' active' : ''}" data-image-preview="${esc(filename)}" data-action="projectImage">
-      <div class="strophe-number"></div>
+      <div class="strophe-index">
+        <div class="strophe-action">${isLive ? livePill() : ''}</div>
+      </div>
       <img src="${esc(url)}" style="max-width:100%;max-height:400px;object-fit:contain;display:block;">
-      <div class="strophe-action">${isLive ? livePill() : ''}</div>
     </div>
   `;
 

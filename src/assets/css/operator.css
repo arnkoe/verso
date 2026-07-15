@@ -794,8 +794,12 @@ body {
    de sélecteurs de synchronisation dans operator.js. */
 .list-item {
   display: grid;
-  grid-template-columns: 40px minmax(0, var(--content-measure)) var(--control-h);
-  gap: var(--sp-4);
+  /* Le repère de ligne regroupe la pastille de projection et le numéro : le
+     point reste ainsi juste à gauche du libellé au lieu d'être rejeté après
+     le texte. Le gap extérieur garantit que les numéros à trois chiffres ne
+     viennent jamais se coller au contenu. */
+  grid-template-columns: calc(40px + var(--sp-3)) minmax(0, var(--content-measure));
+  gap: var(--sp-2);
   align-items: flex-start;
   /* Densité aérée, exactement celle de .settings-row et des lignes d'Aide : une
      ligne d'une strophe fait --row-h comme elles, et seul un texte qui passe à
@@ -821,6 +825,14 @@ body {
 .list-item:hover,
 .list-item.active { background: var(--content-row-hover); }
 .list-item.active { border-left-color: var(--live); }
+
+.strophe-index {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: var(--sp-1);
+  min-width: 0;
+}
 
 /* Le numéro suit toujours la taille et l'interligne du texte qu'il annote, à
    toute largeur : c'est ce qui aligne sa première ligne de base sur celle du
@@ -851,17 +863,17 @@ body {
 .strophe-action {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  height: var(--control-h);
-  width: var(--control-h);
+  justify-content: center;
+  width: 8px;
+  height: calc(var(--fs-lg) * 1.55);
   flex-shrink: 0;
 }
 /* Indicateur « en projection » : le même point discret que dans la sidebar. */
 .live-pill {
   display: flex;
   position: relative;
-  width: var(--control-h);
-  height: var(--control-h);
+  width: 8px;
+  height: 100%;
   background: transparent;
   flex-shrink: 0;
 }
@@ -1024,15 +1036,14 @@ body {
     padding: 0 0 var(--sp-5);
   }
 
-  /* Colonne des numéros plus étroite, alignée à gauche. */
+  /* Colonne des numéros plus étroite. Les références restent alignées à
+     droite, comme dans le mode large. */
   .list-item {
-    grid-template-columns: var(--sp-5) 1fr auto;
-    gap: var(--sp-3);
+    /* 44px accueillent le point, son espacement et un numéro à trois
+       chiffres, sans déborder sur le texte. */
+    grid-template-columns: calc(var(--sp-6) + var(--sp-3)) 1fr;
+    gap: var(--sp-2);
     padding-inline: calc(var(--content-gutter) - 5px) calc(var(--content-gutter) - var(--content-scrollbar-w));
-  }
-  .strophe-number,
-  .bible-verse-number {
-    text-align: left;
   }
 
   /* Texte du contenu un peu plus compact ; les numéros suivent. */
@@ -1041,6 +1052,9 @@ body {
   .strophe-number,
   .bible-verse-number {
     font-size: var(--fs-md);
+  }
+  .strophe-action {
+    height: calc(var(--fs-md) * 1.55);
   }
 
   /* En-tête : boutons d'action sous le titre. Le titre est le premier enfant
