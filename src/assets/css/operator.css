@@ -753,10 +753,10 @@ body {
   grid-template-columns: 40px minmax(0, var(--content-measure)) var(--control-h);
   gap: 16px;
   align-items: flex-start;
-  /* Le retrait gauche compense la bordure de 3px : le texte reste sur l'axe du
+  /* Le retrait gauche compense la bordure de 5px : le texte reste sur l'axe du
      kicker et du titre, que la ligne soit survolée ou non. */
-  padding: 13px calc(var(--content-gutter) - var(--content-scrollbar-w)) 13px calc(var(--content-gutter) - 3px);
-  border-left: 3px solid transparent;
+  padding: 13px calc(var(--content-gutter) - var(--content-scrollbar-w)) 13px calc(var(--content-gutter) - 5px);
+  border-left: 5px solid transparent;
   border-bottom: 1px solid var(--line-2);
   cursor: pointer;
   background: transparent;
@@ -978,7 +978,7 @@ body {
   .list-item {
     grid-template-columns: 22px 1fr auto;
     gap: 10px;
-    padding-inline: calc(var(--content-gutter) - 3px) calc(var(--content-gutter) - var(--content-scrollbar-w));
+    padding-inline: calc(var(--content-gutter) - 5px) calc(var(--content-gutter) - var(--content-scrollbar-w));
   }
   .strophe-number,
   .bible-verse-number {
