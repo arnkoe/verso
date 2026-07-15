@@ -81,17 +81,50 @@
   --segmented-track-h: calc(var(--control-h) + 2 * var(--segmented-pad));
   --ui-line-h: 16px;
   --w-sidebar: 330px;
+  /* Échelle d'espacement unifiée : base 4 px, rythme 8 px. Toute marge, tout
+     retrait et tout gap passe par ces tokens. N'utiliser qu'eux, et ne jamais
+     introduire de valeur intermédiaire (10, 14, 20, 28…) : c'est exactement ce
+     qui a fait diverger les densités par le passé.
+     Le niveau layout — gouttières, marges de section, hauteurs de rangée — se
+     tient aux multiples de 8. --sp-1 et --sp-3 ne servent qu'à l'intérieur
+     d'une boîte : écart picto → libellé, retrait d'une touche, écart d'un
+     libellé à sa description.
+     Trois familles échappent volontairement à l'échelle, parce qu'elles ne
+     règlent pas l'espacement : les filets et bordures (1px de liseré, 3px du
+     capuchon des touches, 5px du filet de sélection), les tailles de picto et
+     de pastille, et les compensations optiques dérivées d'un autre token
+     (calc(… - 1px) pour rattraper une bordure, retraits en em). */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  /* Hauteur des rangées aérées : contenu lu (versets, strophes), lignes de
+     Réglages et d'Aide, lignes de la modale de gestion. Une boîte de bouton
+     plus --sp-2 de part et d'autre, ces rangées portant presque toutes un
+     .hdr-btn ou une touche.
+     C'est l'une des DEUX densités de rangée de l'app, et il n'en existe pas de
+     troisième. L'autre est --segmented-track-h, celle des listes d'index de la
+     sidebar : plus compacte, parce qu'une ligne de résultat n'y porte que du
+     texte et qu'elle doit s'aligner sur la piste des onglets juste au-dessus.
+     Une nouvelle rangée choisit l'une ou l'autre, elle n'en invente pas. */
+  --row-h: calc(var(--control-h) + 2 * var(--sp-2));
   /* Gouttières communes : les fonds interactifs partagent un même axe et
-     leur contenu utilise partout le même retrait horizontal. */
-  --sidebar-gutter: 10px;
-  --content-gutter: 32px;
+     leur contenu utilise partout le même retrait horizontal. Les deux valant
+     --sp-3, la boîte d'un onglet, du champ de recherche et d'une ligne de
+     résultat tombe à --sp-3 du bord de la sidebar, et ce qu'elles contiennent
+     — picto du champ, libellé d'un résultat — à --sp-5. */
+  --sidebar-gutter: var(--sp-3);
+  --content-gutter: var(--sp-6);
   --content-scrollbar-w: 12px;
   /* Largeur maximale du texte de contenu (versets, strophes), ~100 caractères
      à --fs-lg. Les rangées, leurs filets et leur fond de survol continuent de
      filer sur toute la largeur ; seule la colonne de texte est plafonnée, et
      la colonne d'action (point vert) suit le texte au lieu du bord droit. */
   --content-measure: 760px;
-  --row-inset: 11px;
+  --row-inset: var(--sp-3);
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, Menlo, Consolas, monospace;
   /* Échelle typographique unifiée. N'utiliser que ces tokens. */
@@ -276,7 +309,7 @@ body {
 .search-box {
   padding: var(--sidebar-gutter);
   display: grid;
-  gap: 8px;
+  gap: var(--sp-2);
 }
 
 /* Le champ de recherche est exactement la boîte d'un bouton au repos : même
@@ -288,7 +321,7 @@ body {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
   min-height: var(--control-h);
   padding: 0 calc(var(--row-inset) - 1px);
   background: var(--panel);
@@ -353,8 +386,8 @@ body {
 
 .content-item {
   display: grid;
-  grid-template-columns: 31px 30px minmax(0, 1fr);
-  gap: 10px;
+  grid-template-columns: var(--sp-6) var(--sp-6) minmax(0, 1fr);
+  gap: var(--sp-2);
   align-items: center;
   /* Même hauteur de fond que la piste des onglets : les fonds gris de la sidebar
      se répondent, et une ligne survolée encadre son texte comme la piste encadre
@@ -375,7 +408,7 @@ body {
   right: var(--row-inset);
   top: 50%;
   transform: translateY(-50%);
-  width: 7px; height: 7px;
+  width: 8px; height: 8px;
   border-radius: 50%;
   background: var(--live);
   z-index: 1;
@@ -403,12 +436,15 @@ body {
   font-size: var(--fs-md); color: var(--ink);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   grid-column: 3;
-  padding-right: 14px;
+  /* Dégage le point de projection (--row-inset + 8px du bord droit) : le titre
+     se tronque avant de l'atteindre. */
+  padding-right: var(--sp-4);
 }
 .content-item.active .item-number,
 .content-item.active .item-title { color: var(--ink); font-weight: 600; }
 
-/* Résultat Bible : sans numéro, texte aligné sur la colonne titre (30px + 8px gap) */
+/* Résultat Bible : sans recueil ni numéro, le texte reprend toute la ligne et
+   part donc du retrait de la rangée, pas de la colonne titre. */
 .content-item[data-bible-ref] {
   grid-template-columns: 1fr;
 }
@@ -421,14 +457,14 @@ body {
 #imageList .content-item .item-title { grid-column: 1; }
 
 .search-empty {
-  padding: 22px 14px; color: var(--mute-2); font-size: var(--fs-sm); text-align: center;
+  padding: var(--sp-5) var(--sp-4); color: var(--mute-2); font-size: var(--fs-sm); text-align: center;
 }
 .search-prompt {
   display: grid;
   place-items: center;
   position: absolute;
   inset: 0 0 var(--sidebar-gutter);
-  padding: 14px;
+  padding: var(--sp-4);
   font-size: var(--fs-md);
 }
 
@@ -449,7 +485,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
+  gap: var(--sp-2);
 }
 /* ── CARD MONITOR ──────────────────────────────────────────────────────────── */
 /* Colonne flex compressible : sans min-height:0, la card garde sa hauteur
@@ -461,7 +497,7 @@ body {
   padding: var(--sidebar-gutter);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--sp-2);
   min-height: 0;
   border: 0;
   border-top: 1px solid var(--line);
@@ -486,7 +522,7 @@ body {
   margin-top: 0;
   display: flex;
   flex-wrap: nowrap;
-  gap: 8px;
+  gap: var(--sp-2);
 }
 .monitor-actions .hdr-btn {
   flex: 1 1 0;
@@ -501,7 +537,7 @@ body {
   flex: none;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: var(--sp-1);
   margin-left: auto;
   color: var(--mute-2);
   font-size: var(--fs-xs);
@@ -558,8 +594,8 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 10px;
-  padding: 24px;
+  gap: var(--sp-3);
+  padding: var(--sp-5);
   color: var(--mute);
 }
 .main[data-loaded="true"] .empty-state { display: none; }
@@ -569,7 +605,7 @@ body {
   place-items: center;
   width: 48px;
   height: 48px;
-  margin-bottom: 4px;
+  margin-bottom: var(--sp-1);
   border-radius: 14px;
   background: var(--surface-1);
 }
@@ -602,7 +638,7 @@ body {
    des onglets de la sidebar ; le kicker ayant la hauteur d'un contrôle, son
    texte se centre exactement sur le leur. */
 .content-header {
-  padding: calc(var(--titlebar-h) + var(--sidebar-gutter)) var(--content-gutter) 20px;
+  padding: calc(var(--titlebar-h) + var(--sidebar-gutter)) var(--content-gutter) var(--sp-5);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0;
@@ -622,7 +658,7 @@ body {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--sp-3);
   min-width: 0;
   /* Hauteur fixe = hauteur des boutons d'action, pour que la position du
      titre (et l'espace kicker->titre) soit identique sur tous les onglets,
@@ -666,7 +702,7 @@ body {
 }
 .content-header-actions {
   display: flex;
-  gap: 6px;
+  gap: var(--sp-2);
   align-items: center;
   flex-shrink: 0;
 }
@@ -689,7 +725,9 @@ body {
   border: 1px solid var(--line);
   display: flex;
   align-items: center;
-  gap: 5px;
+  /* Même écart picto → libellé que .field et .dropdown-trigger : ces trois
+     boîtes de contrôle ne diffèrent que par leur fond. */
+  gap: var(--sp-2);
   padding: 0 var(--row-inset);
   height: var(--control-h);
   color: var(--ink);
@@ -737,7 +775,7 @@ body {
   overflow-y: scroll;
   /* Pas de gouttière horizontale ici : ce sont les lignes qui portent le retrait,
      pour que leur fond de survol file d'un bord à l'autre de la carte. */
-  padding: 0 0 28px;
+  padding: 0 0 var(--sp-6);
 }
 .strophe-list::-webkit-scrollbar { width: var(--content-scrollbar-w); }
 .strophe-list::-webkit-scrollbar-thumb {
@@ -751,11 +789,17 @@ body {
 .list-item {
   display: grid;
   grid-template-columns: 40px minmax(0, var(--content-measure)) var(--control-h);
-  gap: 16px;
+  gap: var(--sp-4);
   align-items: flex-start;
+  /* Densité aérée, exactement celle de .settings-row et des lignes d'Aide : une
+     ligne d'une strophe fait --row-h comme elles, et seul un texte qui passe à
+     la ligne la fait grandir. Le retrait vertical est donc --sp-2 et non --sp-3,
+     sans quoi la colonne d'action (--control-h) pousserait déjà la rangée
+     au-delà de --row-h et rouvrirait l'écart de densité avec les Réglages. */
+  min-height: var(--row-h);
   /* Le retrait gauche compense la bordure de 5px : le texte reste sur l'axe du
      kicker et du titre, que la ligne soit survolée ou non. */
-  padding: 13px calc(var(--content-gutter) - var(--content-scrollbar-w)) 13px calc(var(--content-gutter) - 5px);
+  padding: var(--sp-2) calc(var(--content-gutter) - var(--content-scrollbar-w)) var(--sp-2) calc(var(--content-gutter) - 5px);
   border-left: 5px solid transparent;
   border-bottom: 1px solid var(--line-2);
   cursor: pointer;
@@ -845,7 +889,7 @@ body {
   margin: 0 auto;
 }
 .pdf-page-thumb canvas { display: block; width: 100%; height: auto; }
-.thumb-loading { font-size: var(--fs-xs); color: var(--mute-2); padding: 16px 0; }
+.thumb-loading { font-size: var(--fs-xs); color: var(--mute-2); padding: var(--sp-4) 0; }
 .pdf-page-item .pdf-page-thumb {
   width: 100%;
   max-width: 220px;
@@ -863,17 +907,17 @@ body {
 
 /* Édition de strophes */
 #songEditArea {
-  padding: 12px var(--content-gutter);
+  padding: var(--sp-3) var(--content-gutter);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--sp-3);
   flex: 1;
 }
 #songEditTextarea {
   width: 100%; min-height: 400px;
   font-family: var(--font-mono);
   font-size: var(--fs-md); line-height: 1.6;
-  padding: 10px;
+  padding: var(--sp-3);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   resize: vertical;
@@ -898,13 +942,13 @@ body {
 .screen-modal {
   background: var(--panel);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: var(--sp-5);
   max-width: 420px;
   width: 90%;
   box-shadow: var(--shadow-overlay);
 }
 .screen-modal__title {
-  margin: 0 0 12px;
+  margin: 0 0 var(--sp-3);
   font-size: var(--fs-xl);
   font-weight: 600;
   color: var(--ink);
@@ -912,15 +956,15 @@ body {
 .screen-modal__list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 14px;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
 }
 .screen-modal__item {
   appearance: none;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 10px 12px;
+  gap: var(--sp-1);
+  padding: var(--sp-3);
   border: 0;
   background: transparent;
   border-radius: var(--radius-sm);
@@ -944,7 +988,7 @@ body {
 
 /* ── RESPONSIVE 900px ─────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  :root { --content-gutter: 16px; }
+  :root { --content-gutter: var(--sp-4); }
 
   /* La sidebar garde les proportions du panneau de référence. */
   .body {
@@ -957,7 +1001,7 @@ body {
      la grille, égal à la valeur implicite du mode large (control-h - fs-2xl),
      pour garder l'espace kicker → titre constant quelle que soit la largeur. */
   .content-header {
-    padding: calc(var(--titlebar-h) + var(--sidebar-gutter)) var(--content-gutter) 16px;
+    padding: calc(var(--titlebar-h) + var(--sidebar-gutter)) var(--content-gutter) var(--sp-4);
     gap: calc(var(--control-h) - var(--fs-2xl));
     grid-template-columns: minmax(0, 1fr);
   }
@@ -971,13 +1015,13 @@ body {
   }
 
   .strophe-list {
-    padding: 0 0 20px;
+    padding: 0 0 var(--sp-5);
   }
 
   /* Colonne des numéros plus étroite, alignée à gauche. */
   .list-item {
-    grid-template-columns: 22px 1fr auto;
-    gap: 10px;
+    grid-template-columns: var(--sp-5) 1fr auto;
+    gap: var(--sp-3);
     padding-inline: calc(var(--content-gutter) - 5px) calc(var(--content-gutter) - var(--content-scrollbar-w));
   }
   .strophe-number,
@@ -999,7 +1043,7 @@ body {
   .content-header-row {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: var(--sp-2);
   }
   .content-header-actions {
     justify-content: flex-start;
@@ -1016,8 +1060,8 @@ body {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  padding: 18px 12px;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-3);
   border-top: 1px solid var(--line-2);
 }
 .search-tools .tool-item {
@@ -1043,8 +1087,8 @@ body {
 /* Point bleu signalant une mise à jour disponible (rubrique À propos). */
 .tool-badge {
   position: absolute;
-  top: -3px;
-  right: -7px;
+  top: -4px;
+  right: -8px;
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -1061,7 +1105,7 @@ body {
   overflow-y: auto;
 }
 #panelHelp .info-pane, #panelSettings .info-pane {
-  padding-top: 56px;
+  padding-top: var(--sp-7);
 }
 #panelAbout {
   grid-row: 1 / -1;
@@ -1071,7 +1115,7 @@ body {
 }
 .info-pane {
   width: 100%;
-  padding: 28px var(--content-gutter);
+  padding: var(--sp-6) var(--content-gutter);
   max-width: 640px;
   margin: 0 auto;
   color: var(--ink);
@@ -1086,24 +1130,24 @@ body {
   font-weight: 600;
   letter-spacing: 0;
   color: var(--ink);
-  margin: 20px 0 8px;
+  margin: var(--sp-5) 0 var(--sp-2);
 }
 .info-keys {
   list-style: none;
   display: grid;
-  gap: 6px;
+  gap: var(--sp-2);
 }
 .info-keys li {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
   font-size: var(--fs-lg);
 }
 .info-keys kbd {
   font-family: inherit;
   font-size: var(--fs-sm);
-  min-width: 20px;
-  padding: 2px 6px;
+  min-width: var(--sp-5);
+  padding: var(--sp-1) var(--sp-2);
   text-align: center;
   border: 1px solid var(--line-strong);
   border-bottom-width: 3px;
@@ -1115,21 +1159,28 @@ body {
   color: var(--ink);
 }
 
-/* Aide (raccourcis) : même aération que le panneau Paramètres. */
-.info-pane-help .info-h {
-  margin: 20px 0 2px;
-  padding-bottom: 4px;
+/* En-tête de section des pages Aide et Paramètres. Les deux pages sont bâties
+   pareil — des sections de rangées séparées par des filets — et partagent donc
+   une seule règle : deux règles jumelles avaient fini par diverger. */
+.info-pane-help .info-h,
+.info-pane-settings .info-h {
+  margin: var(--sp-6) 0 var(--sp-1);
+  padding-bottom: var(--sp-2);
   border-bottom: 1px solid var(--line-2);
 }
-.info-pane-help .info-h:first-of-type { margin-top: 28px; }
+.info-pane-help .info-h:first-of-type,
+.info-pane-settings .info-h:first-of-type { margin-top: var(--sp-6); }
 
 .info-pane-help .info-keys {
   gap: 0;
 }
+/* Densité aérée : même rangée que .settings-row, dont ces lignes reprennent la
+   structure (libellé à gauche, contrôle à droite). */
 .info-pane-help .info-keys li {
   justify-content: space-between;
-  gap: 16px;
-  padding: 7px 0;
+  gap: var(--sp-4);
+  min-height: var(--row-h);
+  padding: var(--sp-2) 0;
   border-top: 1px solid var(--line-2);
   font-size: var(--fs-lg);
   color: var(--ink);
@@ -1141,7 +1192,7 @@ body {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-2);
 }
 /* Séparateur « ou » entre deux touches équivalentes : texte discret, pas une touche. */
 .info-pane-help .info-keys .key-sep {
@@ -1155,8 +1206,8 @@ body {
   justify-content: center;
   box-sizing: border-box;
   height: var(--control-h);
-  min-width: 44px;
-  padding: 0 8px;
+  min-width: var(--sp-7);
+  padding: 0 var(--sp-2);
   border-radius: var(--radius-sm);
 }
 
@@ -1172,21 +1223,21 @@ body {
   width: 56px;
   height: 56px;
   border-radius: 12px;
-  margin-bottom: 12px;
+  margin-bottom: var(--sp-3);
 }
 .about-desc {
   font-size: var(--fs-lg);
   line-height: 1.55;
   color: var(--ink);
   max-width: 460px;
-  margin: 8px 0 4px;
+  margin: var(--sp-2) 0 var(--sp-1);
 }
 .about-version {
   font-size: var(--fs-lg);
   color: var(--mute);
-  margin-top: 12px;
+  margin-top: var(--sp-3);
 }
-.about-update { margin-top: 8px; }
+.about-update { margin-top: var(--sp-2); }
 .about-update[hidden] { display: none; }
 .about-update-link {
   appearance: none;
@@ -1207,18 +1258,13 @@ body {
 .about-meta {
   font-size: var(--fs-md);
   color: var(--mute-2);
-  margin-top: 14px;
+  margin-top: var(--sp-4);
 }
 .about-meta a { color: var(--mute); }
 
 /* ─── PANNEAU PARAMÈTRES ─────────────────────────────────────────────────────
-   Page déroulante dans la zone principale (comme Aide/À propos). */
-.info-pane-settings .info-h {
-  margin: 36px 0 4px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--line-2);
-}
-.info-pane-settings .info-h:first-of-type { margin-top: 28px; }
+   Page déroulante dans la zone principale (comme Aide/À propos). Ses en-têtes
+   de section sont mutualisés avec ceux de l'Aide, plus haut. */
 
 /* Le statut de mise à jour suit le texte courant de la page ; la même classe
    dans la modale de gestion des contenus garde la taille des modales. */
@@ -1264,8 +1310,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 16px 20px;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
   border-bottom: 1px solid var(--line-2);
 }
 .content-modal-title {
@@ -1277,17 +1323,18 @@ body {
 .content-modal-body {
   flex: 1;
   overflow-y: auto;
-  /* 12px de gouttière + 8px de retrait des lignes = les 20px de l'en-tête
-     et du pied de modale. */
-  padding: 6px 12px;
+  /* --sp-3 de gouttière + --sp-3 de retrait des lignes = les --sp-5 de
+     l'en-tête et du pied de modale : le texte des lignes tombe sur l'axe du
+     titre. */
+  padding: var(--sp-2) var(--sp-3);
   min-height: 0;
 }
 .content-modal-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 20px;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-5);
   border-top: 1px solid var(--line-2);
 }
 .content-modal-foot .settings-update-status {
@@ -1299,8 +1346,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 14px 0;
+  gap: var(--sp-4);
+  min-height: var(--row-h);
+  padding: var(--sp-2) 0;
   border-top: 1px solid var(--line-2);
 }
 .settings-row:first-of-type { border-top: none; }
@@ -1309,7 +1357,7 @@ body {
 .info-h + .settings-row { border-top: none; }
 
 .settings-row-label { font-size: var(--fs-lg); color: var(--ink); }
-.settings-row-desc { font-size: var(--fs-md); color: var(--mute-2); margin-top: 2px; }
+.settings-row-desc { font-size: var(--fs-md); color: var(--mute-2); margin-top: var(--sp-1); }
 
 .settings-screen-dropdown {
   min-width: 180px;
@@ -1325,7 +1373,7 @@ body {
 
 .settings-update-status {
   font-size: var(--fs-md);
-  margin-top: 10px;
+  margin-top: var(--sp-3);
   min-height: 1.2em;
   color: var(--mute);
 }
@@ -1345,8 +1393,9 @@ body {
   left: 0;
   z-index: 1;
   /* Même respiration que sous les boutons du pied (padding-bottom de
-     .search-tools) : l'écart texte → séparateur égale l'écart boutons → bas. */
-  margin: 0 0 18px;
+     .search-tools) : l'écart texte → séparateur égale l'écart boutons → bas.
+     Les deux valeurs doivent bouger ensemble. */
+  margin: 0 0 var(--sp-4);
   font-size: var(--fs-sm);
   line-height: var(--ui-line-h);
   color: var(--mute-2);
@@ -1359,7 +1408,7 @@ body {
    la recherche. Les listes remplies gardent assez d'espace pour que leur
    dernier résultat puisse défiler entièrement au-dessus du libellé. */
 .card-search:has(> .sync-status:not([hidden])) .content-list {
-  padding-bottom: 36px;
+  padding-bottom: var(--sp-6);
 }
 
 /* Gestion des contenus (liste dans la modale dédiée). */
@@ -1368,8 +1417,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 9px 8px;
+  gap: var(--sp-3);
+  min-height: var(--row-h);
+  padding: var(--sp-2) var(--sp-3);
   font-size: var(--fs-md);
   color: var(--ink);
   border-bottom: 1px solid var(--line-2);
@@ -1381,24 +1431,24 @@ body {
 .content-mgr-item:has(.content-mgr-confirm) .content-mgr-name { line-height: var(--control-h); }
 .content-mgr-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .content-mgr-empty {
-  padding: 28px 8px;
+  padding: var(--sp-6) var(--sp-3);
   font-size: var(--fs-md);
   color: var(--mute);
   text-align: center;
 }
-.content-mgr-actions { flex: none; display: inline-flex; align-items: center; gap: 6px; }
+.content-mgr-actions { flex: none; display: inline-flex; align-items: center; gap: var(--sp-2); }
 
 /* Boutons de suppression : .hdr-btn standard, teinte rouge pour l'action destructive. */
 .content-mgr-del,
 .content-mgr-confirm-del { color: var(--danger); }
 .content-mgr-del:hover,
 .content-mgr-confirm-del:hover { color: var(--danger); background: var(--danger-weak); }
-.content-mgr-confirm { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-.content-mgr-confirm-btns { display: inline-flex; align-items: center; gap: 6px; }
+.content-mgr-confirm { display: inline-flex; flex-direction: column; align-items: flex-end; gap: var(--sp-2); }
+.content-mgr-confirm-btns { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .content-mgr-confirm-hint { font-size: var(--fs-sm); color: var(--mute-2); text-align: right; }
 .content-mgr-confirm-input {
   width: 140px; height: var(--control-h);
-  padding: 0 10px;
+  padding: 0 var(--row-inset);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   font-family: inherit; font-size: var(--fs-md);
@@ -1415,10 +1465,10 @@ body {
   appearance: none;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
   min-width: 130px;
   height: var(--control-h);
-  padding: 0 8px 0 var(--row-inset);
+  padding: 0 var(--sp-2) 0 var(--row-inset);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--panel);
@@ -1445,11 +1495,11 @@ body {
 .dropdown-menu[hidden] { display: none; }
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + var(--sp-1));
   right: 0;
   min-width: 100%;
   z-index: 50;
-  padding: 4px;
+  padding: var(--sp-1);
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
@@ -1458,9 +1508,9 @@ body {
 .dropdown-option {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--sp-2);
   width: 100%;
-  padding: 7px 10px;
+  padding: var(--sp-2) var(--sp-3);
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
