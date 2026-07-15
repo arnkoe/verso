@@ -1,20 +1,20 @@
 :root {
-  --bg: #ffffff;
-  --panel: #ffffff;
-  --sidebar: #fcfcfc;     /* fond de la sidebar, très légèrement grisé */
-  --ink: #000000;
-  --ink-2: #555757;
-  --mute: #777979;
-  --mute-2: #878989;
-  /* Gris de --ink-2 à --line-strong, texte comme fonds : une seule teinte, jamais
-     brune. Le vert et le bleu sont égaux et le rouge est deux crans en retrait ;
-     seule la luminosité distingue ces tokens les uns des autres. Toute nouvelle
-     valeur doit suivre cette règle, sans quoi elle jurera à côté des autres.
+  --bg: #fff;
+  --panel: #fff;
+  --sidebar: #f7f7f7;     /* fond de la sidebar, très légèrement grisé */
+  --ink: #000;
+  --ink-2: #555;
+  --mute: #777;
+  --mute-2: #888;
+  /* Gris de --ink-2 à --scroll, texte comme fonds : strictement neutres, les trois
+     composantes rigoureusement égales. Seule la luminosité distingue ces tokens
+     les uns des autres. Toute nouvelle valeur doit suivre cette règle, sans quoi
+     elle jurera à côté des autres.
      --surface-1 est LE gris des fonds interactifs : piste des contrôles
      segmentés, ligne de résultat survolée, ligne de résultat sélectionnée,
      survol des boutons (qui sont transparents au repos). Ne pas en dériver de
      variante : ces fonds doivent rester rigoureusement identiques. */
-  --surface-1: #eef0f0;   /* gris unique des fonds interactifs */
+  --surface-1: #eaeaea;   /* gris unique des fonds interactifs */
   --row-hover: var(--surface-1); /* survol de contenu/listes et curseur clavier */
   --sel: var(--surface-1);       /* sélection de contenu */
   --hover: var(--surface-1);     /* survol des boutons/contrôles */
@@ -22,10 +22,10 @@
      blanc. --line sert aussi de liseré à la pastille des contrôles segmentés : il
      doit rester plus foncé que --surface-1 pour que la pastille se détache de sa
      piste comme une boîte de bouton. */
-  --line-2: #edefef;      /* séparateur clair */
-  --line: #dee0e0;        /* bordure standard */
-  --line-strong: #cdcfcf; /* bordure au survol */
-  --scroll: #dfe1e1;      /* pouce d'ascenseur */
+  --line-2: #efefef;      /* séparateur clair */
+  --line: #e0e0e0;        /* bordure standard */
+  --line-strong: #cecece; /* bordure au survol */
+  --scroll: #dfdfdf;      /* pouce d'ascenseur */
   --live: #22c55e;
   --live-weak: rgba(34,197,94,0.12);
   --live-hover: rgba(34,197,94,0.18);
