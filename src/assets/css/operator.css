@@ -1,41 +1,52 @@
 :root {
   --bg: #fff;
   --panel: #fff;
-  --sidebar: #f7f7f7;     /* fond de la sidebar, très légèrement grisé */
+  --sidebar: #f6f8fa;     /* fond de la sidebar, très légèrement grisé */
   --ink: #000;
-  --ink-2: #555;
-  --mute: #777;
-  --mute-2: #888;
-  /* Gris de --ink-2 à --scroll, texte comme fonds : strictement neutres, les trois
-     composantes rigoureusement égales. Seule la luminosité distingue ces tokens
+  --ink-2: #53585f;
+  --mute: #6e7681;
+  --mute-2: #838a94;
+  /* Gris de --ink-2 à --scroll, texte comme fonds : tous très légèrement froids,
+     teintés vers le bleu de --accent. Un gris rigoureusement neutre paraît sale à
+     côté du blanc pur, qui le fait lire comme du blanc encrassé ; la teinte le
+     rattache au reste de la palette. Bleu à ~215°, saturation ~15 % en haut de
+     l'échelle et décroissant vers les gris de texte : la teinte doit rester
+     imperceptible en tant que couleur. Seule la luminosité distingue ces tokens
      les uns des autres. Toute nouvelle valeur doit suivre cette règle, sans quoi
      elle jurera à côté des autres.
      --surface-1 est LE gris des fonds interactifs : piste des contrôles
-     segmentés, ligne de résultat survolée, ligne de résultat sélectionnée,
-     survol des boutons (qui sont transparents au repos). Ne pas en dériver de
+     segmentés, ligne de résultat survolée, survol des boutons (qui sont
+     transparents au repos), touches de la page Raccourcis. Ne pas en dériver de
      variante : ces fonds doivent rester rigoureusement identiques. Seul le
      survol des lignes de la carte de contenu fait exception, avec son propre
-     gris (--content-row-hover). */
-  --surface-1: #eaeaea;   /* gris unique des fonds interactifs */
+     gris (--content-row-hover).
+     Il n'existe volontairement PAS de gris de sélection. Une ligne sélectionnée
+     porte le fond de survol de son propre contexte, ni plus ni moins : c'est le
+     vert (--live) qui dit la sélection, par le point, le filet gauche et le
+     numéro. Un gris plus foncé par-dessus serait redondant et salirait la
+     carte. Ne pas réintroduire de token --sel. */
+  --surface-1: #e9edf2;   /* gris unique des fonds interactifs */
   --row-hover: var(--surface-1); /* survol de contenu/listes et curseur clavier */
-  --sel: var(--surface-1);       /* sélection de contenu */
   --hover: var(--surface-1);     /* survol des boutons/contrôles */
-  /* Survol d'une ligne de la carte de contenu. Bien plus clair que --surface-1 :
-     ces lignes filent sur toute la largeur d'une grande surface blanche, et le
-     survol, qui ne fait que suivre la souris, doit rester nettement en dessous
-     de la ligne sélectionnée, qui garde --sel. */
-  --content-row-hover: #f7f7f7;
+  /* Survol d'une ligne de la carte de contenu, donc aussi fond de sa ligne
+     sélectionnée. Bien plus clair que --surface-1 : ces lignes filent sur toute
+     la largeur d'une grande surface blanche, où un gris franc pèserait. */
+  --content-row-hover: #f6f8fa;
   /* Traits : calibrés pour porter sur le fond de la sidebar, pas seulement sur le
      blanc. --line sert aussi de liseré à la pastille des contrôles segmentés : il
      doit rester plus foncé que --surface-1 pour que la pastille se détache de sa
      piste comme une boîte de bouton. */
-  --line-2: #efefef;      /* séparateur clair */
-  --line: #e0e0e0;        /* bordure standard */
-  --line-strong: #cecece; /* bordure au survol */
-  --scroll: #dfdfdf;      /* pouce d'ascenseur */
+  --line-2: #eef1f5;      /* séparateur clair */
+  --line: #dfe3e8;        /* bordure standard */
+  --line-strong: #ccd2da; /* bordure au survol */
+  --scroll: #dde2e8;      /* pouce d'ascenseur */
   --live: #22c55e;
   --live-weak: rgba(34,197,94,0.12);
   --live-hover: rgba(34,197,94,0.18);
+  /* Même vert, décliné pour le texte : #22c55e ne fait que ~2,3:1 sur blanc,
+     acceptable pour un point ou un filet, illisible pour des lettres. Tout
+     usage de --live en couleur de texte passe par ce token (~5:1). */
+  --live-text: #15803d;
   --accent: #2563eb;
   --danger: #c62828;         /* erreurs, actions destructives */
   --danger-weak: #fdeaea;    /* fond léger d'un contrôle destructif au survol */
@@ -349,7 +360,7 @@ body {
   transition: background 0.12s;
 }
 .content-item:hover { background: var(--row-hover); }
-.content-item.active { background: var(--sel); position: relative; }
+.content-item.active { background: var(--row-hover); position: relative; }
 .content-item.active::after { display: none; }
 .content-item.active::before {
   content: "";
@@ -696,8 +707,8 @@ body {
   background: var(--row-hover);
   box-shadow: var(--shadow-btn-hover);
 }
-.hdr-btn.save { border-color: var(--live); color: var(--live); }
-.hdr-btn.save:hover { border-color: var(--live); background: var(--live-weak); color: var(--live); }
+.hdr-btn.save { border-color: var(--live); color: var(--live-text); }
+.hdr-btn.save:hover { border-color: var(--live); background: var(--live-weak); color: var(--live-text); }
 .hdr-btn:disabled { opacity: 0.5; cursor: default; }
 .hdr-btn:disabled:hover {
   border-color: var(--line);
@@ -748,10 +759,11 @@ body {
    l'en-tête la séparerait du titre alors que toutes les autres lignes sont
    encadrées de filets. */
 .list-item:first-child { border-top: 1px solid var(--line-2); }
-/* Le survol ne fait que révéler la ligne ; le filet vert reste réservé à la
-   ligne réellement sélectionnée. */
-.list-item:hover { background: var(--content-row-hover); }
-.list-item.active { background: var(--sel); border-left-color: var(--live); }
+/* Ligne survolée et ligne sélectionnée partagent le même fond : seul le filet
+   vert, le point et le numéro vert disent la sélection. */
+.list-item:hover,
+.list-item.active { background: var(--content-row-hover); }
+.list-item.active { border-left-color: var(--live); }
 
 /* Le numéro suit toujours la taille et l'interligne du texte qu'il annote, à
    toute largeur : c'est ce qui aligne sa première ligne de base sur celle du
@@ -765,8 +777,10 @@ body {
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
+/* Le numéro passe au vert avec le filet et le point : c'est lui qui porte la
+   sélection, maintenant que le fond ne la distingue plus du survol. */
 .list-item.active .strophe-number,
-.list-item.active .bible-verse-number { color: var(--ink); font-weight: 600; }
+.list-item.active .bible-verse-number { color: var(--live-text); font-weight: 700; }
 
 .strophe-text,
 .bible-verse-text {
@@ -1090,7 +1104,7 @@ body {
   /* Touches non cliquables : leur fond gris les distingue du blanc des boutons
      (.hdr-btn en --panel), et le bord bas épaissi achève de les lire comme un
      capuchon de clavier plutôt que comme un contrôle actionnable. */
-  background: var(--sel);
+  background: var(--surface-1);
   color: var(--ink);
 }
 
@@ -1308,7 +1322,7 @@ body {
   min-height: 1.2em;
   color: var(--mute);
 }
-.settings-update-status.ok { color: var(--live); }
+.settings-update-status.ok { color: var(--live-text); }
 .settings-update-status.error { color: var(--danger); }
 .settings-update-status.available { color: var(--accent); font-weight: 600; }
 
