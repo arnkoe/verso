@@ -58,8 +58,8 @@
   /* Échelle typographique unifiée. N'utiliser que ces tokens. */
   --fs-xs: 11px;    /* métadonnées, compteurs, libellés discrets */
   --fs-sm: 12px;    /* texte UI secondaire, aides, descriptions */
-  --fs-md: 14px;    /* texte UI courant, libellés de réglages, lignes accentuées */
-  --fs-lg: 16px;    /* contenu lu : strophes, versets */
+  --fs-md: 14px;    /* texte UI courant, contrôles, lignes accentuées */
+  --fs-lg: 16px;    /* contenu lu : strophes, versets, pages d'information */
   --fs-xl: 20px;    /* titres de modales */
   --fs-2xl: 24px;   /* titre de la zone principale */
 }
@@ -1032,11 +1032,11 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: var(--fs-md);
+  font-size: var(--fs-lg);
 }
 .info-keys kbd {
   font-family: inherit;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   min-width: 20px;
   padding: 2px 6px;
   text-align: center;
@@ -1066,7 +1066,7 @@ body {
   gap: 16px;
   padding: 7px 0;
   border-top: 1px solid var(--line-2);
-  font-size: var(--fs-md);
+  font-size: var(--fs-lg);
   color: var(--ink);
 }
 .info-pane-help .info-keys li:first-child { border-top: none; }
@@ -1080,7 +1080,7 @@ body {
 }
 /* Séparateur « ou » entre deux touches équivalentes : texte discret, pas une touche. */
 .info-pane-help .info-keys .key-sep {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-md);
   opacity: 0.7;
 }
 /* Touches à la même hauteur que les boutons des réglages (.hdr-btn). */
@@ -1110,14 +1110,14 @@ body {
   margin-bottom: 12px;
 }
 .about-desc {
-  font-size: var(--fs-md);
+  font-size: var(--fs-lg);
   line-height: 1.55;
   color: var(--ink);
   max-width: 460px;
   margin: 8px 0 4px;
 }
 .about-version {
-  font-size: var(--fs-md);
+  font-size: var(--fs-lg);
   color: var(--mute);
   margin-top: 12px;
 }
@@ -1129,7 +1129,7 @@ body {
   padding: 0;
   background: none;
   font-family: inherit;
-  font-size: var(--fs-md);
+  font-size: var(--fs-lg);
   font-weight: 400;
   color: var(--accent);
   text-decoration: underline;
@@ -1140,7 +1140,7 @@ body {
 .about-update-link:hover { opacity: 0.75; }
 .about-update-link:disabled { cursor: default; color: var(--mute); opacity: 0.5; }
 .about-meta {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-md);
   color: var(--mute-2);
   margin-top: 14px;
 }
@@ -1179,6 +1179,10 @@ body {
   z-index: 1000;
   display: flex;
   align-items: center;
+/* Le statut de mise à jour suit le texte courant de la page ; la même classe
+   dans la modale de gestion des contenus garde la taille des modales. */
+.info-pane-settings .settings-update-status { font-size: var(--fs-lg); }
+
   justify-content: center;
   background: var(--overlay);
 }
@@ -1239,8 +1243,8 @@ body {
    le border-bottom de l'en-tête. */
 .info-h + .settings-row { border-top: none; }
 
-.settings-row-label { font-size: var(--fs-md); color: var(--ink); }
-.settings-row-desc { font-size: var(--fs-sm); color: var(--mute-2); margin-top: 2px; }
+.settings-row-label { font-size: var(--fs-lg); color: var(--ink); }
+.settings-row-desc { font-size: var(--fs-md); color: var(--mute-2); margin-top: 2px; }
 
 .settings-screen-dropdown {
   min-width: 180px;
@@ -1255,7 +1259,7 @@ body {
 }
 
 .settings-update-status {
-  font-size: var(--fs-md);
+  font-size: var(--fs-lg);
   margin-top: 10px;
   min-height: 1.2em;
   color: var(--mute);
