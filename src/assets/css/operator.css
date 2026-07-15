@@ -330,7 +330,10 @@ body {
   box-shadow: var(--shadow-btn);
 }
 /* Le focus ne change ni le fond ni le liseré : le curseur suffit à signaler la
+   saisie. En revanche l'indication du raccourci qui mène au champ n'a plus
+   d'objet une fois le champ actif : elle disparaît et rend la place à la
    saisie. */
+.field:focus-within .shortcut-hint { display: none; }
 .field svg {
   position: static;
   width: 18px; height: 18px; color: var(--mute);
@@ -531,19 +534,22 @@ body {
   padding: 0 var(--row-inset);
   overflow: hidden;
 }
-/* Le raccourci est poussé à droite (margin-left: auto) ; le picto et le
-   libellé restent groupés à gauche. */
-.monitor-shortcut {
+/* Indication de raccourci dans un contrôle (bouton de projection, champ de
+   recherche) : poussée à droite (margin-left: auto), le reste du contenu
+   restant groupé à gauche. */
+.shortcut-hint {
   flex: none;
   display: inline-flex;
   align-items: center;
-  gap: var(--sp-1);
   margin-left: auto;
   color: var(--mute-2);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   font-weight: 400;
   line-height: 1;
 }
+/* Le glyphe ⌘ colle à la touche (« ⌘M ») ; ailleurs les touches sont reliées
+   par un « + » (« Ctrl+M »). */
+.platform-macos .shortcut-hint-sep { display: none; }
 
 /* Canvas de preview (reproduit fidèlement la projection 16/9, scalé).
    Même ratio que le slide ; le cadre du moniteur est lui-même en 16/9. */

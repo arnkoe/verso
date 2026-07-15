@@ -1133,12 +1133,21 @@ document.addEventListener('keydown', e => {
 }, true);
 
 // Cmd/Ctrl+P ouvre la fenêtre de projection et réaffiche le dernier contenu si
-// elle était masquée. Cmd/Ctrl+M la masque. Ces raccourcis fonctionnent aussi
-// depuis un champ de recherche (capture).
+// elle était masquée. Cmd/Ctrl+M la masque. Cmd/Ctrl+F place le focus dans le
+// champ de recherche de l'onglet courant (équivalent de « / »). Ces raccourcis
+// fonctionnent aussi depuis un champ de recherche (capture).
 document.addEventListener('keydown', e => {
   if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return;
   const key = e.key.toLowerCase();
-  if (key !== 'p' && key !== 'm') return;
+  if (key !== 'p' && key !== 'm' && key !== 'f') return;
+  if (key === 'f') {
+    const input = tabSearchInput(state.activeTab);
+    if (!input) return;
+    e.preventDefault();
+    input.focus();
+    input.select();
+    return;
+  }
   e.preventDefault();
   if (key === 'p') restoreAndOpenProjection();
   else hideProjection();
