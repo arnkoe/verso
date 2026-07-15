@@ -965,16 +965,16 @@ body {
   background: none;
   font-family: inherit;
   font-size: var(--fs-sm);
-  color: var(--mute);
+  color: var(--ink);
   cursor: pointer;
-  transition: color 0.12s;
 }
-.search-tools .tool-item:hover { color: var(--ink); }
-/* Rubrique dont le panneau est ouvert : même encre que le survol. */
-.search-tools .tool-item.active { color: var(--ink); }
 .search-tools .tool-label {
   white-space: nowrap;
 }
+/* Souligné au survol et tant que le panneau de la rubrique est ouvert : porté par
+   le libellé pour épargner le point de mise à jour. */
+.search-tools .tool-item:hover .tool-label,
+.search-tools .tool-item.active .tool-label { text-decoration: underline; }
 /* Point bleu signalant une mise à jour disponible (rubrique À propos). */
 .tool-badge {
   position: absolute;
