@@ -231,11 +231,11 @@ document.getElementById('songSearchInput').addEventListener('input', async e => 
   }
   if (!songCache) {
     const list = document.getElementById('songList');
-    list.innerHTML = `<div class="search-empty">${esc(t('list.loading'))}</div>`;
+    list.innerHTML = searchPrompt('list.loading');
     try {
       await loadSongCache();
     } catch (err) {
-      list.innerHTML = `<div class="search-empty">${esc(t('list.songsError', { err: String(err) }))}</div>`;
+      list.innerHTML = `<div class="search-empty search-prompt">${esc(t('list.songsError', { err: String(err) }))}</div>`;
       return;
     }
     // L'utilisateur a pu continuer à taper pendant le chargement.
@@ -271,7 +271,7 @@ function searchSongs(q) {
 function renderSongList(grouped) {
   const list = document.getElementById('songList');
   if (!Object.keys(grouped).length) {
-    list.innerHTML = `<div class="search-empty">${esc(t('list.noResult'))}</div>`;
+    list.innerHTML = searchPrompt('list.noResult');
     return;
   }
   list.innerHTML = Object.entries(grouped).map(([book, items]) =>
@@ -551,7 +551,7 @@ document.getElementById('bibleSearchInput').addEventListener('input', async e =>
   const list = document.getElementById('bibleList');
   if (!q) { list.innerHTML = searchPrompt('search.bibleEmpty'); return; }
   if (!state.bibleCode) {
-    list.innerHTML = `<div class="search-empty">${esc(t('list.noBibleAvailable'))}</div>`;
+    list.innerHTML = searchPrompt('list.noBibleAvailable');
     return;
   }
 
@@ -572,7 +572,7 @@ document.getElementById('bibleSearchInput').addEventListener('input', async e =>
   }
 
   const matches = findBooks(books, q, false).slice(0, 20);
-  if (!matches.length) { list.innerHTML = `<div class="search-empty">${esc(t('list.noBook'))}</div>`; return; }
+  if (!matches.length) { list.innerHTML = searchPrompt('list.noBook'); return; }
   list.innerHTML = renderBibleBookList(matches, b => ({
     ref: bibleRefAttr(b, 1),
     title: b,
@@ -622,7 +622,7 @@ async function fetchBibleChapter(ref) {
   } catch (err) {
     if (seq !== bibleReqSeq) return;
     reprojectBibleVerse = null;
-    document.getElementById('bibleList').innerHTML = `<div class="search-empty">${esc(String(err))}</div>`;
+    document.getElementById('bibleList').innerHTML = `<div class="search-empty search-prompt">${esc(String(err))}</div>`;
     return;
   }
   if (seq !== bibleReqSeq) return;
@@ -716,7 +716,7 @@ function filterMedia(files, q) {
 
 function renderPdfList(files) {
   const list = document.getElementById('pdfList');
-  if (!files.length) { list.innerHTML = `<div class="search-empty">${esc(t('pdf.empty'))}</div>`; return; }
+  if (!files.length) { list.innerHTML = searchPrompt('pdf.empty'); return; }
   list.innerHTML = files.map(f => `
     <div class="content-item" data-pdf-file="${esc(f.filename)}" data-action="selectPdf">
       <span class="item-title">${esc(f.filename)}</span>
@@ -815,7 +815,7 @@ async function loadImageList() {
 
 function renderImageList(files) {
   const list = document.getElementById('imageList');
-  if (!files.length) { list.innerHTML = `<div class="search-empty">${esc(t('images.empty'))}</div>`; return; }
+  if (!files.length) { list.innerHTML = searchPrompt('images.empty'); return; }
   list.innerHTML = files.map(f => `
     <div class="content-item" data-image-file="${esc(f.filename)}" data-action="selectImage">
       <span class="item-title">${esc(f.filename)}</span>
