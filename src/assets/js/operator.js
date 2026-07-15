@@ -95,6 +95,8 @@ function switchSideTab(tab) {
   TAB_ORDER.forEach(t => {
     document.getElementById('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
   });
+  // Déplace la pastille du contrôle segmenté sur l'onglet actif.
+  document.querySelector('.tabs').style.setProperty('--seg-index', TAB_ORDER.indexOf(tab));
   document.getElementById('searchCantiques').style.display = tab === 'cantiques' ? '' : 'none';
   document.getElementById('searchBible').style.display     = tab === 'bible'     ? 'flex' : 'none';
   document.getElementById('listPdf').style.display         = tab === 'pdf'       ? 'flex' : 'none';
@@ -412,6 +414,17 @@ function renderBibleTranslations() {
     .map(({ code, name }) =>
       `<button class="filter-btn${code === state.bibleCode ? ' active' : ''}" data-action="selectBibleCode" data-arg="${esc(code)}" title="${esc(name)}">${esc(code)}</button>`)
     .join('');
+  // Nombre de segments de la piste ; la pastille en fait un et se déplace par
+  // multiples de sa largeur (voir le contrôle segmenté dans operator.css).
+  wrap.style.setProperty('--seg-count', bibleTranslationsList.length || 1);
+  setBibleSegIndex(bibleTranslationsList.findIndex(x => x.code === state.bibleCode));
+}
+
+// Déplace la pastille sur la traduction active. Un index hors liste (aucune
+// traduction courante) la laisse au premier segment.
+function setBibleSegIndex(i) {
+  document.getElementById('bibleTranslations')
+    .style.setProperty('--seg-index', Math.max(0, i));
 }
 
 initBibleTranslations();
@@ -578,6 +591,7 @@ document.getElementById('bibleList').addEventListener('click', e => {
 async function selectBibleCode(btn, code) {
   document.querySelectorAll('#bibleTranslations .filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  setBibleSegIndex(bibleTranslationsList.findIndex(x => x.code === code));
   state.bibleCode = code;
   _saveDefaultBible(code);
   await loadBibleBooks(code);

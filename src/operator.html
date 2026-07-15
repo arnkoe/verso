@@ -100,10 +100,12 @@
         </div>
         <div class="actions-bar monitor-actions" role="toolbar" aria-label="Contrôles de projection" data-i18n-aria-label="monitor.controls">
           <button class="hdr-btn" id="btnProject" data-action="openProjection" title="Ouvrir la projection sur l'écran sélectionné" data-i18n-title="monitor.projectTitle">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.033 9.44a.647.647 0 0 1 0 1.12l-4.065 2.352a.645.645 0 0 1-.968-.56V7.648a.645.645 0 0 1 .967-.56z"/><path d="M12 17v4"/><path d="M8 21h8"/><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
             <span data-i18n="monitor.project">Projeter</span>
             <span class="monitor-shortcut" aria-hidden="true"><span class="monitor-shortcut-mod" data-key="mod">Ctrl</span><span>P</span></span>
           </button>
           <button class="hdr-btn" id="btnHideProjection" data-action="hideProjection" title="Vider la projection et afficher un écran blanc" data-i18n-title="monitor.hideTitle">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14.5 12.5-5-5"/><path d="m9.5 12.5 5-5"/><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
             <span data-i18n="monitor.hide">Masquer</span>
             <span class="monitor-shortcut" aria-hidden="true"><span class="monitor-shortcut-mod" data-key="mod">Ctrl</span><span>M</span></span>
           </button>
@@ -172,10 +174,10 @@
       <div class="panel" id="panelBible">
         <div class="content-header" id="bibleHeader" style="display:none;">
           <div class="content-kicker" id="bibleSubtitle"></div>
+          <!-- Boutons de traduction générés dynamiquement (voir operator.js). -->
+          <div class="filter-pills content-header-actions" id="bibleTranslations"></div>
           <div class="content-header-row">
             <div class="content-title" id="bibleTitle"></div>
-            <!-- Boutons de traduction générés dynamiquement (voir operator.js). -->
-            <div class="filter-pills content-header-actions" id="bibleTranslations"></div>
           </div>
         </div>
         <div class="strophe-list" id="bibleVerseList"></div>

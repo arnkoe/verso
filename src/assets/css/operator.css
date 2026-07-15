@@ -23,8 +23,17 @@
   --danger-weak: #fdeaea;    /* fond léger d'un contrôle destructif au survol */
   --radius-sm: 8px;
   --radius: 10px;
-  /* Ombres : panel = relief latéral de la sidebar, raised = menus flottants,
+  --segmented-pad: 1px;                      /* retrait de la piste d'un contrôle segmenté */
+  --segmented-track: rgba(11, 11, 11, 0.05); /* piste d'un contrôle segmenté */
+  /* Ombres : btn = relief léger des contrôles (boutons, pills, dropdowns),
+     panel = relief latéral de la sidebar, raised = menus flottants,
      overlay = modales. Ne pas en introduire d'autres. */
+  --shadow-btn: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-btn-hover: 0 1px 3px rgba(0, 0, 0, 0.09);
+  /* Pastille active d'un contrôle segmenté. Le liseré est une ombre interne et
+     non une bordure : il ne prend pas de place, donc les segments ne bougent
+     pas d'un pixel quand la pastille change de position. */
+  --shadow-segmented: inset 0 0 0 1px rgba(11, 11, 11, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-panel: 2px 0 10px rgba(0, 0, 0, 0.04);
   --shadow-raised: 0 8px 28px rgba(0, 0, 0, 0.14);
   --shadow-overlay: 0 10px 40px rgba(0, 0, 0, 0.2);
@@ -79,8 +88,9 @@ body {
   min-height: 0;
 }
 /* La barre de titre macOS est superposée au contenu (titleBarStyle: Overlay).
-   Cette hauteur compacte place les onglets juste sous les feux tricolores,
-   tandis que le fond blanc de la sidebar remonte derrière eux. */
+   Cette hauteur réserve la bande des feux tricolores, sous laquelle onglets et
+   en-tête de contenu se décalent, tandis que le fond blanc de la sidebar
+   remonte derrière eux. */
 :root { --titlebar-h: 0px; }
 .platform-macos { --titlebar-h: 22px; }
 .body::before {
@@ -149,36 +159,71 @@ body {
 .card-search > .tabs { grid-row: 1; }
 #searchCantiques, #searchBible, #listPdf, #listImages { grid-row: 2; }
 
-.tabs {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 2px;
-  margin: var(--titlebar-h) 0 0;
-  padding: var(--sidebar-gutter) var(--sidebar-gutter) 0;
+/* ── CONTRÔLE SEGMENTÉ ───────────────────────────────────────────────────────
+   Piste grise continue et pastille blanche unique qui glisse jusqu'au segment
+   actif. Deux usages : les onglets de la sidebar et le sélecteur de traduction.
+   Les segments sont jointifs et de largeur égale, et la pastille en fait
+   exactement une : la déplacer d'un segment revient donc à la translater de sa
+   propre largeur, d'où les multiples de 100 %. Le JS ne pose que --seg-index
+   (voir switchSideTab et renderBibleTranslations), jamais de pixels.
+   Le retrait de la piste (--segmented-pad) est ce qui creuse la pastille, et
+   son rayon vaut celui de la piste moins ce retrait pour que les arrondis
+   restent concentriques. */
+.tabs, .filter-pills {
+  --seg-count: 1;
+  --seg-index: 0;
+  position: relative;
+  height: var(--control-h);
+  padding: var(--segmented-pad);
+  background: var(--segmented-track);
+  border-radius: var(--radius-sm);
 }
-.tab {
+.tabs::before, .filter-pills::before {
+  content: "";
+  position: absolute;
+  top: var(--segmented-pad);
+  bottom: var(--segmented-pad);
+  left: var(--segmented-pad);
+  width: calc((100% - 2 * var(--segmented-pad)) / var(--seg-count));
+  transform: translateX(calc(var(--seg-index) * 100%));
+  border-radius: calc(var(--radius-sm) - var(--segmented-pad));
+  background: var(--panel);
+  box-shadow: var(--shadow-segmented);
+  transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.tab, .filter-btn {
   appearance: none;
+  /* Au-dessus de la pastille, qui passerait sinon par-dessus le libellé. */
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: var(--control-h);
   background: transparent;
   border: 0;
-  border-radius: var(--radius-sm);
   font-family: inherit;
   font-size: var(--fs-md);
+  font-weight: 400;
   line-height: var(--ui-line-h);
-  color: var(--mute);
-  padding: 0;
+  color: var(--mute-2);
   cursor: pointer;
-  transition: color 0.15s, background 0.15s;
+  box-shadow: none;
+  transition: color 0.15s;
 }
-.tab.active {
-  color: var(--ink);
-  background: var(--surface-1);
-  font-weight: 600;
+.tab.active, .filter-btn.active { color: var(--ink); }
+.tab:hover:not(.active), .filter-btn:hover:not(.active) { color: var(--ink); }
+
+/* Onglets : quatre segments fixes qui se partagent la largeur de la sidebar.
+   Le retrait haut dégage les feux tricolores macOS superposés, puis reprend le
+   même gutter que l'en-tête de contenu : les deux contrôles ayant la même
+   hauteur, le libellé des onglets tombe alors sur la ligne du kicker. */
+.tabs {
+  --seg-count: 4;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: calc(var(--titlebar-h) + var(--sidebar-gutter)) var(--sidebar-gutter) 0;
 }
-.tab:hover:not(.active) { color: var(--ink); }
+.tab { padding: 0; }
 
 /* ── ZONE RECHERCHE DANS SIDEBAR ───────────────────────────────────────────── */
 .search-box {
@@ -230,32 +275,16 @@ body {
 }
 .search-box input[type=text]::placeholder { color: var(--mute-2); }
 
-/* Boutons de filtre (notamment les traductions dans l'en-tête Bible). */
-.filter-pills { display: flex; gap: 4px; flex-wrap: wrap; padding-top: 4px; }
-.filter-btn {
-  appearance: none;
-  height: var(--control-h);
-  border: 0;
-  background: transparent;
-  font-family: inherit;
-  font-size: var(--fs-md);
-  font-weight: 400;
-  padding: 0 var(--row-inset);
-  border-radius: var(--radius-sm);
-  color: var(--ink);
-  cursor: pointer;
-  box-shadow: none;
-  transition: background 0.15s, color 0.15s;
+/* Sélecteur de traduction (en-tête Bible) : même contrôle segmenté que les
+   onglets, mais avec un nombre de segments variable. La piste est de largeur
+   automatique et ses colonnes en 1fr : elles se calent donc toutes sur le code
+   le plus long, ce qui donne des segments égaux sans largeur codée en dur. */
+.filter-pills {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
 }
-.filter-btn:hover:not(.active) {
-  background: var(--row-hover);
-  color: var(--ink);
-}
-.filter-btn.active {
-  background: var(--surface-1);
-  color: var(--ink);
-  font-weight: 600;
-}
+.filter-btn { padding: 0 var(--row-inset); }
 
 /* ── LISTE SIDEBAR ─────────────────────────────────────────────────────────── */
 .content-list {
@@ -407,18 +436,11 @@ body {
   flex: 1 1 0;
   min-width: 0;
   height: var(--control-h);
-  justify-content: space-between;
   padding: 0 var(--row-inset);
   overflow: hidden;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: var(--surface-1);
-  box-shadow: none;
-  color: var(--ink);
-  font-size: var(--fs-md);
-  font-weight: 600;
 }
-.monitor-actions .hdr-btn:hover { background: var(--hover); box-shadow: none; }
+/* Le raccourci est poussé à droite (margin-left: auto) ; le picto et le
+   libellé restent groupés à gauche. */
 .monitor-shortcut {
   flex: none;
   display: inline-flex;
@@ -514,16 +536,28 @@ body {
   line-height: 1.5;
 }
 
+/* Deux colonnes : le kicker et le sélecteur de traduction partagent la 1re
+   ligne, le titre occupe la 2e sur toute la largeur. Le retrait haut est celui
+   des onglets de la sidebar ; le kicker ayant la hauteur d'un contrôle, son
+   texte se centre exactement sur le leur. */
 .content-header {
-  /* La sidebar décale ses onglets sous la titlebar macOS superposée. Le
-     kicker reprend aussi le centrage vertical du libellé dans un contrôle. */
-  padding: calc(var(--titlebar-h) + var(--sidebar-gutter) + (var(--control-h) - var(--ui-line-h)) / 2) var(--content-gutter) 20px;
+  padding: calc(var(--titlebar-h) + var(--sidebar-gutter)) var(--content-gutter) 20px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0;
   flex-shrink: 0;
   min-width: 0;
 }
+.content-header > .filter-pills {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+}
 .content-header-row {
+  grid-column: 1 / -1;
+  /* Annule le demi-interligne que la hauteur de contrôle ajoute sous le
+     kicker : l'écart kicker -> titre reste celui d'un kicker posé seul. */
+  margin-top: calc((var(--ui-line-h) - var(--control-h)) / 2);
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -536,9 +570,18 @@ body {
 }
 .content-kicker {
   font-size: var(--fs-md);
-  line-height: var(--ui-line-h);
+  /* Hauteur d'un contrôle, comme les onglets et le sélecteur de traduction :
+     l'interligne centre le texte sur le leur, y compris sur les panneaux sans
+     sélecteur. Le kicker se tronque plutôt que de passer sur deux lignes, ce
+     qui décalerait le titre. */
+  height: var(--control-h);
+  line-height: var(--control-h);
   letter-spacing: 0;
   color: var(--mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 .content-title {
   font-size: var(--fs-2xl);
@@ -566,18 +609,20 @@ body {
   align-items: center;
   flex-shrink: 0;
 }
-/* Boutons de traduction dans l'en-tête du chapitre : pas de padding-top ni de
-   retour à la ligne hérités de .filter-pills (contexte search-box). */
+/* Le sélecteur de traduction est un contrôle segmenté : il réaffirme sa piste
+   en grille, aux segments jointifs et pleine hauteur, là où
+   .content-header-actions espace en ligne des boutons indépendants. */
 .content-header-actions.filter-pills {
-  padding-top: 0;
-  flex-wrap: nowrap;
+  display: grid;
+  gap: 0;
+  align-items: stretch;
 }
 
 /* Boutons rectangulaires avec texte dans l'en-tête du panneau */
 .hdr-btn {
   appearance: none;
-  background: var(--surface-1);
-  border: 0;
+  background: var(--panel);
+  border: 1px solid var(--line);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -586,12 +631,12 @@ body {
   color: var(--ink);
   font-family: inherit;
   font-size: var(--fs-md);
-  font-weight: 600;
+  font-weight: 400;
   border-radius: var(--radius-sm);
   cursor: pointer;
   white-space: nowrap;
-  box-shadow: none;
-  transition: background 0.15s, color 0.15s;
+  box-shadow: var(--shadow-btn);
+  transition: border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s;
   text-decoration: none;
 }
 .hdr-btn svg {
@@ -600,11 +645,19 @@ body {
   stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
   flex-shrink: 0;
 }
-.hdr-btn:hover { background: var(--hover); color: var(--ink); }
-.hdr-btn.save { color: var(--live); background: var(--live-weak); }
-.hdr-btn.save:hover { background: var(--live-hover); }
+.hdr-btn:hover {
+  border-color: var(--line-strong);
+  background: var(--row-hover);
+  box-shadow: var(--shadow-btn-hover);
+}
+.hdr-btn.save { border-color: var(--live); color: var(--live); }
+.hdr-btn.save:hover { border-color: var(--live); background: var(--live-weak); color: var(--live); }
 .hdr-btn:disabled { opacity: 0.5; cursor: default; }
-.hdr-btn:disabled:hover { color: var(--ink); background: var(--surface-1); }
+.hdr-btn:disabled:hover {
+  border-color: var(--line);
+  background: var(--panel);
+  box-shadow: var(--shadow-btn);
+}
 
 /* Panels */
 .panel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
@@ -824,8 +877,17 @@ body {
      la grille, égal à la valeur implicite du mode large (control-h - fs-2xl),
      pour garder l'espace kicker → titre constant quelle que soit la largeur. */
   .content-header {
-    padding: calc(var(--titlebar-h) + var(--sidebar-gutter) + (var(--control-h) - var(--ui-line-h)) / 2) var(--content-gutter) 16px;
+    padding: calc(var(--titlebar-h) + var(--sidebar-gutter)) var(--content-gutter) 16px;
     gap: calc(var(--control-h) - var(--fs-2xl));
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Trop étroit pour tenir à côté du kicker : le sélecteur de traduction passe
+     sous le titre. Il garde la largeur de ses segments plutôt que de s'étirer,
+     et se cale à gauche sur l'axe du kicker et du titre. */
+  .content-header > .filter-pills {
+    grid-column: 1;
+    grid-row: 3;
+    justify-self: start;
   }
 
   .strophe-list {
@@ -1280,21 +1342,28 @@ body {
   min-width: 130px;
   height: var(--control-h);
   padding: 0 8px 0 var(--row-inset);
-  border: 0;
+  border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  background: var(--surface-1);
+  background: var(--panel);
   color: var(--ink);
   font-family: inherit;
   font-size: var(--fs-md);
-  font-weight: 600;
+  font-weight: 400;
   cursor: pointer;
-  box-shadow: none;
-  transition: background 0.15s, color 0.15s;
+  box-shadow: var(--shadow-btn);
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
-.dropdown-trigger:hover { background: var(--hover); color: var(--ink); }
-.dropdown-trigger[aria-expanded="true"] { background: var(--hover); }
+.dropdown-trigger:hover {
+  border-color: var(--line-strong);
+  background: var(--row-hover);
+  box-shadow: var(--shadow-btn-hover);
+}
+.dropdown-trigger[aria-expanded="true"] {
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-btn-hover);
+}
 .dropdown-value { flex: 1; text-align: left; }
-.dropdown-caret { width: 14px; height: 14px; flex: none; color: var(--ink); }
+.dropdown-caret { width: 14px; height: 14px; flex: none; color: var(--mute); }
 
 .dropdown-menu[hidden] { display: none; }
 .dropdown-menu {
@@ -1361,6 +1430,11 @@ body {
   .content-modal:not([hidden]) .content-modal-dialog,
   .dropdown-menu:not([hidden]) {
     animation: none;
+  }
+  /* La pastille des contrôles segmentés saute au segment actif sans glisser. */
+  .tabs::before,
+  .filter-pills::before {
+    transition: none;
   }
 }
 
