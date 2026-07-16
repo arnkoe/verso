@@ -67,7 +67,7 @@ const I18N = {
     'help.clear': 'Vider la projection',
     'help.closeProjection': 'Fermer la fenêtre de projection (depuis cette fenêtre)',
     // À propos
-    'about.desc': 'Projection de contenus pour les églises.',
+    'about.desc': 'Projection de contenus pour les églises',
     'about.version': 'Version',
     'about.author': 'Auteur : Arnaud Koechlin',
     'about.contact': 'Contact :',
@@ -212,7 +212,7 @@ const I18N = {
     'help.openProjection': 'Open projection or restore the last content',
     'help.clear': 'Clear projection',
     'help.closeProjection': 'Close the projection window (from this window)',
-    'about.desc': 'Content projection for churches.',
+    'about.desc': 'Content projection for churches',
     'about.version': 'Version',
     'about.author': 'Author: Arnaud Koechlin',
     'about.contact': 'Contact:',

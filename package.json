@@ -1,12 +1,13 @@
 {
   "name": "verso",
-  "version": "0.6.6",
+  "version": "0.6.7",
   "description": "Verso — projection de chants et textes (version Tauri, stockage fichiers)",
   "private": true,
   "type": "module",
   "scripts": {
     "tauri": "tauri",
     "dev": "tauri dev",
+    "dev:update": "tauri dev --features simulate-update",
     "build": "tauri build"
   },
   "devDependencies": {

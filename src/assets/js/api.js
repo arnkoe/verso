@@ -157,6 +157,18 @@ async function apiSyncPush() {
  * propagées afin que l'interface ne les confonde pas avec une version à jour.
  */
 async function apiCheckUpdate() {
+  const simulatedVersion = await invoke('simulated_update_version');
+  if (simulatedVersion) {
+    return {
+      available: true,
+      version: simulatedVersion,
+      simulated: true,
+      async downloadAndInstall() {
+        throw new Error('A simulated update cannot be installed');
+      },
+    };
+  }
+
   const update = await window.__TAURI__.updater.check();
   return update && update.available ? update : null;
 }

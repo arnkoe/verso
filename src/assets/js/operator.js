@@ -1710,7 +1710,11 @@ function _scheduleAuxiliaryWarmup(modes, index = 0) {
   else setTimeout(warm, 250);
 }
 
+// La vérification ne dépend pas de l'événement `load` : celui-ci attend toutes
+// les ressources de la page et peut retarder indéfiniment l'indicateur. Le DOM
+// utile est déjà prêt puisque ce script est chargé à la fin de <body>.
+checkUpdateOnStartup();
+
 window.addEventListener('load', () => {
-  checkUpdateOnStartup();
   setTimeout(() => _scheduleAuxiliaryWarmup(['settings', 'shortcuts', 'about']), 500);
 }, { once: true });

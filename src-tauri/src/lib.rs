@@ -592,6 +592,27 @@ fn app_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
 
+/// Renvoie une fausse version suivante uniquement pour le profil de
+/// développement lancé avec la feature `simulate-update`.
+#[tauri::command]
+fn simulated_update_version() -> Option<String> {
+    if !cfg!(all(debug_assertions, feature = "simulate-update")) {
+        return None;
+    }
+
+    let mut parts = env!("CARGO_PKG_VERSION").split('.');
+    let major = parts.next().unwrap_or("0");
+    let minor = parts.next().unwrap_or("0");
+    let patch = parts
+        .next()
+        .and_then(|value| value.parse::<u64>().ok())
+        .unwrap_or(0)
+        + 1;
+    let version = format!("{major}.{minor}.{patch}");
+    eprintln!("Update simulation enabled: version {version} is available");
+    Some(version)
+}
+
 // ─── MENU & FENÊTRES SECONDAIRES ───────────────────────────────────────────
 
 const APP_SUBMENU_ID: &str = "verso-app-menu";
@@ -829,9 +850,9 @@ fn auxiliary_spec(kind: AuxiliaryKind, french: bool) -> AuxiliarySpec {
                 "About Verso"
             },
             width: 440.0,
-            height: 380.0,
+            height: 420.0,
             min_width: 440.0,
-            min_height: 380.0,
+            min_height: 420.0,
             resizable: false,
         },
     }
@@ -1178,6 +1199,7 @@ pub fn run() {
             list_monitors,
             open_projection,
             app_version,
+            simulated_update_version,
             set_menu_language,
             warm_auxiliary_window,
             show_auxiliary_window,

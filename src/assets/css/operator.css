@@ -1208,7 +1208,7 @@ html[data-window-mode="about"] .main.card {
   grid-row: 1 / -1;
   justify-content: center;
   align-items: center;
-  overflow-y: auto;
+  overflow: hidden;
 }
 .info-pane-about {
   text-align: center;
@@ -1337,9 +1337,9 @@ html[data-window-mode="shortcuts"] .utility-section + .utility-section {
    Page déroulante dans la zone principale (comme Aide). Ses en-têtes
    de section sont mutualisés avec ceux de l'Aide, plus haut. */
 
-/* Le statut de mise à jour suit le texte courant de la page ; la même classe
-   dans la modale de gestion des contenus garde la taille des modales. */
-.info-pane-settings .settings-update-status { font-size: var(--fs-lg); }
+/* Le statut reste une indication secondaire sous le bouton ; la même classe
+   dans la modale de gestion des contenus garde sa propre taille. */
+.info-pane-settings .settings-update-status { font-size: var(--fs-sm); }
 
 .settings-close {
   width: var(--control-h);
