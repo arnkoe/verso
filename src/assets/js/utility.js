@@ -396,7 +396,17 @@ async function checkUpdate(silent = false) {
     if (btn) btn.disabled = true;
     _setUpdateStatus(t('update.checking'));
   }
-  const update = await apiCheckUpdate();
+  let update;
+  try {
+    update = await apiCheckUpdate();
+  } catch (err) {
+    console.warn('Update check failed:', err);
+    if (!silent) {
+      _setUpdateStatus(t('update.checkFailed'), 'error');
+      if (btn) btn.disabled = false;
+    }
+    return;
+  }
   if (!update) {
     if (!silent) {
       _setUpdateStatus(t('update.upToDate'), 'ok');

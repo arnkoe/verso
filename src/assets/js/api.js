@@ -148,16 +148,12 @@ async function apiSyncPush() {
 
 /**
  * Vérifie en silence si une mise à jour est disponible.
- * Renvoie l'objet `update` (avec .version) si oui, sinon null. N'échoue jamais
- * bruyamment : une erreur réseau renvoie null (pas de mise à jour annoncée).
+ * Renvoie l'objet `update` (avec .version) si oui, sinon null. Les erreurs sont
+ * propagées afin que l'interface ne les confonde pas avec une version à jour.
  */
 async function apiCheckUpdate() {
-  try {
-    const update = await window.__TAURI__.updater.check();
-    return update && update.available ? update : null;
-  } catch (_) {
-    return null;
-  }
+  const update = await window.__TAURI__.updater.check();
+  return update && update.available ? update : null;
 }
 
 /** Télécharge, installe la mise à jour fournie, puis relance l'application. */
