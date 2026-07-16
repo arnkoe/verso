@@ -1,7 +1,7 @@
 //! Stockage fichiers : tout l'état applicatif vit dans le dossier de données de
-//! l'app (app data dir). Pas de base SQLite. Au premier lancement, des recueils et
-//! bibles libres de droits empaquetés dans le build sont déposés dans le dossier
-//! de données (voir `seed_defaults`) ; ensuite l'utilisateur les édite/complète
+//! l'app (app data dir). Pas de base SQLite. Au premier lancement, des recueils,
+//! bibles et images empaquetés dans le build sont déposés dans le dossier de
+//! données (voir `seed_defaults`) ; ensuite l'utilisateur les édite/complète
 //! librement.
 //!
 //! Arborescence (sous app_data_dir) :
@@ -246,21 +246,55 @@ const BIBLE_SEED_FILES: &[(&str, &str)] = &[
     ("resources/bibles/bible-lsg.json", "bibles/bible-lsg.json"),
 ];
 
+const IMAGE_SEED_FILES: &[(&str, &str)] = &[
+    ("resources/images/cene.png", "images/cene.png"),
+    ("resources/images/ciel.png", "images/ciel.png"),
+];
+
 #[derive(Debug, PartialEq, Eq)]
 struct SeedPlan {
     songbooks: bool,
     bibles: bool,
+    images: bool,
 }
 
 /// Les recueils ne sont amorcés que pour une installation réellement vide. Les
 /// bibles forment une catégorie indépendante : s'il n'y en a aucune, elles
 /// doivent être restaurées même si des recueils ou l'ancien marqueur `.seeded`
 /// sont déjà présents (cas fréquent après une réinstallation sous Windows).
-fn seed_plan(marker_exists: bool, has_songbooks: bool, has_bibles: bool) -> SeedPlan {
+/// Les images ne sont amorcées qu'au premier lancement, si leur dossier est vide.
+fn seed_plan(
+    marker_exists: bool,
+    has_songbooks: bool,
+    has_bibles: bool,
+    has_images: bool,
+) -> SeedPlan {
     SeedPlan {
         songbooks: !marker_exists && !has_songbooks && !has_bibles,
         bibles: !has_bibles,
+        images: !marker_exists && !has_images,
     }
+}
+
+fn has_media_file(dir: &Path, extensions: &[&str]) -> bool {
+    fs::read_dir(dir)
+        .map(|entries| {
+            entries.flatten().any(|entry| {
+                let path = entry.path();
+                path.is_file()
+                    && path
+                        .file_name()
+                        .and_then(|name| name.to_str())
+                        .map(|name| {
+                            !is_hidden(name)
+                                && extensions
+                                    .iter()
+                                    .any(|ext| name.to_lowercase().ends_with(ext))
+                        })
+                        .unwrap_or(false)
+            })
+        })
+        .unwrap_or(false)
 }
 
 fn copy_seed_files(resource_dir: &Path, dest_dir: &Path, files: &[(&str, &str)], overwrite: bool) {
@@ -295,10 +329,12 @@ pub fn seed_defaults(app: &AppHandle) {
     let marker = data_dir(app).join(".seeded");
     let songbooks = songbooks_dir(app);
     let bibles = bibles_dir(app);
+    let images = media_dir(app, "images");
     let plan = seed_plan(
         marker.exists(),
         !songbook_files(&songbooks).is_empty(),
         !bible_files(&bibles).is_empty(),
+        has_media_file(&images, &[".jpg", ".jpeg", ".png", ".webp"]),
     );
 
     if plan.bibles {
@@ -309,6 +345,15 @@ pub fn seed_defaults(app: &AppHandle) {
         match app.path().resource_dir() {
             Ok(resource_dir) => {
                 copy_seed_files(&resource_dir, &data_dir(app), SONGBOOK_SEED_FILES, false)
+            }
+            Err(_) => eprintln!("Dossier des ressources Verso indisponible"),
+        }
+    }
+
+    if plan.images {
+        match app.path().resource_dir() {
+            Ok(resource_dir) => {
+                copy_seed_files(&resource_dir, &data_dir(app), IMAGE_SEED_FILES, false)
             }
             Err(_) => eprintln!("Dossier des ressources Verso indisponible"),
         }
@@ -869,12 +914,13 @@ mod tests {
     }
 
     #[test]
-    fn fresh_install_seeds_songbooks_and_bibles() {
+    fn fresh_install_seeds_songbooks_bibles_and_images() {
         assert_eq!(
-            seed_plan(false, false, false),
+            seed_plan(false, false, false, false),
             SeedPlan {
                 songbooks: true,
                 bibles: true,
+                images: true,
             }
         );
     }
@@ -882,10 +928,11 @@ mod tests {
     #[test]
     fn existing_songbooks_do_not_prevent_bible_seed() {
         assert_eq!(
-            seed_plan(false, true, false),
+            seed_plan(false, true, false, false),
             SeedPlan {
                 songbooks: false,
                 bibles: true,
+                images: true,
             }
         );
     }
@@ -893,10 +940,11 @@ mod tests {
     #[test]
     fn marker_does_not_prevent_bible_seed() {
         assert_eq!(
-            seed_plan(true, false, false),
+            seed_plan(true, false, false, false),
             SeedPlan {
                 songbooks: false,
                 bibles: true,
+                images: false,
             }
         );
     }
@@ -904,10 +952,23 @@ mod tests {
     #[test]
     fn existing_bible_is_never_completed_with_defaults() {
         assert_eq!(
-            seed_plan(true, true, true),
+            seed_plan(true, true, true, false),
             SeedPlan {
                 songbooks: false,
                 bibles: false,
+                images: false,
+            }
+        );
+    }
+
+    #[test]
+    fn existing_image_is_never_completed_with_defaults() {
+        assert_eq!(
+            seed_plan(false, false, false, true),
+            SeedPlan {
+                songbooks: true,
+                bibles: true,
+                images: false,
             }
         );
     }

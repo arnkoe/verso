@@ -78,7 +78,7 @@ Verso range tout dans un dossier nommé **`Verso`**, à l'intérieur du dossier 
 
 Pour ajouter vos propres PDF ou images, déposez simplement vos fichiers dans le dossier `pdf` ou `images`.
 
-La première fois que vous lancez Verso, si le dossier est vide, Verso y dépose automatiquement quelques contenus gratuits pour commencer : les recueils **Reflets 4** et **Hymnes et Cantiques (révisés)**, et les Bibles **Darby**, **Darby révisée** (Bibles et Publications Chrétiennes, CC BY-NC-ND 4.0) et **Louis Segond 1910**. Vous pouvez les garder, les modifier ou les remplacer comme vous voulez. S'il ne reste aucune Bible lisible, Verso restaure ces traductions embarquées au démarrage suivant ; dès qu'au moins une Bible est disponible, vos fichiers ne sont pas modifiés. Les fichiers JSON déjà présents sont reconnus grâce à leur code interne, même si leur nom ne suit pas la forme canonique `bible-<code>.json`.
+La première fois que vous lancez Verso, si le dossier est vide, Verso y dépose automatiquement quelques contenus gratuits pour commencer : les recueils **Reflets 4** et **Hymnes et Cantiques (révisés)**, les Bibles **Darby**, **Darby révisée** (Bibles et Publications Chrétiennes, CC BY-NC-ND 4.0) et **Louis Segond 1910**, ainsi que deux images de projection si aucune image compatible n'est présente. Vous pouvez les garder, les modifier ou les remplacer comme vous voulez. Les images ne sont ajoutées qu'à la première installation et ne remplacent jamais une image existante. S'il ne reste aucune Bible lisible, Verso restaure ces traductions embarquées au démarrage suivant ; dès qu'au moins une Bible est disponible, vos fichiers ne sont pas modifiés. Les fichiers JSON déjà présents sont reconnus grâce à leur code interne, même si leur nom ne suit pas la forme canonique `bible-<code>.json`.
 
 Verso se souvient aussi de ce qui était projeté la dernière fois et le reprend à la réouverture.
 
@@ -253,6 +253,6 @@ src-tauri/                 backend Rust
   src/lib.rs               commandes Tauri + fenêtres
   src/storage.rs           stockage fichiers + amorçage initial
   src/bible_search.rs      résolution de référence biblique
-  resources/               recueils + Bibles libres de droits empaquetés (seed)
+  resources/               recueils + Bibles + images empaquetés (seed)
   tauri.conf.json          config (fenêtres, CSP, bundle)
 ```
