@@ -78,7 +78,7 @@ Inside, you will find:
 
 To add your own PDFs or images, simply drop your files into the `pdf` or `images` folder.
 
-The first time you launch Verso, if the folder is empty, Verso automatically adds some free content to get you started: the **Reflets 4** and **Hymnes et Cantiques (révisés)** collections, and the **Darby**, **Darby révisée** (Bibles et Publications Chrétiennes, CC BY-NC-ND 4.0) and **Louis Segond 1910** Bibles. You can keep, edit or replace them as you wish. If no readable Bible remains, Verso restores these bundled translations the next time it starts; as soon as at least one Bible is available, your files are left untouched.
+The first time you launch Verso, if the folder is empty, Verso automatically adds some free content to get you started: the **Reflets 4** and **Hymnes et Cantiques (révisés)** collections, and the **Darby**, **Darby révisée** (Bibles et Publications Chrétiennes, CC BY-NC-ND 4.0) and **Louis Segond 1910** Bibles. You can keep, edit or replace them as you wish. If no readable Bible remains, Verso restores these bundled translations the next time it starts; as soon as at least one Bible is available, your files are left untouched. Bible JSON files already present are recognized from their internal code, including when their filename does not use the canonical `bible-<code>.json` form.
 
 Verso also remembers what was being projected last time and brings it back when you reopen it.
 

@@ -510,8 +510,12 @@ pub fn load_bible(app: &AppHandle, state: &AppState, bible_code: &str) -> Result
             return Ok(b.clone());
         }
     }
-    // Nom de fichier canonique `bible-<slug>.json`, cohérent avec les recueils.
-    let path = bibles_dir(app).join(format!("bible-{}.json", bible_slug(bible_code)));
+    // Privilégie le nom canonique, mais accepte aussi les fichiers plus anciens
+    // ou déposés directement par l'utilisateur sous un autre nom. Le code
+    // interne de la Bible reste la source de vérité.
+    let dir = bibles_dir(app);
+    let path = find_bible_path(&dir, bible_code)
+        .ok_or_else(|| format!("Bible « {bible_code} » introuvable"))?;
     let bytes = fs::read(&path).map_err(|_| format!("Bible « {bible_code} » introuvable"))?;
     let bible: Bible =
         serde_json::from_slice(&bytes).map_err(|e| format!("Parse {bible_code} : {e}"))?;
@@ -618,9 +622,37 @@ fn bible_code(path: &Path) -> Option<String> {
     Some(bible.bible_code).filter(|s| !s.is_empty())
 }
 
-/// Liste les fichiers `bible-*.json` d'un dossier, triés par nom.
+/// Liste tous les fichiers JSON bibliques d'un dossier, triés par nom. Le nom
+/// n'est pas une contrainte : les fichiers historiques `DRB.json`/`LSG.json` et
+/// ceux déposés directement par l'utilisateur doivent être utilisables au même
+/// titre que les noms canoniques `bible-*.json`.
 fn bible_files(dir: &Path) -> Vec<PathBuf> {
-    prefixed_json_files(dir, "bible-")
+    let mut files: Vec<PathBuf> = fs::read_dir(dir)
+        .map(|it| {
+            it.flatten()
+                .map(|entry| entry.path())
+                .filter(|path| {
+                    path.file_name()
+                        .and_then(|name| name.to_str())
+                        .map(|name| !is_hidden(name) && name.to_lowercase().ends_with(".json"))
+                        .unwrap_or(false)
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    files.sort();
+    files
+}
+
+fn find_bible_path(dir: &Path, code: &str) -> Option<PathBuf> {
+    let canonical = dir.join(format!("bible-{}.json", bible_slug(code)));
+    if bible_code(&canonical).as_deref() == Some(code) {
+        return Some(canonical);
+    }
+
+    bible_files(dir)
+        .into_iter()
+        .find(|path| bible_code(path).as_deref() == Some(code))
 }
 
 /// Code interne d'un recueil (`songbook_code` du wrapper, ou du premier chant).
@@ -692,10 +724,16 @@ pub fn list_bibles_named(app: &AppHandle) -> Vec<ContentName> {
 }
 
 fn bible_files_named(dir: &Path) -> Vec<ContentName> {
-    bible_files(dir)
-        .into_iter()
-        .filter_map(|path| bible_content_name(&path))
-        .collect()
+    let mut out = Vec::new();
+    for path in bible_files(dir) {
+        let Some(bible) = bible_content_name(&path) else {
+            continue;
+        };
+        if !out.iter().any(|entry: &ContentName| entry.code == bible.code) {
+            out.push(bible);
+        }
+    }
+    out
 }
 
 /// Importe un fichier (chemin source absolu) dans le sous-dossier du type donné.
@@ -814,7 +852,21 @@ pub fn sanitize_filename(name: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{seed_plan, SeedPlan};
+    use std::fs;
+    use std::path::PathBuf;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    use super::{bible_files_named, find_bible_path, seed_plan, SeedPlan};
+
+    fn test_dir(name: &str) -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let dir = std::env::temp_dir().join(format!("verso-{name}-{nonce}"));
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
 
     #[test]
     fn fresh_install_seeds_songbooks_and_bibles() {
@@ -858,5 +910,37 @@ mod tests {
                 bibles: false,
             }
         );
+    }
+
+    #[test]
+    fn bible_with_legacy_filename_is_listed_and_loadable() {
+        let dir = test_dir("legacy-bible");
+        let path = dir.join("DRB.json");
+        fs::write(
+            &path,
+            br#"{"bible_code":"DRB","bible_name":"Darby","books":[]}"#,
+        )
+        .unwrap();
+
+        let listed = bible_files_named(&dir);
+        assert_eq!(listed.len(), 1);
+        assert_eq!(listed[0].code, "DRB");
+        assert_eq!(find_bible_path(&dir, "DRB"), Some(path));
+
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn duplicate_bible_codes_are_listed_once() {
+        let dir = test_dir("duplicate-bible");
+        let bible = br#"{"bible_code":"LSG","bible_name":"Louis Segond 1910","books":[]}"#;
+        fs::write(dir.join("LSG.json"), bible).unwrap();
+        fs::write(dir.join("bible-lsg.json"), bible).unwrap();
+
+        let listed = bible_files_named(&dir);
+        assert_eq!(listed.len(), 1);
+        assert_eq!(listed[0].code, "LSG");
+
+        fs::remove_dir_all(dir).unwrap();
     }
 }
