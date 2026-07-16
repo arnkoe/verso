@@ -867,9 +867,21 @@ fn ensure_auxiliary_window(
 fn warm_auxiliary_window(app: AppHandle, mode: String) -> Result<(), String> {
     let kind = AuxiliaryKind::from_mode(&mode)
         .ok_or_else(|| format!("Fenêtre utilitaire inconnue : {mode}"))?;
-    ensure_auxiliary_window(&app, kind, false)
-        .map(|_| ())
-        .map_err(|e| e.to_string())
+
+    // Sous Windows, une WebView2 construite invisible puis réaffichée peut
+    // rester blanche. On la crée donc seulement au moment où l'utilisateur
+    // l'ouvre. Les autres plateformes conservent le préchauffage.
+    #[cfg(target_os = "windows")]
+    {
+        let _ = (app, kind);
+        Ok(())
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        ensure_auxiliary_window(&app, kind, false)
+            .map(|_| ())
+            .map_err(|e| e.to_string())
+    }
 }
 
 /// Affiche une instance déjà préchauffée, ou la construit au premier usage si
@@ -1158,9 +1170,10 @@ pub fn run() {
             set_menu_language,
             warm_auxiliary_window,
         ])
-        // Les fenêtres utilitaires restent chargées quand l'utilisateur les
-        // ferme : une réouverture n'est alors qu'un show(). La fermeture de
-        // l'opérateur les détruit explicitement afin que l'application quitte.
+        // Hors Windows, les fenêtres utilitaires restent chargées quand
+        // l'utilisateur les ferme : une réouverture n'est alors qu'un show().
+        // Sous Windows elles sont détruites normalement. La fermeture de
+        // l'opérateur détruit dans tous les cas les fenêtres encore présentes.
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 if window.label() == "operator" {
@@ -1170,9 +1183,21 @@ pub fn run() {
                         }
                     }
                 } else if matches!(window.label(), "settings" | "shortcuts" | "about") {
-                    api.prevent_close();
-                    let _ = window.emit("utility-closing", window.label());
-                    let _ = window.hide();
+                    // WebView2 supporte mal le couple prevent_close + hide
+                    // depuis le callback de fermeture : la fenêtre peut rester
+                    // blanche puis faire tomber l'application. Sous Windows on
+                    // laisse donc la fermeture la détruire ; elle sera recréée
+                    // proprement à la prochaine ouverture.
+                    #[cfg(not(target_os = "windows"))]
+                    {
+                        api.prevent_close();
+                        let _ = window.emit("utility-closing", window.label());
+                        let _ = window.hide();
+                    }
+                    #[cfg(target_os = "windows")]
+                    {
+                        let _ = api;
+                    }
                 }
             }
         })

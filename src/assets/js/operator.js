@@ -1603,6 +1603,14 @@ async function _runSyncPullOnLaunch() {
     songCache = null;
     songCachePromise = null;
     await loadSongCache();
+    // Le pull peut réordonner ou remplacer les recueils. Leurs identifiants
+    // de session sont alors recalculés côté Rust : une liste déjà affichée
+    // conserverait sinon des data-song-id périmés et un clic aboutirait à un
+    // panneau vide. Reconstruit immédiatement les résultats visibles.
+    const input = document.getElementById('songSearchInput');
+    const q = input?.value.trim() || '';
+    if (q) searchSongs(q);
+    else document.getElementById('songList').innerHTML = searchPrompt('search.songsEmpty');
     _setSyncIndicator('ok');
   } catch (_) {
     _setSyncIndicator('error'); // silencieux
