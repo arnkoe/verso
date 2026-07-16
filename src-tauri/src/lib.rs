@@ -888,6 +888,13 @@ fn warm_auxiliary_window(app: AppHandle, mode: String) -> Result<(), String> {
     }
 }
 
+#[tauri::command]
+fn show_auxiliary_window(app: AppHandle, mode: String) -> Result<(), String> {
+    let kind = AuxiliaryKind::from_mode(&mode)
+        .ok_or_else(|| format!("Fenêtre utilitaire inconnue : {mode}"))?;
+    open_auxiliary_window(&app, kind).map_err(|e| e.to_string())
+}
+
 /// Affiche une instance déjà préchauffée, ou la construit au premier usage si
 /// l'utilisateur ouvre le menu avant la fin du préchauffage.
 fn open_auxiliary_window(app: &AppHandle, kind: AuxiliaryKind) -> tauri::Result<()> {
@@ -1173,6 +1180,7 @@ pub fn run() {
             app_version,
             set_menu_language,
             warm_auxiliary_window,
+            show_auxiliary_window,
         ])
         // Hors Windows, les fenêtres utilitaires restent chargées quand
         // l'utilisateur les ferme : une réouverture n'est alors qu'un show().

@@ -102,6 +102,24 @@ tauriEvent.listen('projection-screen-changed', e => {
   _updateMonitorScreen(e.payload);
 });
 
+// ─── MISES À JOUR ───────────────────────────────────────────────────────────
+
+async function checkUpdateOnStartup() {
+  try {
+    const update = await apiCheckUpdate();
+    const link = document.getElementById('emptyStateUpdate');
+    if (link) link.hidden = !update;
+  } catch (err) {
+    // Une indisponibilité réseau ne doit jamais perturber l'utilisation de
+    // l'opérateur ni être présentée comme une version à jour.
+    console.warn('Update check failed:', err);
+  }
+}
+
+async function openUpdateSettings() {
+  try { await apiShowAuxiliaryWindow('settings'); } catch (_) {}
+}
+
 // ─── TABS ───────────────────────────────────────────────────────────────────
 
 function switchSideTab(tab) {
@@ -1693,5 +1711,6 @@ function _scheduleAuxiliaryWarmup(modes, index = 0) {
 }
 
 window.addEventListener('load', () => {
+  checkUpdateOnStartup();
   setTimeout(() => _scheduleAuxiliaryWarmup(['settings', 'shortcuts', 'about']), 500);
 }, { once: true });

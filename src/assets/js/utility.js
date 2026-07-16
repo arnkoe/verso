@@ -356,16 +356,11 @@ document.addEventListener('keydown', e => {
 let _pendingUpdate = null;
 let _updateChecked = false;
 
-function _setUpdateStatus(text, kind) {
-  [
-    ['settingsUpdateStatus', 'settings-update-status'],
-    ['aboutUpdateStatus', 'about-update-status'],
-  ].forEach(([id, className]) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = text || '';
-    el.className = className + (kind ? ' ' + kind : '');
-  });
+function _setSettingsUpdateStatus(text, kind) {
+  const el = document.getElementById('settingsUpdateStatus');
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'settings-update-status' + (kind ? ' ' + kind : '');
 }
 
 function _setUpdateControlsDisabled(disabled) {
@@ -382,6 +377,12 @@ function _renderAvailableUpdate() {
     if (link) {
       link.dataset.action = 'checkUpdate';
       link.textContent = t('update.check');
+      link.disabled = false;
+    }
+    if (settingsBtn) {
+      settingsBtn.dataset.action = 'checkUpdate';
+      settingsBtn.disabled = false;
+      settingsBtn.querySelector('.settings-btn-label').textContent = t('settings.checkNow');
     }
     return;
   }
@@ -398,19 +399,16 @@ function _renderAvailableUpdate() {
     settingsBtn.disabled = false;
     settingsBtn.querySelector('.settings-btn-label').textContent = t('settings.installRestart');
   }
-  _setUpdateStatus(
-    _pendingUpdate.version
-      ? t('update.availableVersion', { version: _pendingUpdate.version })
-      : t('update.available'),
-    'available'
-  );
+  _setSettingsUpdateStatus(t('update.available'), 'available');
 }
 
 async function checkUpdate(silent = false) {
   _updateChecked = true;
   if (!silent) {
     _setUpdateControlsDisabled(true);
-    _setUpdateStatus(t('update.checking'));
+    _setSettingsUpdateStatus(t('update.checking'));
+    const link = document.getElementById('aboutUpdateLink');
+    if (link) link.textContent = t('update.checking');
   }
   let update;
   try {
@@ -418,17 +416,23 @@ async function checkUpdate(silent = false) {
   } catch (err) {
     console.warn('Update check failed:', err);
     if (!silent) {
-      _setUpdateStatus(t('update.checkFailed'), 'error');
+      _setSettingsUpdateStatus(t('update.checkFailed'), 'error');
       _setUpdateControlsDisabled(false);
+      const link = document.getElementById('aboutUpdateLink');
+      if (link) {
+        link.dataset.action = 'checkUpdate';
+        link.textContent = t('update.checkFailed');
+      }
     }
     return;
   }
   if (!update) {
     _pendingUpdate = null;
     _renderAvailableUpdate();
+    _setSettingsUpdateStatus(t('update.upToDate'), 'ok');
     if (!silent) {
-      _setUpdateStatus(t('update.upToDate'), 'ok');
-      _setUpdateControlsDisabled(false);
+      const link = document.getElementById('aboutUpdateLink');
+      if (link) link.textContent = t('update.upToDate');
     }
     return;
   }
@@ -444,7 +448,7 @@ async function installUpdate() {
   if (link) {
     link.textContent = t('update.installing');
   }
-  _setUpdateStatus(t('update.installing'));
+  _setSettingsUpdateStatus(t('update.installing'));
   try {
     await apiInstallUpdate(_pendingUpdate);
   } catch (_) {
@@ -453,7 +457,7 @@ async function installUpdate() {
       link.textContent = t('update.installRetry');
       link.disabled = false;
     }
-    _setUpdateStatus(t('update.installFailed'), 'error');
+    _setSettingsUpdateStatus(t('update.installFailed'), 'error');
   }
 }
 
@@ -468,6 +472,7 @@ function prepareForOpen() {
   if (_preparePromise) return _preparePromise;
   _preparePromise = (async () => {
     applyI18n();
+    if (_pendingUpdate) _renderAvailableUpdate();
     _syncLanguageSelect();
     if (UTILITY_MODE === 'settings') await refreshScreenSelect();
     if ((UTILITY_MODE === 'settings' || UTILITY_MODE === 'about') && !_updateChecked) {

@@ -126,6 +126,11 @@ async function apiWarmAuxiliaryWindow(mode) {
   return await invoke('warm_auxiliary_window', { mode });
 }
 
+/** Affiche une fenêtre utilitaire depuis une action de l'interface. */
+async function apiShowAuxiliaryWindow(mode) {
+  return await invoke('show_auxiliary_window', { mode });
+}
+
 /** Ouvre le dossier Verso (racine des données) dans le gestionnaire de fichiers. */
 async function apiRevealVersoDir() {
   return await invoke('reveal_verso_dir');

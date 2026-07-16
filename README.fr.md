@@ -59,7 +59,7 @@ Vous n'aurez plus jamais à refaire cela : les prochaines mises à jour s'instal
 
 ## Mettre à jour Verso
 
-Verso vérifie silencieusement si une version plus récente existe. Ouvrez les **Réglages** (`⌘,` sur macOS, `Ctrl+,` ailleurs) puis la rubrique **Mises à jour** : si une version est disponible, le bouton propose de l'installer et de redémarrer Verso.
+Verso vérifie silencieusement au démarrage si une version plus récente existe. Lorsqu'elle est disponible, un lien **Mise à jour disponible** apparaît sous le message de la page vide dans la fenêtre principale et ouvre les **Réglages**. Dans la rubrique **Mises à jour**, l'état courant est affiché directement sous le bouton, qui propose si nécessaire d'installer la mise à jour et de redémarrer Verso.
 
 Vous pouvez aussi lancer la vérification manuellement depuis cette rubrique.
 
@@ -129,7 +129,7 @@ Sur macOS, choisissez **Verso → Réglages…** ou utilisez `⌘,`. Sous Window
 - **Projection** — choisissez l'écran utilisé pour la projection dans la liste déroulante. Ce choix est mémorisé pour les prochaines sessions.
 - **Contenus** — gérez vos recueils, Bibles, PDF et images directement depuis les paramètres : pour chaque catégorie vous pouvez **Ajouter** des fichiers, **Gérer** les éléments existants et les **Supprimer**, sans quitter l'application. Vous pouvez aussi ouvrir le dossier Verso où se trouvent ces fichiers.
 - **Langue** — changer la langue de l'interface.
-- **Mises à jour** — vérifier manuellement une nouvelle version et l'installer.
+- **Mises à jour** — consulter l'état courant sous le bouton, vérifier manuellement une nouvelle version et l'installer.
 
 Fermez les fenêtres **Réglages**, **Raccourcis clavier** et **À propos de Verso** comme toute fenêtre native, avec leur bouton de fermeture ou `Cmd/Ctrl W`. Verso conserve ces fenêtres légères prêtes en arrière-plan afin que leur réouverture soit immédiate. La fenêtre **À propos de Verso** regroupe la version, l'auteur et le contact, et permet de vérifier puis d'installer directement les mises à jour ; elle est accessible dans **Aide** et, sur macOS, également dans le menu **Verso**. Les boîtes de dialogue internes se ferment avec **Échap**. Les intitulés des menus natifs suivent la langue choisie dans les réglages.
 
