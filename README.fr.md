@@ -78,7 +78,7 @@ Verso range tout dans un dossier nommé **`Verso`**, à l'intérieur du dossier 
 
 Pour ajouter vos propres PDF ou images, déposez simplement vos fichiers dans le dossier `pdf` ou `images`.
 
-La première fois que vous lancez Verso, si le dossier est vide, Verso y dépose automatiquement quelques contenus gratuits pour commencer : les recueils **Reflets 4** et **Hymnes et Cantiques (révisés)**, et les Bibles **Darby**, **Darby révisée** (Bibles et Publications Chrétiennes, CC BY-NC-ND 4.0) et **Louis Segond 1910**. Vous pouvez les garder, les modifier ou les supprimer comme vous voulez. Verso ne touche jamais à vos fichiers si vous en avez déjà mis.
+La première fois que vous lancez Verso, si le dossier est vide, Verso y dépose automatiquement quelques contenus gratuits pour commencer : les recueils **Reflets 4** et **Hymnes et Cantiques (révisés)**, et les Bibles **Darby**, **Darby révisée** (Bibles et Publications Chrétiennes, CC BY-NC-ND 4.0) et **Louis Segond 1910**. Vous pouvez les garder, les modifier ou les remplacer comme vous voulez. S'il ne reste aucune Bible lisible, Verso restaure ces traductions embarquées au démarrage suivant ; dès qu'au moins une Bible est disponible, vos fichiers ne sont pas modifiés.
 
 Verso se souvient aussi de ce qui était projeté la dernière fois et le reprend à la réouverture.
 
@@ -131,7 +131,7 @@ Sur macOS, choisissez **Verso → Réglages…** ou utilisez `⌘,`. Sous Window
 - **Langue** — changer la langue de l'interface.
 - **Mises à jour** — vérifier manuellement une nouvelle version et l'installer.
 
-Fermez les fenêtres **Réglages**, **Raccourcis clavier** et **À propos de Verso** comme toute fenêtre native, avec leur bouton de fermeture ou `Cmd/Ctrl W`. Verso conserve ces fenêtres légères prêtes en arrière-plan afin que leur réouverture soit immédiate. La fenêtre **À propos de Verso**, qui regroupe la version, l'auteur, le contact et les mises à jour disponibles, est accessible dans **Aide** et, sur macOS, également dans le menu **Verso**. Les boîtes de dialogue internes se ferment avec **Échap**. Les intitulés des menus natifs suivent la langue choisie dans les réglages.
+Fermez les fenêtres **Réglages**, **Raccourcis clavier** et **À propos de Verso** comme toute fenêtre native, avec leur bouton de fermeture ou `Cmd/Ctrl W`. Verso conserve ces fenêtres légères prêtes en arrière-plan afin que leur réouverture soit immédiate. La fenêtre **À propos de Verso** regroupe la version, l'auteur et le contact, et permet de vérifier puis d'installer directement les mises à jour ; elle est accessible dans **Aide** et, sur macOS, également dans le menu **Verso**. Les boîtes de dialogue internes se ferment avec **Échap**. Les intitulés des menus natifs suivent la langue choisie dans les réglages.
 
 ---
 

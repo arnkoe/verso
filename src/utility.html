@@ -54,9 +54,10 @@
           <h2 class="info-title">Verso</h2>
           <p class="about-desc" data-i18n="about.desc">Projection de contenus pour les églises.</p>
           <p class="about-version"><span data-i18n="about.version">Version</span> <span id="aboutVersion">—</span></p>
-          <p class="about-update" id="aboutUpdate" hidden>
-            <button class="about-update-link" data-action="installUpdate" id="aboutUpdateLink"></button>
+          <p class="about-update" id="aboutUpdate">
+            <button class="about-update-link" data-action="checkUpdate" id="aboutUpdateLink" data-i18n="update.check">Vérifier les mises à jour</button>
           </p>
+          <div class="about-update-status" id="aboutUpdateStatus" aria-live="polite"></div>
           <p class="about-meta">© <span id="aboutYear"></span> Verso</p>
           <p class="about-meta" data-i18n="about.author">Auteur : Arnaud Koechlin</p>
           <p class="about-meta"><span data-i18n="about.contact">Contact :</span> <a href="mailto:good.line1106@fastmail.com">good.line1106@fastmail.com</a></p>

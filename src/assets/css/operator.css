@@ -1220,7 +1220,6 @@ html[data-window-mode="about"] .main.card {
   margin-top: var(--sp-3);
 }
 .about-update { margin-top: var(--sp-2); }
-.about-update[hidden] { display: none; }
 .about-update-link {
   appearance: none;
   border: 0;
@@ -1241,6 +1240,16 @@ html[data-window-mode="about"] .main.card {
   color: var(--mute);
   opacity: 0.5;
 }
+.about-update-status {
+  min-height: 1.2em;
+  margin-top: var(--sp-1);
+  font-size: var(--fs-sm);
+  color: var(--mute);
+}
+.about-update-status:empty { display: none; }
+.about-update-status.ok { color: var(--live-text); }
+.about-update-status.error { color: var(--danger); }
+.about-update-status.available { color: var(--accent); font-weight: 600; }
 .about-meta {
   font-size: var(--fs-md);
   color: var(--mute-2);

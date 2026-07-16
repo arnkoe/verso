@@ -118,6 +118,7 @@ const I18N = {
     'settings.deleteConfirmWord': 'SUPPRIMER',
     'settings.deleteConfirmPrompt': 'Tapez {word} pour confirmer',
     // Statuts de mise à jour
+    'update.check': 'Vérifier les mises à jour',
     'update.checking': 'Recherche…',
     'update.upToDate': 'Verso est à jour.',
     'update.available': 'Mise à jour disponible.',
@@ -261,6 +262,7 @@ const I18N = {
     'settings.deleteError': 'Delete failed: {err}',
     'settings.deleteConfirmWord': 'DELETE',
     'settings.deleteConfirmPrompt': 'Type {word} to confirm',
+    'update.check': 'Check for updates',
     'update.checking': 'Checking…',
     'update.upToDate': 'Verso is up to date.',
     'update.available': 'Update available.',

@@ -357,43 +357,59 @@ let _pendingUpdate = null;
 let _updateChecked = false;
 
 function _setUpdateStatus(text, kind) {
-  const el = document.getElementById('settingsUpdateStatus');
-  if (!el) return;
-  el.textContent = text || '';
-  el.className = 'settings-update-status' + (kind ? ' ' + kind : '');
+  [
+    ['settingsUpdateStatus', 'settings-update-status'],
+    ['aboutUpdateStatus', 'about-update-status'],
+  ].forEach(([id, className]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text || '';
+    el.className = className + (kind ? ' ' + kind : '');
+  });
+}
+
+function _setUpdateControlsDisabled(disabled) {
+  const settingsBtn = document.getElementById('btnCheckUpdate');
+  const aboutLink = document.getElementById('aboutUpdateLink');
+  if (settingsBtn) settingsBtn.disabled = disabled;
+  if (aboutLink) aboutLink.disabled = disabled;
 }
 
 function _renderAvailableUpdate() {
   const settingsBtn = document.getElementById('btnCheckUpdate');
-  const about = document.getElementById('aboutUpdate');
   const link = document.getElementById('aboutUpdateLink');
   if (!_pendingUpdate) {
-    if (about) about.hidden = true;
+    if (link) {
+      link.dataset.action = 'checkUpdate';
+      link.textContent = t('update.check');
+    }
     return;
   }
   const label = _pendingUpdate.version
     ? t('update.updateTo', { version: _pendingUpdate.version })
     : t('update.update');
-  if (link) link.textContent = label;
-  if (about) about.hidden = false;
+  if (link) {
+    link.dataset.action = 'installUpdate';
+    link.textContent = label;
+    link.disabled = false;
+  }
   if (settingsBtn) {
     settingsBtn.dataset.action = 'installUpdate';
     settingsBtn.disabled = false;
     settingsBtn.querySelector('.settings-btn-label').textContent = t('settings.installRestart');
-    _setUpdateStatus(
-      _pendingUpdate.version
-        ? t('update.availableVersion', { version: _pendingUpdate.version })
-        : t('update.available'),
-      'available'
-    );
   }
+  _setUpdateStatus(
+    _pendingUpdate.version
+      ? t('update.availableVersion', { version: _pendingUpdate.version })
+      : t('update.available'),
+    'available'
+  );
 }
 
 async function checkUpdate(silent = false) {
-  const btn = document.getElementById('btnCheckUpdate');
   _updateChecked = true;
   if (!silent) {
-    if (btn) btn.disabled = true;
+    _setUpdateControlsDisabled(true);
     _setUpdateStatus(t('update.checking'));
   }
   let update;
@@ -403,14 +419,16 @@ async function checkUpdate(silent = false) {
     console.warn('Update check failed:', err);
     if (!silent) {
       _setUpdateStatus(t('update.checkFailed'), 'error');
-      if (btn) btn.disabled = false;
+      _setUpdateControlsDisabled(false);
     }
     return;
   }
   if (!update) {
+    _pendingUpdate = null;
+    _renderAvailableUpdate();
     if (!silent) {
       _setUpdateStatus(t('update.upToDate'), 'ok');
-      if (btn) btn.disabled = false;
+      _setUpdateControlsDisabled(false);
     }
     return;
   }
@@ -422,10 +440,9 @@ async function installUpdate() {
   if (!_pendingUpdate) return;
   const btn = document.getElementById('btnCheckUpdate');
   const link = document.getElementById('aboutUpdateLink');
-  if (btn) btn.disabled = true;
+  _setUpdateControlsDisabled(true);
   if (link) {
     link.textContent = t('update.installing');
-    link.disabled = true;
   }
   _setUpdateStatus(t('update.installing'));
   try {

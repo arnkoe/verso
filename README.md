@@ -78,7 +78,7 @@ Inside, you will find:
 
 To add your own PDFs or images, simply drop your files into the `pdf` or `images` folder.
 
-The first time you launch Verso, if the folder is empty, Verso automatically adds some free content to get you started: the **Reflets 4** and **Hymnes et Cantiques (révisés)** collections, and the **Darby**, **Darby révisée** (Bibles et Publications Chrétiennes, CC BY-NC-ND 4.0) and **Louis Segond 1910** Bibles. You can keep, edit or delete them as you wish. Verso never touches your files if you have already added some.
+The first time you launch Verso, if the folder is empty, Verso automatically adds some free content to get you started: the **Reflets 4** and **Hymnes et Cantiques (révisés)** collections, and the **Darby**, **Darby révisée** (Bibles et Publications Chrétiennes, CC BY-NC-ND 4.0) and **Louis Segond 1910** Bibles. You can keep, edit or replace them as you wish. If no readable Bible remains, Verso restores these bundled translations the next time it starts; as soon as at least one Bible is available, your files are left untouched.
 
 Verso also remembers what was being projected last time and brings it back when you reopen it.
 
@@ -131,7 +131,7 @@ On macOS, choose **Verso → Settings…** or press `⌘,`. On Windows, choose *
 - **Language** — change the interface language.
 - **Updates** — check manually for a new version and install it.
 
-Close the **Settings**, **Keyboard Shortcuts**, and **About Verso** windows like any native window, using their close button or `Cmd/Ctrl W`. Verso keeps these lightweight windows ready in the background so that reopening them is immediate. The **About Verso** window includes the version, author, contact details, and available updates; it is available from **Help** and, on macOS, also from the **Verso** menu. Dialogs inside these windows close with **Esc**. Native menu labels follow the language selected in Settings.
+Close the **Settings**, **Keyboard Shortcuts**, and **About Verso** windows like any native window, using their close button or `Cmd/Ctrl W`. Verso keeps these lightweight windows ready in the background so that reopening them is immediate. The **About Verso** window includes the version, author and contact details, and lets you check for and install updates directly; it is available from **Help** and, on macOS, also from the **Verso** menu. Dialogs inside these windows close with **Esc**. Native menu labels follow the language selected in Settings.
 
 ---
 

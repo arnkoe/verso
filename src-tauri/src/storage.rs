@@ -19,7 +19,6 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
-use tauri::path::BaseDirectory;
 use tauri::{AppHandle, Manager};
 
 // ─── Modèles ────────────────────────────────────────────────────────────────
@@ -226,59 +225,98 @@ pub fn media_dir(app: &AppHandle, kind: &str) -> PathBuf {
 
 /// Recueils et bibles empaquetés dans le build (libres de droits, ou sous
 /// licence permettant la redistribution avec attribution), copiés dans le
-/// dossier de données au premier lancement. Le chemin source est relatif au
-/// dossier `resources/` du bundle ; la destination est relative à `data_dir`.
+/// dossier de données. Le chemin source est relatif au dossier de ressources
+/// du bundle ; la destination est relative à `data_dir`.
 /// La Darby révisée (DRR) porte son crédit dans son champ `bible_copyright`
 /// (licence CC BY-NC-ND, attribution affichée dans l'opérateur).
-const SEED_FILES: &[(&str, &str)] = &[
-    ("resources/songbooks/songbook-ref.json", "songbooks/songbook-ref.json"),
-    ("resources/songbooks/songbook-hec.json", "songbooks/songbook-hec.json"),
+const SONGBOOK_SEED_FILES: &[(&str, &str)] = &[
+    (
+        "resources/songbooks/songbook-ref.json",
+        "songbooks/songbook-ref.json",
+    ),
+    (
+        "resources/songbooks/songbook-hec.json",
+        "songbooks/songbook-hec.json",
+    ),
+];
+
+const BIBLE_SEED_FILES: &[(&str, &str)] = &[
     ("resources/bibles/bible-drb.json", "bibles/bible-drb.json"),
     ("resources/bibles/bible-drr.json", "bibles/bible-drr.json"),
     ("resources/bibles/bible-lsg.json", "bibles/bible-lsg.json"),
 ];
 
-/// Vrai si le dossier de données contient déjà au moins un recueil ou une bible,
-/// signe d'une installation existante (utilisateur antérieur à cette
-/// fonctionnalité) qu'il ne faut surtout pas réamorcer.
-fn has_existing_data(app: &AppHandle) -> bool {
-    !songbook_files(&songbooks_dir(app)).is_empty() || !list_bibles(app).is_empty()
+#[derive(Debug, PartialEq, Eq)]
+struct SeedPlan {
+    songbooks: bool,
+    bibles: bool,
 }
 
-/// Copie les recueils et bibles libres de droits empaquetés dans le dossier de
-/// données, une seule fois (au premier lancement). Ne fait rien si un marqueur
-/// `.seeded` est présent, ou si le dossier contient déjà des recueils/bibles
-/// (installation existante) : on évite ainsi d'écraser ou de compléter les
-/// données de l'utilisateur. Par sécurité, les fichiers déjà présents ne sont de
-/// toute façon jamais écrasés.
-pub fn seed_defaults(app: &AppHandle) {
-    let marker = data_dir(app).join(".seeded");
-    if marker.exists() {
-        return;
+/// Les recueils ne sont amorcés que pour une installation réellement vide. Les
+/// bibles forment une catégorie indépendante : s'il n'y en a aucune, elles
+/// doivent être restaurées même si des recueils ou l'ancien marqueur `.seeded`
+/// sont déjà présents (cas fréquent après une réinstallation sous Windows).
+fn seed_plan(marker_exists: bool, has_songbooks: bool, has_bibles: bool) -> SeedPlan {
+    SeedPlan {
+        songbooks: !marker_exists && !has_songbooks && !has_bibles,
+        bibles: !has_bibles,
     }
+}
 
-    // S'assure que les dossiers cibles existent.
-    let _ = songbooks_dir(app);
-    let _ = bibles_dir(app);
-
-    // Installation existante : on pose le marqueur et on n'amorce rien.
-    if has_existing_data(app) {
-        let _ = fs::write(&marker, b"");
-        return;
-    }
-
-    for (res, dest_rel) in SEED_FILES {
-        let dest = data_dir(app).join(dest_rel);
-        if dest.exists() {
+fn copy_seed_files(resource_dir: &Path, dest_dir: &Path, files: &[(&str, &str)], overwrite: bool) {
+    for (resource_rel, dest_rel) in files {
+        let dest = dest_dir.join(dest_rel);
+        if !overwrite && dest.exists() {
             continue;
         }
-        let Ok(src) = app.path().resolve(res, BaseDirectory::Resource) else {
-            continue;
-        };
-        let _ = fs::copy(&src, &dest);
+        let src = resource_dir.join(resource_rel);
+        if let Err(error) = fs::copy(&src, &dest) {
+            eprintln!(
+                "Impossible d'amorcer {} depuis {} : {error}",
+                dest.display(),
+                src.display()
+            );
+        }
+    }
+}
+
+fn seed_bibles(app: &AppHandle, overwrite: bool) {
+    let Ok(resource_dir) = app.path().resource_dir() else {
+        eprintln!("Dossier des ressources Verso indisponible");
+        return;
+    };
+    copy_seed_files(&resource_dir, &data_dir(app), BIBLE_SEED_FILES, overwrite);
+}
+
+/// Amorce le contenu libre empaqueté. Le marqueur conserve le comportement
+/// historique des recueils (première installation vide seulement), mais ne peut
+/// plus empêcher la restauration des bibles lorsque leur dossier est vide.
+pub fn seed_defaults(app: &AppHandle) {
+    let marker = data_dir(app).join(".seeded");
+    let songbooks = songbooks_dir(app);
+    let bibles = bibles_dir(app);
+    let plan = seed_plan(
+        marker.exists(),
+        !songbook_files(&songbooks).is_empty(),
+        !bible_files(&bibles).is_empty(),
+    );
+
+    if plan.bibles {
+        seed_bibles(app, false);
     }
 
-    let _ = fs::write(&marker, b"");
+    if plan.songbooks {
+        match app.path().resource_dir() {
+            Ok(resource_dir) => {
+                copy_seed_files(&resource_dir, &data_dir(app), SONGBOOK_SEED_FILES, false)
+            }
+            Err(_) => eprintln!("Dossier des ressources Verso indisponible"),
+        }
+    }
+
+    if !marker.exists() {
+        let _ = fs::write(&marker, b"");
+    }
 }
 
 // ─── Chants ─────────────────────────────────────────────────────────────────
@@ -485,19 +523,6 @@ pub fn load_bible(app: &AppHandle, state: &AppState, bible_code: &str) -> Result
     Ok(bible)
 }
 
-/// Liste les codes des traductions de bible présentes dans le dossier `bibles/`,
-/// triés alphabétiquement. Le code provient du champ `bible_code` du fichier (le
-/// nom de fichier `bible-<slug>.json` n'est qu'un identifiant cosmétique).
-pub fn list_bibles(app: &AppHandle) -> Vec<String> {
-    let dir = bibles_dir(app);
-    let mut out: Vec<String> = bible_files(&dir)
-        .iter()
-        .filter_map(|p| bible_code(p))
-        .collect();
-    out.sort();
-    out
-}
-
 // ─── Gestion des contenus (ajout / suppression depuis la modale) ─────────────
 
 /// Type de contenu géré par la modale Paramètres → (sous-dossier, extensions
@@ -651,12 +676,26 @@ pub fn list_songbooks(app: &AppHandle) -> Vec<ContentName> {
 /// code provient du champ `bible_code` du fichier, le nom lisible de `bible_name`.
 pub fn list_bibles_named(app: &AppHandle) -> Vec<ContentName> {
     let dir = bibles_dir(app);
-    let mut out: Vec<ContentName> = bible_files(&dir)
-        .into_iter()
-        .filter_map(|path| bible_content_name(&path))
-        .collect();
+    let mut out = bible_files_named(&dir);
+
+    // Un fichier incomplet ou corrompu ne doit pas laisser l'onglet Bible vide.
+    // Si aucune traduction n'est réellement lisible, restaure les fichiers
+    // embarqués connus. On n'écrase jamais quoi que ce soit dès qu'au moins une
+    // bible utilisateur valide est disponible.
+    if out.is_empty() {
+        seed_bibles(app, true);
+        out = bible_files_named(&dir);
+    }
+
     out.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     out
+}
+
+fn bible_files_named(dir: &Path) -> Vec<ContentName> {
+    bible_files(dir)
+        .into_iter()
+        .filter_map(|path| bible_content_name(&path))
+        .collect()
 }
 
 /// Importe un fichier (chemin source absolu) dans le sous-dossier du type donné.
@@ -771,4 +810,53 @@ pub fn sanitize_filename(name: &str) -> Option<String> {
         return None;
     }
     Some(base)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{seed_plan, SeedPlan};
+
+    #[test]
+    fn fresh_install_seeds_songbooks_and_bibles() {
+        assert_eq!(
+            seed_plan(false, false, false),
+            SeedPlan {
+                songbooks: true,
+                bibles: true,
+            }
+        );
+    }
+
+    #[test]
+    fn existing_songbooks_do_not_prevent_bible_seed() {
+        assert_eq!(
+            seed_plan(false, true, false),
+            SeedPlan {
+                songbooks: false,
+                bibles: true,
+            }
+        );
+    }
+
+    #[test]
+    fn marker_does_not_prevent_bible_seed() {
+        assert_eq!(
+            seed_plan(true, false, false),
+            SeedPlan {
+                songbooks: false,
+                bibles: true,
+            }
+        );
+    }
+
+    #[test]
+    fn existing_bible_is_never_completed_with_defaults() {
+        assert_eq!(
+            seed_plan(true, true, true),
+            SeedPlan {
+                songbooks: false,
+                bibles: false,
+            }
+        );
+    }
 }
