@@ -567,6 +567,10 @@ async fn open_projection(
     .position(x as f64, y as f64)
     .inner_size(width as f64, height as f64)
     .decorations(false)
+    // Sous Windows, Tauri ajoute par défaut une ombre aux fenêtres sans
+    // bordure. Ses marges invisibles décalent alors la surface de projection
+    // de quelques pixels par rapport au coin de l'écran cible.
+    .shadow(false)
     .resizable(false)
     .build()
     .map_err(|e| format!("Création fenêtre projection : {e}"))?;
