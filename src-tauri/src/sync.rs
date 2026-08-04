@@ -201,11 +201,22 @@ fn songbooks_match(left: &Path, right: &Path) -> Result<bool, String> {
     Ok(true)
 }
 
+/// Résultat d'un `pull` ou d'un `push`. `changed` distingue le cas courant
+/// « rien de neuf » d'un vrai transfert. Au pull, l'interface ne doit
+/// reconstruire ses listes que dans le second cas, sinon elle détruit
+/// inutilement la sélection en cours ; au push, elle n'annonce que ce qui a
+/// réellement été publié.
+#[derive(Debug, Clone, Serialize)]
+pub struct SyncOutcome {
+    pub changed: bool,
+    pub message: String,
+}
+
 /// Récupère la dernière version distante et l'applique au dossier de chants.
 /// « Dernier qui écrit gagne » : si nécessaire, on aligne le clone sur
 /// `origin/<branche>` par un reset dur (pas de fusion), puis on recopie les
 /// recueils dans `songbooks/` et on invalide le cache mémoire.
-pub fn pull(app: &AppHandle, state: &AppState) -> Result<String, String> {
+pub fn pull(app: &AppHandle, state: &AppState) -> Result<SyncOutcome, String> {
     let _sync_guard = SYNC_LOCK
         .lock()
         .map_err(|_| "Verrou de synchronisation indisponible".to_string())?;
@@ -224,21 +235,27 @@ pub fn pull(app: &AppHandle, state: &AppState) -> Result<String, String> {
         && git(&dir, &["status", "--porcelain"])?.trim().is_empty()
         && songbooks_match(&dir, &storage::songbooks_dir(app))?
     {
-        return Ok("Déjà à jour : aucun recueil à recharger.".into());
+        return Ok(SyncOutcome {
+            changed: false,
+            message: "Déjà à jour : aucun recueil à recharger.".into(),
+        });
     }
 
     git(&dir, &["reset", "--hard", &remote_ref])?;
 
     let n = copy_songbooks(&dir, &storage::songbooks_dir(app))?;
     storage::invalidate_songs_cache(state);
-    Ok(format!("{n} recueil(s) récupéré(s)."))
+    Ok(SyncOutcome {
+        changed: true,
+        message: format!("{n} recueil(s) récupéré(s)."),
+    })
 }
 
 /// Publie l'état local des recueils vers le dépôt distant. « Dernier qui écrit
 /// gagne » : on recale d'abord le clone sur la dernière version distante
 /// (`fetch` + `reset --hard`), on y recopie les recueils locaux, puis on commite
 /// et on pousse. Aucun blocage de conflit : le contenu local l'emporte.
-pub fn push(app: &AppHandle) -> Result<String, String> {
+pub fn push(app: &AppHandle) -> Result<SyncOutcome, String> {
     let _sync_guard = SYNC_LOCK
         .lock()
         .map_err(|_| "Verrou de synchronisation indisponible".to_string())?;
@@ -258,14 +275,20 @@ pub fn push(app: &AppHandle) -> Result<String, String> {
     // Rien à publier : working tree propre après le add.
     let status = git(&dir, &["status", "--porcelain"])?;
     if status.trim().is_empty() {
-        return Ok("Déjà à jour : aucune modification à publier.".into());
+        return Ok(SyncOutcome {
+            changed: false,
+            message: "Déjà à jour : aucune modification à publier.".into(),
+        });
     }
 
     let host = hostname();
     let msg = format!("songbooks: update from {host}");
     git(&dir, &["commit", "-m", &msg])?;
     git(&dir, &["push", "origin", &format!("HEAD:{branch}")])?;
-    Ok("Recueils publiés.".into())
+    Ok(SyncOutcome {
+        changed: true,
+        message: "Recueils publiés.".into(),
+    })
 }
 
 /// Nom de la machine pour tracer l'origine d'un commit de publication. Best

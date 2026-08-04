@@ -277,6 +277,17 @@ function renderSongList(grouped) {
       </div>
     `).join('')
   ).join('');
+  markActiveSong();
+}
+
+// La liste des résultats est réécrite entièrement à chaque rendu : sans ce
+// rappel, le chant chargé perdrait sa marque de sélection (le point vert) dès
+// qu'un re-rendu survient hors clic, par exemple après une synchronisation des
+// recueils. Seule source de vérité pour la classe `active`.
+function markActiveSong() {
+  document.querySelectorAll('#songList .content-item').forEach(el => {
+    el.classList.toggle('active', parseInt(el.dataset.songId) === state.songId);
+  });
 }
 
 async function loadSong(id) {
@@ -288,9 +299,7 @@ async function loadSong(id) {
   state.songId    = id;
   state.songVerse = -1;
 
-  document.querySelectorAll('#songList .content-item').forEach(el => {
-    el.classList.toggle('active', parseInt(el.dataset.songId) === id);
-  });
+  markActiveSong();
 
   document.getElementById('songHeader').style.display = '';
   updateEmptyState();
@@ -1604,20 +1613,44 @@ function _scheduleSyncPush() {
   _syncPushTimer = setTimeout(_runSyncPush, SYNC_PUSH_DEBOUNCE_MS);
 }
 
+// N'annonce que ce qui a réellement été publié : une sauvegarde qui ramène le
+// chant à son contenu distant ne produit aucun commit, et l'indicateur resterait
+// alors un bruit sans information.
 async function _runSyncPush() {
   try {
-    await apiSyncPush();
-    _setSyncIndicator('ok');
+    const { changed } = await apiSyncPush();
+    if (changed) _setSyncIndicator('ok');
   } catch (_) {
     _setSyncIndicator('error'); // silencieux, pas de pop-up
   }
 }
 
+// Après un pull qui a modifié les recueils, les identifiants de session sont
+// recalculés côté Rust : celui du chant chargé est périmé et désignerait un
+// autre chant (sélection marquée au mauvais endroit, sauvegarde écrasant le
+// mauvais fichier). Le retrouve par son recueil et son numéro, à défaut par son
+// titre. Si le chant a disparu du dépôt, on n'a plus d'id valide : `null` évite
+// d'agir sur un homonyme, la sauvegarde échouera visiblement.
+function _reresolveLoadedSongId() {
+  if (!state.song || !songCache) return;
+  const code = state.song.songbook_code || '';
+  const num = state.song.source_number;
+  const match = songCache.find(s =>
+    (s.songbook_code || '') === code &&
+    (num != null ? s.source_number === num : s.title === state.song.title)
+  );
+  state.songId = match ? match.id : null;
+}
+
 // Récupération au lancement : le distant gagne toujours. En arrière-plan, sans
 // bloquer le préchargement local ; au succès on rafraîchit la liste des chants.
+// Le rechargement n'a lieu que si le distant a réellement apporté quelque chose :
+// dans le cas courant (rien de neuf), reconstruire la liste ne ferait que
+// détruire la sélection en cours pendant que l'utilisateur travaille.
 async function _runSyncPullOnLaunch() {
   try {
-    await apiSyncPull();
+    const { changed } = await apiSyncPull();
+    if (!changed) return;
     songCache = null;
     songCachePromise = null;
     await loadSongCache();
@@ -1625,6 +1658,7 @@ async function _runSyncPullOnLaunch() {
     // de session sont alors recalculés côté Rust : une liste déjà affichée
     // conserverait sinon des data-song-id périmés et un clic aboutirait à un
     // panneau vide. Reconstruit immédiatement les résultats visibles.
+    _reresolveLoadedSongId();
     const input = document.getElementById('songSearchInput');
     const q = input?.value.trim() || '';
     if (q) searchSongs(q);

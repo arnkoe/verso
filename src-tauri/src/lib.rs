@@ -255,8 +255,10 @@ fn sync_status(app: AppHandle) -> bool {
 
 /// Récupère la dernière version distante des recueils et l'applique localement.
 /// Le cache n'est invalidé et rechargé que si les fichiers ont réellement changé.
+/// Le `changed` du résultat permet à l'interface de ne reconstruire ses listes
+/// que dans ce cas.
 #[tauri::command]
-async fn sync_pull(app: AppHandle) -> Result<String, String> {
+async fn sync_pull(app: AppHandle) -> Result<sync::SyncOutcome, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let state = app.state::<AppState>();
         sync::pull(&app, &state)
@@ -265,9 +267,11 @@ async fn sync_pull(app: AppHandle) -> Result<String, String> {
     .map_err(|e| format!("Tâche de synchronisation interrompue : {e}"))?
 }
 
-/// Publie l'état local des recueils vers le dépôt de données.
+/// Publie l'état local des recueils vers le dépôt de données. Le `changed` du
+/// résultat est faux quand il n'y avait rien à publier : l'interface n'annonce
+/// alors aucune synchronisation.
 #[tauri::command]
-async fn sync_push(app: AppHandle) -> Result<String, String> {
+async fn sync_push(app: AppHandle) -> Result<sync::SyncOutcome, String> {
     tauri::async_runtime::spawn_blocking(move || sync::push(&app))
         .await
         .map_err(|e| format!("Tâche de synchronisation interrompue : {e}"))?

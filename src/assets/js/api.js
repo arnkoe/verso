@@ -141,12 +141,16 @@ async function apiSyncStatus() {
   return await invoke('sync_status');
 }
 
-/** Récupère la dernière version distante des recueils. Renvoie un message de statut. */
+/** Récupère la dernière version distante des recueils.
+ *  Renvoie `{ changed, message }` : `changed` est faux quand le distant n'apporte
+ *  rien (cas courant), ce qui dispense l'interface de recharger ses listes. */
 async function apiSyncPull() {
   return await invoke('sync_pull');
 }
 
-/** Publie l'état local des recueils vers le dépôt de données. Renvoie un message de statut. */
+/** Publie l'état local des recueils vers le dépôt de données.
+ *  Renvoie `{ changed, message }` : `changed` est faux quand il n'y avait rien
+ *  à publier. */
 async function apiSyncPush() {
   return await invoke('sync_push');
 }
