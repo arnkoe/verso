@@ -119,6 +119,10 @@
   --sidebar-gutter: var(--sp-3);
   --content-gutter: var(--sp-6);
   --content-scrollbar-w: 12px;
+  /* Hauteur de la bande d'état de synchronisation (retrait haut + ligne de
+     texte + gouttière basse). Les listes la réservent en bas pour que leur
+     dernier résultat puisse défiler entièrement au-dessus de la bande. */
+  --sync-status-h: calc(var(--sp-3) + var(--ui-line-h) + var(--sp-4));
   /* Largeur maximale du texte de contenu (versets, strophes), ~100 caractères
      à --fs-lg. Les rangées, leurs filets et leur fond de survol continuent de
      filer sur toute la largeur ; seule la colonne de texte est plafonnée, et
@@ -1502,12 +1506,19 @@ html[data-window-mode="shortcuts"] .utility-section + .utility-section {
    superutilisateur ou sans état. */
 .sync-status {
   position: absolute;
-  right: 0;
+  /* Laisse la barre de défilement de la liste entièrement visible : la bande
+     ne couvre que la colonne des résultats. */
+  right: var(--content-scrollbar-w);
   bottom: 0;
   left: 0;
   z-index: 1;
-  /* Respiration avant le séparateur qui précède l'aperçu de projection. */
-  margin: 0 0 var(--sp-4);
+  /* Bande opaque au fond de la sidebar : une rangée qui défile passe derrière
+     le libellé au lieu de se mélanger à son texte. Le dégradé sur le retrait
+     haut adoucit la coupe ; la gouttière basse ménage la respiration avant le
+     séparateur qui précède l'aperçu de projection. */
+  margin: 0;
+  padding: var(--sp-3) 0 var(--sp-4);
+  background: linear-gradient(to bottom, transparent, var(--sidebar) var(--sp-3));
   font-size: var(--fs-sm);
   line-height: var(--ui-line-h);
   color: var(--mute-2);
@@ -1517,10 +1528,10 @@ html[data-window-mode="shortcuts"] .utility-section + .utility-section {
 .sync-status.error { color: var(--danger); }
 
 /* Le statut flotte au-dessus du bas de la carte pour ne jamais redimensionner
-   la recherche. Les listes remplies gardent assez d'espace pour que leur
-   dernier résultat puisse défiler entièrement au-dessus du libellé. */
+   la recherche. Les listes remplies réservent exactement la hauteur de la bande
+   pour que leur dernier résultat puisse défiler entièrement au-dessus. */
 .card-search:has(> .sync-status:not([hidden])) .content-list {
-  padding-bottom: var(--sp-6);
+  padding-bottom: var(--sync-status-h);
 }
 
 /* Gestion des contenus (liste dans la modale dédiée). */
