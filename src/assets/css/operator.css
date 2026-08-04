@@ -711,7 +711,16 @@ html[data-window-mode="about"] .main.card {
    des onglets de la sidebar ; le kicker ayant la hauteur d'un contrôle, son
    texte se centre exactement sur le leur. */
 .content-header {
-  padding: calc(var(--titlebar-h) + var(--sidebar-gutter)) var(--content-gutter) var(--sp-5);
+  /* Le retrait bas aligne le point de projection du 1er item du panneau sur
+     celui du 1er résultat de la sidebar. Côté sidebar, sous une piste d'onglets
+     qui a la même hauteur et le même haut que le kicker, le point tombe à
+     2 gouttières + un contrôle + une demi-piste. Côté panneau, sous la rangée
+     du titre (haute d'un contrôle, remontée d'un demi-interligne), la 1re
+     rangée ouvre par son filet et son retrait avant de centrer le point sur la
+     ligne du numéro. Les deux hauteurs de contrôle s'annulent, il reste : */
+  padding: calc(var(--titlebar-h) + var(--sidebar-gutter)) var(--content-gutter)
+    calc(2 * var(--sidebar-gutter) + var(--segmented-track-h)
+         - var(--ui-line-h) / 2 - 1px - var(--sp-2) - var(--fs-lg) * 1.55 / 2);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0;
