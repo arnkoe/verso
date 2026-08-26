@@ -344,6 +344,7 @@ function projectVerse(i) {
     source_number: state.song.source_number,
     verseText: state.song.verses[i].text,
     verseLabels: state.song.verses.map(v => verseShortLabel(v.type, v.number)),
+    copyright: state.song.author || '',
   });
 }
 
@@ -631,7 +632,7 @@ async function fetchBibleChapter(ref) {
   if (seq !== bibleReqSeq) return;
   if (!data.verses || !data.verses.length) { reprojectBibleVerse = null; return; }
 
-  state.bible = { verses: data.verses, bibleCode: data.bible_code };
+  state.bible = { verses: data.verses, bibleCode: data.bible_code, copyright: data.bible_copyright || '' };
   state.bibleVerse = -1;
 
   const first = data.verses[0];
@@ -698,6 +699,7 @@ function projectBibleVerse(i) {
     bibleCode: state.bibleCode,
     reference: `${v.book} ${v.chapter}:${v.verse}`,
     text: v.text,
+    copyright: state.bible?.copyright || '',
   });
 }
 

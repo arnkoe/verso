@@ -20,6 +20,12 @@ function renderProjectionContent(state, container) {
   container.classList.toggle('media-mode', state.type === 'pdf' || state.type === 'image');
   container.innerHTML = '';
 
+  // Pied de page de crédit : auteur pour les chants, mention bible_copyright
+  // pour les versets. Rendu seulement quand la donnée est présente.
+  const footer = state.copyright
+    ? `<div class="copyright">${esc(state.copyright)}</div>`
+    : '';
+
   if (state.type === 'song') {
     const div = document.createElement('div');
     div.className = 'content-text';
@@ -35,7 +41,8 @@ function renderProjectionContent(state, container) {
     const headerBase = [bookPart, state.title].filter(Boolean).map(esc).join(' — ');
     div.innerHTML = `
       <div class="verse-text"><div class="verse-inner">${esc(state.verseText || '')}</div></div>
-      <div class="reference">${headerBase}${headerBase ? ' — ' : ''}${labelsHtml}</div>`;
+      <div class="reference">${headerBase}${headerBase ? ' — ' : ''}${labelsHtml}</div>
+      ${footer}`;
     container.appendChild(div);
     scheduleFit(div.querySelector('.verse-text'), div.querySelector('.verse-inner'), '--song-font-size');
     return;
@@ -46,7 +53,8 @@ function renderProjectionContent(state, container) {
     div.className = 'content-text';
     div.innerHTML = `
       <div class="bible-text"><div class="bible-inner">${esc(state.text || '')}</div></div>
-      <div class="reference">${esc(state.reference || '')} (traduction ${esc(state.bibleCode || '')})</div>`;
+      <div class="reference">${esc(state.reference || '')} (traduction ${esc(state.bibleCode || '')})</div>
+      ${footer}`;
     container.appendChild(div);
     scheduleFit(div.querySelector('.bible-text'), div.querySelector('.bible-inner'), '--bible-font-size');
     return;

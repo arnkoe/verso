@@ -168,7 +168,7 @@ Le fichier est un objet portant le nom du recueil une seule fois, puis la liste 
 - `songbook_name` — nom lisible du recueil.
 - `songs` — la liste des chants. Chaque chant a :
 - `title` — titre affiché et recherché.
-- `author` — texte, ou `null` si inconnu.
+- `author` — texte, ou `null` si inconnu. Affiché en pied de page du slide projeté tant qu'une strophe du chant est à l'écran.
 - `source_number` — numéro du chant dans le recueil (ou `null`).
 - `verses` — liste **ordonnée** des couplets. Chaque couplet a :
   - `type` — type de section. Valeurs courantes : `"verse"`, `"chorus"`, `"bridge"`, `"intro"`, `"outro"`, `"prechorus"`. Absent → strophe. Les refrains sont étiquetés « Refrain » ; tout autre type est affiché comme une strophe.
@@ -217,7 +217,7 @@ Un fichier complet est disponible dans [`examples/bible-abc.json`](examples/bibl
 
 - `bible_code` — code de la traduction ; le nom du fichier en est dérivé.
 - `bible_name` — *(optionnel)* nom lisible de la traduction (par exemple `Segond 21`) ; affiché dans l'opérateur et dans la gestion des contenus. À défaut, on retombe sur le code.
-- `bible_copyright` — *(optionnel)* mention de crédit/licence de la traduction (éditeur, licence). Affichée discrètement dans l'opérateur quand la traduction est sélectionnée ; utile pour les traductions dont la licence exige l'attribution (par exemple `CC BY-NC-ND`).
+- `bible_copyright` — *(optionnel)* mention de crédit/licence de la traduction (éditeur, licence). Affichée discrètement dans l'opérateur quand la traduction est sélectionnée, ainsi qu'en pied de page du slide projeté tant qu'un verset est à l'écran ; utile pour les traductions dont la licence exige l'attribution (par exemple `CC BY-NC-ND`).
 - `books` — liste **ordonnée** des livres.
   - `name` — nom du livre (utilisé pour la recherche de référence).
   - `chapters` — tableau de chapitres ; chaque chapitre est un tableau de versets (textes).

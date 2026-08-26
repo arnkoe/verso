@@ -82,6 +82,25 @@
   text-overflow: ellipsis;
 }
 
+/* Pied de page de crédit : auteur du chant (author) ou crédit/licence de la
+   traduction (bible_copyright). En bas du slide, en noir, plus petit et moins
+   gras que la référence. Deux lignes au maximum : au-delà, le texte est coupé
+   par une ellipsis (line-clamp) plutôt que de manger la hauteur du slide. */
+.content-text .copyright {
+  flex-shrink: 0;
+  margin-top: 2cqh;
+  text-align: left;
+  font-size: 3.5cqh;
+  line-height: 1.25;
+  font-weight: 400;
+  color: #000;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: break-word;
+}
+
 /* Strophe courante : soulignée dans le header.
    Via une classe CSS et non un style inline, car la CSP de la fenêtre de
    projection (nonce Tauri) bloque les attributs `style` inline. */

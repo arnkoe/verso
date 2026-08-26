@@ -168,7 +168,7 @@ The file is an object carrying the collection name once, then the list of songs:
 - `songbook_name` — the collection's human-readable name.
 - `songs` — the list of songs. Each song has:
 - `title` — title shown and searched.
-- `author` — text, or `null` if unknown.
+- `author` — text, or `null` if unknown. Shown in a footer at the bottom of the projected slide while a stanza of the song is on screen.
 - `source_number` — the song's number within the collection (or `null`).
 - `verses` — the **ordered** list of stanzas. Each stanza has:
   - `type` — section type. Common values: `"verse"`, `"chorus"`, `"bridge"`, `"intro"`, `"outro"`, `"prechorus"`. Absent → verse. Choruses are labelled "Chorus"; any other type is shown as a verse.
@@ -217,7 +217,7 @@ A complete file is available in [`examples/bible-abc.json`](examples/bible-abc.j
 
 - `bible_code` — the translation code; the file name is derived from it.
 - `bible_name` — *(optional)* the readable translation name (for example `Segond 21`); shown in the operator and in the content manager. Falls back to the code if absent.
-- `bible_copyright` — *(optional)* a credit/license note for the translation (publisher, license). Shown discreetly in the operator when the translation is selected; useful for translations whose license requires attribution (for example `CC BY-NC-ND`).
+- `bible_copyright` — *(optional)* a credit/license note for the translation (publisher, license). Shown discreetly in the operator when the translation is selected, and in a footer at the bottom of the projected slide while a verse is on screen; useful for translations whose license requires attribution (for example `CC BY-NC-ND`).
 - `books` — the **ordered** list of books.
   - `name` — the book name (used for reference search).
   - `chapters` — an array of chapters; each chapter is an array of verses (texts).
