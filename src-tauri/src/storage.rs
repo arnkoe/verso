@@ -227,8 +227,10 @@ pub fn media_dir(app: &AppHandle, kind: &str) -> PathBuf {
 /// licence permettant la redistribution avec attribution), copiés dans le
 /// dossier de données. Le chemin source est relatif au dossier de ressources
 /// du bundle ; la destination est relative à `data_dir`.
-/// La Darby révisée (DRR) porte son crédit dans son champ `bible_copyright`
-/// (licence CC BY-NC-ND, attribution affichée dans l'opérateur).
+/// Chaque bible embarquée porte son crédit dans son champ `bible_copyright`
+/// (« Texte libre de droits » pour la Darby et la Louis Segond 1910, éditeur et
+/// année pour la Darby révisée sous licence CC BY-NC-ND), affiché dans
+/// l'opérateur et en pied du slide projeté.
 const SONGBOOK_SEED_FILES: &[(&str, &str)] = &[
     (
         "resources/songbooks/songbook-ref.json",
