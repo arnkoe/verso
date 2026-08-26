@@ -697,6 +697,9 @@ function projectBibleVerse(i) {
     type: 'bible',
     verse: i,
     bibleCode: state.bibleCode,
+    // Nom lisible de la traduction pour l'en-tête de projection (le code sert
+    // de repli si la bible n'expose pas de nom).
+    bibleName: bibleName(state.bibleCode),
     reference: `${v.book} ${v.chapter}:${v.verse}`,
     text: v.text,
     copyright: state.bible?.copyright || '',
