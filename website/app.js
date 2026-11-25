@@ -130,6 +130,8 @@
     var ua = navigator.userAgent || "";
     var p = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || "";
     if (/iPhone|iPad|iPod|Android/i.test(ua)) return null;
+    // iPadOS Safari reports itself as a Mac; a touch screen gives it away.
+    if (/Mac/i.test(p + ua) && navigator.maxTouchPoints > 1) return null;
     if (/Win/i.test(p) || /Windows/i.test(ua)) return "win";
     if (/Mac/i.test(p) || /Macintosh/i.test(ua)) return isIntelMac() ? "macIntel" : "macArm";
     return null;

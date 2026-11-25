@@ -33,7 +33,8 @@ reached, every button falls back to the GitHub "latest release" page.
 
 The visitor's system is detected to highlight the right file. Browsers do not
 expose a Mac's CPU type, so the page guesses from the GPU name and defaults to
-Apple Silicon.
+Apple Silicon. Phones and tablets get no recommendation, iPads included (iPadOS
+Safari reports itself as a Mac; its touch screen gives it away).
 
 The page is in French and English; the language follows the browser and can be
 switched with the FR / EN toggle.
