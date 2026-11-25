@@ -125,6 +125,8 @@
     document.querySelectorAll(".lang button").forEach(function (b) {
       b.setAttribute("aria-pressed", String(b.getAttribute("data-lang") === lang));
     });
+    document.getElementById("doc-link").href =
+      "https://github.com/arnkoe/verso/blob/master/" + (lang === "en" ? "README.md" : "README.fr.md");
     document.title = lang === "en"
       ? "Verso: project songs, Bible verses and PDFs during worship"
       : "Verso : projeter chants, Bible et PDF pendant le culte";
