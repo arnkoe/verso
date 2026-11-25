@@ -3,112 +3,157 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Verso : projeter chants et Bible pendant le culte</title>
-  <meta name="description" content="Verso est un logiciel gratuit pour projeter des chants, des textes de la Bible, des PDF et des images pendant un culte. Pour Windows et Mac.">
-  <meta name="theme-color" content="#0b0b0c">
+  <title>Verso : projeter chants, Bible et PDF pendant le culte</title>
+  <meta name="description" content="Verso est un logiciel gratuit pour projeter des chants, des textes de la Bible, des PDF et des images pendant le culte. Tout se fait au clavier. Pour Windows et Mac.">
+  <meta name="theme-color" content="#ffffff">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta property="og:title" content="Verso">
-  <meta property="og:description" content="Projeter chants et Bible pendant le culte. Gratuit, pour Windows et Mac.">
-  <meta property="og:image" content="https://verso.akurba.com/apple-touch-icon.png">
+  <meta property="og:description" content="Projeter chants, Bible et PDF pendant le culte. Gratuit, pour Windows et Mac.">
+  <meta property="og:image" content="https://verso.akurba.com/img/songs-fr.webp">
   <meta property="og:url" content="https://verso.akurba.com/">
+  <script>
+    // Browser language first; a choice made on the page only lasts for the visit.
+    (function () {
+      var saved = null;
+      try { saved = sessionStorage.getItem("verso-lang"); } catch (e) {}
+      var langs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
+      var pick = "en";
+      for (var i = 0; i < langs.length; i++) {
+        var l = String(langs[i]).slice(0, 2).toLowerCase();
+        if (l === "fr" || l === "en") { pick = l; break; }
+      }
+      document.documentElement.lang = saved === "fr" || saved === "en" ? saved : pick;
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="top">
     <a class="brand" href="./">
-      <img src="icon.svg" alt="" width="36" height="36">
+      <img src="icon.svg" alt="" width="34" height="34">
       <span>Verso</span>
     </a>
-    <nav class="lang" aria-label="Langue / Language">
-      <button type="button" data-lang="fr" aria-pressed="true">FR</button>
-      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    <nav class="nav">
+      <a href="#telecharger" data-i18n="nav.download">Télécharger</a>
+      <a href="guide.html" data-i18n="nav.docs">Mode d'emploi</a>
+      <span class="lang" role="group" aria-label="Langue / Language">
+        <button type="button" data-lang="fr" aria-pressed="true">FR</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </span>
     </nav>
   </header>
 
   <main>
     <section class="hero">
-      <div class="hero-text">
-        <h1 data-i18n="hero.title">Projetez chants et Bible pendant le culte.</h1>
-        <p class="lead" data-i18n="hero.lead">Vous choisissez sur votre ordinateur, l'assemblée voit le texte en grand sur le vidéoprojecteur. Simple, gratuit, sans compte ni connexion internet.</p>
-
-        <div class="download">
-          <a class="btn-primary" id="primary-download" href="https://github.com/arnkoe/verso/releases/latest">
-            <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span id="primary-label" data-i18n="dl.generic">Télécharger Verso</span>
-          </a>
-          <p class="meta"><span id="version-line"></span><span data-i18n="dl.free">Gratuit · Windows et Mac</span></p>
-        </div>
-
-        <div class="platforms" aria-labelledby="platforms-title">
-          <p id="platforms-title" class="platforms-title" data-i18n="dl.all">Toutes les versions</p>
-          <ul>
-            <li><a data-asset="win" href="https://github.com/arnkoe/verso/releases/latest"><strong>Windows</strong> <span data-i18n="dl.win">10 et 11</span><small data-size="win"></small></a></li>
-            <li><a data-asset="macArm" href="https://github.com/arnkoe/verso/releases/latest"><strong>Mac</strong> <span data-i18n="dl.macArm">puce Apple (M1 et plus)</span><small data-size="macArm"></small></a></li>
-            <li><a data-asset="macIntel" href="https://github.com/arnkoe/verso/releases/latest"><strong>Mac</strong> <span data-i18n="dl.macIntel">processeur Intel</span><small data-size="macIntel"></small></a></li>
-          </ul>
-          <p class="hint" data-i18n="dl.whichMac">Quel Mac ? Menu Pomme → À propos de ce Mac, ligne « Puce » ou « Processeur ».</p>
-        </div>
+      <h1 data-i18n="hero.title">Projetez chants et versets sans perdre le fil du culte.</h1>
+      <p class="lead" data-i18n="hero.lead">Pendant que l'assemblée chante, une touche suffit pour passer à la strophe suivante. Une lecture biblique&nbsp;? Tapez la référence, le texte s'affiche. Verso est gratuit, sur Windows comme sur Mac, et fonctionne sans internet.</p>
+      <div class="cta">
+        <a class="button" id="primary-download" href="https://github.com/arnkoe/verso/releases/latest">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="primary-label" data-i18n="dl.generic">Télécharger Verso</span>
+        </a>
+        <p class="cta-meta"><span id="version-line"></span><a href="#telecharger" data-i18n="dl.others">Autres systèmes</a></p>
       </div>
 
-      <figure class="scene" aria-hidden="true">
-        <div class="screen">
-          <div class="screen-inner">
-            <p class="slide-line" data-i18n="slide.1">Que ton règne vienne,</p>
-            <p class="slide-line" data-i18n="slide.2">que ta volonté soit faite</p>
-            <p class="slide-line" data-i18n="slide.3">sur la terre comme au ciel.</p>
-          </div>
-        </div>
-        <div class="laptop">
-          <div class="laptop-screen">
-            <div class="op-tabs"><span class="on" data-i18n="scene.songs">Chants</span><span>Bible</span><span>PDF</span><span>Images</span></div>
-            <div class="op-body">
-              <div class="op-list">
-                <span class="on"></span><span></span><span></span><span></span><span></span>
-              </div>
-              <div class="op-preview"><i></i><i></i><i></i></div>
-            </div>
-          </div>
-          <div class="laptop-base"></div>
-        </div>
-      </figure>
+      <div class="stage">
+        <figure class="stage-operator">
+          <img class="shot" data-shot="songs" width="2560" height="1640" alt="La fenêtre de Verso : recherche « toi la gloire », le chant 240 des Hymnes et Cantiques ouvert, première strophe en projection." data-i18n-alt="alt.songs">
+          <figcaption data-i18n="stage.operator">Ce que vous voyez</figcaption>
+        </figure>
+        <figure class="stage-screen">
+          <img class="slide" src="img/slide-song.webp" width="1600" height="900" alt="La même strophe affichée en grand sur l'écran de projection." data-i18n-alt="alt.slide">
+          <figcaption data-i18n="stage.screen">Ce que voit l'assemblée</figcaption>
+        </figure>
+      </div>
     </section>
 
-    <section class="features" aria-labelledby="features-title">
-      <h2 id="features-title" class="visually-hidden" data-i18n="features.title">Ce que fait Verso</h2>
-      <article>
-        <h3 data-i18n="f.songs.t">Chants</h3>
-        <p data-i18n="f.songs.d">Retrouvez un chant par son numéro ou ses premiers mots, sans vous soucier des accents. Recueils Reflets 4 et Hymnes et Cantiques inclus.</p>
-      </article>
-      <article>
-        <h3 data-i18n="f.bible.t">Bible</h3>
-        <p data-i18n="f.bible.d">Projetez un passage en quelques touches. Darby, Darby révisée et Louis Segond 1910 sont fournies, et vous pouvez en ajouter.</p>
-      </article>
-      <article>
-        <h3 data-i18n="f.docs.t">PDF et images</h3>
-        <p data-i18n="f.docs.d">Déposez vos fichiers dans le dossier de Verso : annonces, affiches ou partitions s'affichent comme le reste.</p>
-      </article>
-      <article>
-        <h3 data-i18n="f.updates.t">Toujours à jour</h3>
-        <p data-i18n="f.updates.d">Verso vérifie au démarrage si une nouvelle version existe et s'installe tout seul. Interface en français et en anglais.</p>
-      </article>
+    <section class="feature" aria-labelledby="f-keys">
+      <div class="feature-text">
+        <h2 id="f-keys" data-i18n="keys.title">Tout se fait au clavier</h2>
+        <p data-i18n="keys.text">Tapez le numéro d'un chant ou ses premiers mots, avec ou sans accents, ou une référence comme « jean 3 », puis Entrée. Ensuite, les flèches font défiler les strophes et les versets. Pas besoin de chercher la souris au mauvais moment.</p>
+        <p class="aside" data-i18n="keys.included">Fournis avec Verso : les recueils Reflets 4 et Hymnes et Cantiques.</p>
+      </div>
+      <table class="keys">
+        <caption class="visually-hidden" data-i18n="keys.caption">Principaux raccourcis clavier</caption>
+        <tr><th scope="row" data-i18n="keys.search">Chercher</th><td><kbd>/</kbd> <span class="or" data-i18n="keys.or">ou</span> <kbd data-mod>Ctrl</kbd><kbd>F</kbd></td></tr>
+        <tr><th scope="row" data-i18n="keys.pick">Choisir un résultat</th><td><kbd>↑</kbd><kbd>↓</kbd> <span class="or" data-i18n="keys.then">puis</span> <kbd data-i18n="keys.enter">Entrée</kbd></td></tr>
+        <tr><th scope="row" data-i18n="keys.next">Strophe ou verset suivant</th><td><kbd>↓</kbd> <span class="or" data-i18n="keys.or">ou</span> <kbd data-i18n="keys.enter">Entrée</kbd></td></tr>
+        <tr><th scope="row" data-i18n="keys.prev">Revenir en arrière</th><td><kbd>↑</kbd></td></tr>
+        <tr><th scope="row" data-i18n="keys.tab">Passer aux chants, à la Bible, aux PDF</th><td><kbd>Tab</kbd></td></tr>
+        <tr><th scope="row" data-i18n="keys.project">Ouvrir la projection</th><td><kbd data-mod>Ctrl</kbd><kbd>P</kbd></td></tr>
+        <tr><th scope="row" data-i18n="keys.clear">Vider l'écran</th><td><kbd data-mod>Ctrl</kbd><kbd>M</kbd></td></tr>
+      </table>
     </section>
 
-    <section class="install" id="installer" aria-labelledby="install-title">
-      <h2 id="install-title" data-i18n="install.title">Premier lancement</h2>
-      <p class="install-lead" data-i18n="install.lead">Au tout premier lancement, votre ordinateur affichera un avertissement. C'est normal et ce n'est pas un virus : Verso est un logiciel gratuit qui n'a pas les certificats payants de Microsoft et d'Apple. Cette étape n'a lieu qu'une fois ; les mises à jour suivantes s'installent toutes seules.</p>
+    <section class="feature feature-wide" aria-labelledby="f-bible">
+      <div class="feature-text">
+        <h2 id="f-bible" data-i18n="bible.title">Une autre traduction, en un clic</h2>
+        <p data-i18n="bible.text">Le verset est projeté en Louis Segond, mais le prédicateur lit dans la Darby&nbsp;? Un clic sur Darby, et le même verset s'affiche dans cette traduction. Rien à rechercher.</p>
+        <p class="aside" data-i18n="bible.included">Fournies : Darby, Darby révisée et Louis Segond 1910. Vous pouvez ajouter les vôtres.</p>
+      </div>
+      <div class="feature-visual">
+        <img class="shot" data-shot="bible" width="2560" height="1640" loading="lazy" alt="Jean 3 ouvert dans Verso, le verset 16 en projection, avec les boutons DRB, DRR et LSG pour changer de traduction." data-i18n-alt="alt.bible">
+        <div class="compare">
+          <figure>
+            <img class="slide" src="img/slide-bible-lsg.webp" width="1600" height="900" loading="lazy" alt="Jean 3.16 projeté en Louis Segond 1910." data-i18n-alt="alt.lsg">
+            <figcaption>Louis Segond 1910</figcaption>
+          </figure>
+          <figure>
+            <img class="slide" src="img/slide-bible-drb.webp" width="1600" height="900" loading="lazy" alt="Le même verset projeté en Darby." data-i18n-alt="alt.drb">
+            <figcaption data-i18n="bible.after">Darby, un clic plus tard</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
 
+    <section class="feature feature-flip" aria-labelledby="f-pdf">
+      <div class="feature-text">
+        <h2 id="f-pdf" data-i18n="pdf.title">Vos PDF, projetés tels quels</h2>
+        <p data-i18n="pdf.text">Annonces, affiches, partitions : ajoutez le fichier à Verso et retrouvez toutes ses pages en vignettes. Un clic ou une flèche, et la page passe à l'écran. Même chose pour les images.</p>
+      </div>
+      <div class="feature-visual">
+        <img class="shot" data-shot="pdf" width="2560" height="1640" loading="lazy" alt="Un PDF d'annonces de trois pages ouvert dans Verso, la première page en projection." data-i18n-alt="alt.pdf">
+      </div>
+    </section>
+
+    <section class="speed" aria-labelledby="f-speed">
+      <h2 id="f-speed" data-i18n="speed.title">Prêt en quelques secondes, à jour en un clic</h2>
+      <p data-i18n="speed.text">Verso est léger : il s'installe vite, s'ouvre tout de suite et n'a besoin d'internet que pour se mettre à jour. Quand une nouvelle version sort, il vous le signale au démarrage ; un clic suffit pour l'installer.</p>
+      <dl class="facts">
+        <div><dt data-i18n="speed.size">10 Mo</dt><dd data-i18n="speed.sizeLabel">à télécharger</dd></div>
+        <div><dt data-i18n="speed.click">1 clic</dt><dd data-i18n="speed.clickLabel">pour installer une mise à jour</dd></div>
+        <div><dt data-i18n="speed.zero">0 compte</dt><dd data-i18n="speed.zeroLabel">ni abonnement, ni publicité</dd></div>
+      </dl>
+    </section>
+
+    <section class="download" id="telecharger" aria-labelledby="dl-title">
+      <div class="download-head">
+        <h2 id="dl-title" data-i18n="dl.title">Télécharger Verso</h2>
+        <p class="aside" id="dl-meta" data-i18n="dl.free">Gratuit, pour Windows 10 et 11 et pour Mac.</p>
+      </div>
+      <ul class="platforms">
+        <li><a data-asset="win" href="https://github.com/arnkoe/verso/releases/latest"><strong>Windows</strong><span data-i18n="dl.win">10 et 11</span><small data-size="win"></small></a></li>
+        <li><a data-asset="macArm" href="https://github.com/arnkoe/verso/releases/latest"><strong>Mac</strong><span data-i18n="dl.macArm">puce Apple (M1 et suivantes)</span><small data-size="macArm"></small></a></li>
+        <li><a data-asset="macIntel" href="https://github.com/arnkoe/verso/releases/latest"><strong>Mac</strong><span data-i18n="dl.macIntel">processeur Intel</span><small data-size="macIntel"></small></a></li>
+      </ul>
+
+      <h3 class="install-title" data-i18n="install.title">Premier lancement</h3>
+      <p class="install-lead" data-i18n="install.lead">La première fois, votre ordinateur affiche un avertissement. C'est normal : Verso est gratuit et n'a pas les certificats payants de Microsoft et d'Apple. Cette étape n'a lieu qu'une fois ; les mises à jour s'installent ensuite depuis Verso, en un clic.</p>
       <div class="install-grid">
-        <article>
-          <h3>Windows</h3>
+        <div>
+          <h4>Windows</h4>
           <ol>
             <li data-i18n="win.1">Ouvrez le fichier téléchargé (il finit par <code>setup.exe</code>).</li>
             <li data-i18n="win.2">Si un écran bleu indique « Windows a protégé votre ordinateur », cliquez sur <strong>Informations complémentaires</strong>.</li>
             <li data-i18n="win.3">Cliquez sur <strong>Exécuter quand même</strong>. L'installation se poursuit normalement.</li>
           </ol>
-        </article>
-        <article>
-          <h3>Mac</h3>
+        </div>
+        <div>
+          <h4>Mac</h4>
           <ol>
             <li data-i18n="mac.1">Ouvrez le fichier <code>.dmg</code>, puis glissez Verso dans le dossier <strong>Applications</strong>.</li>
             <li data-i18n="mac.2">Si le Mac indique que « Verso est endommagé », ouvrez le <strong>Terminal</strong> (Cmd + Espace, tapez « Terminal », Entrée).</li>
@@ -119,19 +164,15 @@
               </div>
             </li>
           </ol>
-        </article>
+        </div>
       </div>
     </section>
   </main>
 
   <footer class="bottom">
-    <p>
-      <a href="https://github.com/arnkoe/verso" data-i18n="footer.source">Code source</a>
-      <span aria-hidden="true">·</span>
-      <a href="https://github.com/arnkoe/verso/releases" data-i18n="footer.releases">Notes de version</a>
-      <span aria-hidden="true">·</span>
-      <a id="doc-link" href="https://github.com/arnkoe/verso/blob/master/README.fr.md" data-i18n="footer.docs">Mode d'emploi</a>
-    </p>
+    <span class="copyright">© <span id="year">2026</span> AKurba</span>
+    <a href="https://github.com/arnkoe/verso" data-i18n="footer.source">Code source</a>
+    <a href="https://github.com/arnkoe/verso/releases" data-i18n="footer.releases">Notes de version</a>
   </footer>
 
   <script src="app.js"></script>
