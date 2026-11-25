@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verso : projeter chants et Bible pendant le culte</title>
+  <meta name="description" content="Verso est un logiciel gratuit pour projeter des chants, des textes de la Bible, des PDF et des images pendant un culte. Pour Windows et Mac.">
+  <meta name="theme-color" content="#0b0b0c">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta property="og:title" content="Verso">
+  <meta property="og:description" content="Projeter chants et Bible pendant le culte. Gratuit, pour Windows et Mac.">
+  <meta property="og:image" content="https://verso.akurba.com/apple-touch-icon.png">
+  <meta property="og:url" content="https://verso.akurba.com/">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="./">
+      <img src="icon.svg" alt="" width="36" height="36">
+      <span>Verso</span>
+    </a>
+    <nav class="lang" aria-label="Langue / Language">
+      <button type="button" data-lang="fr" aria-pressed="true">FR</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-text">
+        <h1 data-i18n="hero.title">Projetez chants et Bible pendant le culte.</h1>
+        <p class="lead" data-i18n="hero.lead">Vous choisissez sur votre ordinateur, l'assemblée voit le texte en grand sur le vidéoprojecteur. Simple, gratuit, sans compte ni connexion internet.</p>
+
+        <div class="download">
+          <a class="btn-primary" id="primary-download" href="https://github.com/arnkoe/verso/releases/latest">
+            <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span id="primary-label" data-i18n="dl.generic">Télécharger Verso</span>
+          </a>
+          <p class="meta"><span id="version-line"></span><span data-i18n="dl.free">Gratuit · Windows et Mac</span></p>
+        </div>
+
+        <div class="platforms" aria-labelledby="platforms-title">
+          <p id="platforms-title" class="platforms-title" data-i18n="dl.all">Toutes les versions</p>
+          <ul>
+            <li><a data-asset="win" href="https://github.com/arnkoe/verso/releases/latest"><strong>Windows</strong> <span data-i18n="dl.win">10 et 11</span><small data-size="win"></small></a></li>
+            <li><a data-asset="macArm" href="https://github.com/arnkoe/verso/releases/latest"><strong>Mac</strong> <span data-i18n="dl.macArm">puce Apple (M1 et plus)</span><small data-size="macArm"></small></a></li>
+            <li><a data-asset="macIntel" href="https://github.com/arnkoe/verso/releases/latest"><strong>Mac</strong> <span data-i18n="dl.macIntel">processeur Intel</span><small data-size="macIntel"></small></a></li>
+          </ul>
+          <p class="hint" data-i18n="dl.whichMac">Quel Mac ? Menu Pomme → À propos de ce Mac, ligne « Puce » ou « Processeur ».</p>
+        </div>
+      </div>
+
+      <figure class="scene" aria-hidden="true">
+        <div class="screen">
+          <div class="screen-inner">
+            <p class="slide-line" data-i18n="slide.1">Que ton règne vienne,</p>
+            <p class="slide-line" data-i18n="slide.2">que ta volonté soit faite</p>
+            <p class="slide-line" data-i18n="slide.3">sur la terre comme au ciel.</p>
+          </div>
+        </div>
+        <div class="laptop">
+          <div class="laptop-screen">
+            <div class="op-tabs"><span class="on" data-i18n="scene.songs">Chants</span><span>Bible</span><span>PDF</span><span>Images</span></div>
+            <div class="op-body">
+              <div class="op-list">
+                <span class="on"></span><span></span><span></span><span></span><span></span>
+              </div>
+              <div class="op-preview"><i></i><i></i><i></i></div>
+            </div>
+          </div>
+          <div class="laptop-base"></div>
+        </div>
+      </figure>
+    </section>
+
+    <section class="features" aria-labelledby="features-title">
+      <h2 id="features-title" class="visually-hidden" data-i18n="features.title">Ce que fait Verso</h2>
+      <article>
+        <h3 data-i18n="f.songs.t">Chants</h3>
+        <p data-i18n="f.songs.d">Retrouvez un chant par son numéro ou ses premiers mots, sans vous soucier des accents. Recueils Reflets 4 et Hymnes et Cantiques inclus.</p>
+      </article>
+      <article>
+        <h3 data-i18n="f.bible.t">Bible</h3>
+        <p data-i18n="f.bible.d">Projetez un passage en quelques touches. Darby, Darby révisée et Louis Segond 1910 sont fournies, et vous pouvez en ajouter.</p>
+      </article>
+      <article>
+        <h3 data-i18n="f.docs.t">PDF et images</h3>
+        <p data-i18n="f.docs.d">Déposez vos fichiers dans le dossier de Verso : annonces, affiches ou partitions s'affichent comme le reste.</p>
+      </article>
+      <article>
+        <h3 data-i18n="f.updates.t">Toujours à jour</h3>
+        <p data-i18n="f.updates.d">Verso vérifie au démarrage si une nouvelle version existe et s'installe tout seul. Interface en français et en anglais.</p>
+      </article>
+    </section>
+
+    <section class="install" id="installer" aria-labelledby="install-title">
+      <h2 id="install-title" data-i18n="install.title">Premier lancement</h2>
+      <p class="install-lead" data-i18n="install.lead">Au tout premier lancement, votre ordinateur affichera un avertissement. C'est normal et ce n'est pas un virus : Verso est un logiciel gratuit qui n'a pas les certificats payants de Microsoft et d'Apple. Cette étape n'a lieu qu'une fois ; les mises à jour suivantes s'installent toutes seules.</p>
+
+      <div class="install-grid">
+        <article>
+          <h3>Windows</h3>
+          <ol>
+            <li data-i18n="win.1">Ouvrez le fichier téléchargé (il finit par <code>setup.exe</code>).</li>
+            <li data-i18n="win.2">Si un écran bleu indique « Windows a protégé votre ordinateur », cliquez sur <strong>Informations complémentaires</strong>.</li>
+            <li data-i18n="win.3">Cliquez sur <strong>Exécuter quand même</strong>. L'installation se poursuit normalement.</li>
+          </ol>
+        </article>
+        <article>
+          <h3>Mac</h3>
+          <ol>
+            <li data-i18n="mac.1">Ouvrez le fichier <code>.dmg</code>, puis glissez Verso dans le dossier <strong>Applications</strong>.</li>
+            <li data-i18n="mac.2">Si le Mac indique que « Verso est endommagé », ouvrez le <strong>Terminal</strong> (Cmd + Espace, tapez « Terminal », Entrée).</li>
+            <li><span data-i18n="mac.3">Collez cette ligne, appuyez sur Entrée, puis ouvrez Verso normalement :</span>
+              <div class="cmd">
+                <code id="xattr-cmd">xattr -dr com.apple.quarantine /Applications/Verso.app</code>
+                <button type="button" class="copy" data-copy="xattr-cmd" data-i18n="copy">Copier</button>
+              </div>
+            </li>
+          </ol>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bottom">
+    <p>
+      <a href="https://github.com/arnkoe/verso" data-i18n="footer.source">Code source</a>
+      <span aria-hidden="true">·</span>
+      <a href="https://github.com/arnkoe/verso/releases" data-i18n="footer.releases">Notes de version</a>
+      <span aria-hidden="true">·</span>
+      <a id="doc-link" href="https://github.com/arnkoe/verso/blob/master/README.fr.md" data-i18n="footer.docs">Mode d'emploi</a>
+    </p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

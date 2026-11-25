@@ -12,6 +12,10 @@ L'interface est disponible en **anglais** (par défaut) et en **français**. Vou
 
 ## Installer Verso
 
+Le plus simple : allez sur **[verso.akurba.com](https://verso.akurba.com)** et cliquez sur le bouton de téléchargement, qui choisit le bon fichier pour votre ordinateur. Passez ensuite directement à l'étape 3.
+
+Vous pouvez aussi télécharger les fichiers depuis GitHub :
+
 1. Allez sur la [page des **versions** (« Releases »)](https://github.com/arnkoe/verso/releases/latest), puis ouvrez la section **Assets** en bas de la dernière version.
 2. Téléchargez le fichier qui correspond à votre ordinateur :
    - **Windows** : le fichier dont le nom finit par `setup.exe`.
