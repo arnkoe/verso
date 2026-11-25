@@ -2,8 +2,9 @@
 
 Static download page for Verso, meant for https://verso.akurba.com.
 
-No build step and no dependency: `index.html`, `style.css`, `app.js` and the
-icons are served as is.
+No build step: `index.html`, `guide.html`, `style.css`, `app.js`, `guide.js`,
+the images and the icons are served as is. The user guide page loads `marked`
+and `DOMPurify` from cdnjs (pinned versions with SRI hashes).
 
 ## Run locally
 
@@ -27,6 +28,22 @@ Apple Silicon.
 
 The page is in French and English; the language follows the browser and can be
 switched with the FR / EN toggle.
+
+## How the user guide works
+
+`guide.html` is the user guide. `guide.js` fetches `README.fr.md` or
+`README.md` from the `master` branch on `raw.githubusercontent.com`, renders it
+with `marked`, sanitizes it with `DOMPurify` and builds the table of contents
+from its `##` and `###` headings. Every push to `master` that changes the README
+therefore shows up on the site within about 5 minutes (GitHub's cache), without
+redeploying it.
+
+Only the text between `<!-- website:start -->` and `<!-- website:end -->` in
+each README is shown; the technical part after the end marker is linked to on
+GitHub instead. Keep both markers in both READMEs. Without them the page shows
+the whole README. Section anchors match GitHub's, so
+`guide.html#installer-verso` works like `README.fr.md#installer-verso`. If
+GitHub cannot be reached, the page links to the README on GitHub.
 
 ## Screenshots
 

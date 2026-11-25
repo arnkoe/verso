@@ -85,6 +85,7 @@ code {
 .nav { display: flex; align-items: center; gap: 28px; font-size: .95rem; }
 .nav > a { text-decoration: none; color: var(--muted); }
 .nav > a:hover { color: var(--text); }
+.nav > a[aria-current="page"] { color: var(--text); }
 .lang { display: flex; gap: 2px; }
 .lang button {
   font: inherit;
@@ -300,19 +301,117 @@ kbd {
 .bottom a { text-decoration: none; }
 .bottom a:hover { color: var(--text); }
 
+/* User guide (guide.html), rendered from the README */
+.guide-layout {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 72px;
+  align-items: start;
+  padding-top: 40px;
+  padding-bottom: 96px;
+}
+.toc {
+  position: sticky;
+  top: 24px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  font-size: .9rem;
+}
+.toc[hidden] { display: none; }
+.toc-title {
+  margin: 0 0 10px;
+  font-size: .8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--mute-2);
+}
+.toc ol { list-style: none; margin: 0; padding: 0; }
+.toc li.sub { padding-left: 14px; font-size: .86rem; }
+.toc a {
+  display: block;
+  padding: 4px 0;
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.35;
+}
+.toc a:hover { color: var(--text); }
+
+.guide { grid-column: 2; min-width: 0; max-width: 40em; }
+.guide h1 { font-size: clamp(2.2rem, 4.4vw, 3.2rem); line-height: 1.08; margin-bottom: 32px; }
+.guide h2 {
+  font-size: clamp(1.5rem, 2.6vw, 1.9rem);
+  line-height: 1.15;
+  margin: 64px 0 16px;
+  scroll-margin-top: 24px;
+}
+.guide h3 { font-size: 1.2rem; margin: 40px 0 10px; scroll-margin-top: 24px; }
+.guide h4 { font-size: 1.05rem; margin: 28px 0 8px; }
+.guide p, .guide ul, .guide ol { margin: 0 0 16px; }
+.guide ul, .guide ol { padding-left: 1.3em; }
+.guide li { margin-bottom: 6px; }
+.guide a { color: var(--accent); text-underline-offset: 3px; }
+.guide hr { display: none; }
+.guide pre {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  background: var(--bg-alt);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+.guide pre code {
+  padding: 0;
+  background: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .82rem;
+}
+.guide blockquote {
+  margin: 0 0 16px;
+  padding: 4px 0 4px 18px;
+  border-left: 3px solid var(--line-strong);
+  color: var(--muted);
+}
+.guide table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 0 0 16px;
+  font-size: .95rem;
+}
+.guide th, .guide td { padding: 8px 12px; border: 1px solid var(--line); text-align: left; }
+.guide th { background: var(--bg-alt); }
+.guide-status { color: var(--muted); }
+.guide-more {
+  margin: 64px 0 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+}
+.guide-more[hidden] { display: none; }
+
 @media (max-width: 980px) {
   .feature, .feature-wide, .feature-flip { grid-template-columns: 1fr; gap: 40px; padding: 72px 0; }
   .feature-flip .feature-text { order: 0; }
   .stage-operator { width: 100%; }
   .stage { padding-bottom: 0; }
   .stage-screen { position: relative; width: 62%; margin: -18% 0 0 auto; }
+  .guide-layout { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-top: 16px; }
+  .guide { grid-column: auto; }
+  .toc {
+    position: static;
+    max-height: none;
+    padding: 18px 20px;
+    background: var(--bg-alt);
+    border-radius: 10px;
+  }
 }
 
 @media (max-width: 680px) {
   body { font-size: 18px; }
   .top, main, .bottom { padding-left: 16px; padding-right: 16px; }
   .nav { gap: 16px; }
-  .nav > a[href="#telecharger"] { display: none; }
+  .nav > a[href$="#telecharger"] { display: none; }
   .hero { padding-top: 32px; }
   .stage { margin-top: 48px; }
   .stage-screen { width: 72%; }

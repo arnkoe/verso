@@ -2,6 +2,8 @@
 
 *[Français](README.fr.md)*
 
+<!-- website:start -->
+
 Verso is software for projecting songs and Bible texts onto a large screen or a video projector during a church service.
 
 You work in one window (the **operator** window, on your computer) and what you choose appears in a second window, full screen, on the projector.
@@ -137,6 +139,8 @@ On macOS, choose **Verso → Settings…** or press `⌘,`. On Windows, choose *
 
 Close the **Settings**, **Keyboard Shortcuts**, and **About Verso** windows like any native window, using their close button or `Cmd/Ctrl W`. Verso keeps these lightweight windows ready in the background so that reopening them is immediate. The **About Verso** window includes the version, author and contact details, and lets you check for and install updates directly; it is available from **Help** and, on macOS, also from the **Verso** menu. Dialogs inside these windows close with **Esc**. Native menu labels follow the language selected in Settings.
 
+<!-- website:end -->
+
 ---
 
 ## Going further (technical section)
@@ -240,6 +244,8 @@ Rust tests:
 ```bash
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
+
+The website user guide (https://verso.akurba.com/guide.html) is the text of this README between the `<!-- website:start -->` and `<!-- website:end -->` markers, read from GitHub on every visit: editing that part and pushing it to `master` is enough to update the site. See `website/README.md`.
 
 ### Code structure
 

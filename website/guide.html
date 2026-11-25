@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mode d'emploi de Verso</title>
+  <meta name="description" content="Mode d'emploi de Verso : installer, mettre à jour et utiliser le logiciel de projection de chants, de textes de la Bible et de PDF.">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // Same rule as index.html: browser language first; a choice made on the
+    // page only lasts for the visit.
+    (function () {
+      var saved = null;
+      try { saved = sessionStorage.getItem("verso-lang"); } catch (e) {}
+      var langs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
+      var pick = "en";
+      for (var i = 0; i < langs.length; i++) {
+        var l = String(langs[i]).slice(0, 2).toLowerCase();
+        if (l === "fr" || l === "en") { pick = l; break; }
+      }
+      document.documentElement.lang = saved === "fr" || saved === "en" ? saved : pick;
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="./">
+      <img src="icon.svg" alt="" width="34" height="34">
+      <span>Verso</span>
+    </a>
+    <nav class="nav">
+      <a href="./#telecharger" data-i18n="nav.download">Télécharger</a>
+      <a href="guide.html" aria-current="page" data-i18n="nav.docs">Mode d'emploi</a>
+      <span class="lang" role="group" aria-label="Langue / Language">
+        <button type="button" data-lang="fr" aria-pressed="true">FR</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </span>
+    </nav>
+  </header>
+
+  <main class="guide-layout">
+    <nav class="toc" aria-labelledby="toc-title" hidden>
+      <p id="toc-title" class="toc-title" data-i18n="guide.toc">Sommaire</p>
+      <ol id="toc"></ol>
+    </nav>
+
+    <article class="guide">
+      <h1 data-i18n="guide.title">Mode d'emploi</h1>
+      <div id="guide-body" aria-live="polite">
+        <p class="guide-status" data-i18n="guide.loading">Chargement du mode d'emploi…</p>
+      </div>
+      <p class="guide-more" id="guide-more" hidden>
+        <span data-i18n="guide.more">Ajouter un recueil ou une Bible, contribuer au code :</span>
+        <a id="guide-tech" href="https://github.com/arnkoe/verso/blob/master/README.fr.md" data-i18n="guide.tech">partie technique sur GitHub</a>
+      </p>
+    </article>
+  </main>
+
+  <footer class="bottom">
+    <span class="copyright">© <span id="year">2026</span> AKurba</span>
+    <a href="https://github.com/arnkoe/verso" data-i18n="footer.source">Code source</a>
+    <a href="https://github.com/arnkoe/verso/releases" data-i18n="footer.releases">Notes de version</a>
+    <a id="guide-source" href="https://github.com/arnkoe/verso/blob/master/README.fr.md" data-i18n="footer.github">Ce mode d'emploi sur GitHub</a>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.12/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js" integrity="sha384-JEyTNhjM6R1ElGoJns4U2Ln4ofPcqzSsynQkmEc/KGy6336qAZl70tDLufbkla+3" crossorigin="anonymous"></script>
+  <script src="guide.js"></script>
+</body>
+</html>
