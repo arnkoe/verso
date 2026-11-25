@@ -69,7 +69,7 @@ const I18N = {
     // À propos
     'about.desc': 'Projection de contenus pour les églises',
     'about.version': 'Version',
-    'about.author': 'Auteur : Arnaud Koechlin',
+    'about.author': 'Auteur : AKurba',
     'about.contact': 'Contact :',
     // Modale Paramètres
     'settings.title': 'Paramètres',
@@ -214,7 +214,7 @@ const I18N = {
     'help.closeProjection': 'Close the projection window (from this window)',
     'about.desc': 'Content projection for churches',
     'about.version': 'Version',
-    'about.author': 'Author: Arnaud Koechlin',
+    'about.author': 'Author: AKurba',
     'about.contact': 'Contact:',
     'settings.title': 'Settings',
     'settings.sections': 'Sections',

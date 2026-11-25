@@ -13,30 +13,55 @@
 
   // French strings live in index.html; English overrides them.
   var EN = {
-    "hero.title": "Project songs and Bible verses during worship.",
-    "hero.lead": "You choose on your computer, the congregation sees the text in large type on the projector. Simple, free, no account or internet connection needed.",
+    "nav.download": "Download",
+    "nav.docs": "User guide",
+    "hero.title": "Project songs and verses without missing a beat.",
+    "hero.lead": "While the congregation sings, one key takes you to the next verse. A Bible reading? Type the reference and the text is on screen. Verso is free, runs on Windows and Mac, and works offline.",
     "dl.generic": "Download Verso",
-    "dl.free": "Free · Windows and Mac",
-    "dl.all": "All downloads",
+    "dl.others": "Other systems",
+    "stage.operator": "What you see",
+    "stage.screen": "What the congregation sees",
+    "alt.songs": "The Verso window: a search for “toi la gloire”, hymn 240 of Hymnes et Cantiques open, its first verse on screen.",
+    "alt.slide": "The same verse shown in large type on the projection screen.",
+    "keys.title": "Everything from the keyboard",
+    "keys.text": "Type a song number or its first words, with or without accents, or a reference such as “jean 3”, then Return. From there, the arrow keys step through the verses. No reaching for the mouse at the wrong moment.",
+    "keys.included": "Included with Verso: the Reflets 4 and Hymnes et Cantiques songbooks.",
+    "keys.caption": "Main keyboard shortcuts",
+    "keys.search": "Search",
+    "keys.or": "or",
+    "keys.then": "then",
+    "keys.enter": "Return",
+    "keys.pick": "Pick a result",
+    "keys.next": "Next verse",
+    "keys.prev": "Go back",
+    "keys.tab": "Switch between songs, Bible, PDFs",
+    "keys.project": "Open the projection",
+    "keys.clear": "Clear the screen",
+    "bible.title": "Another translation, in one click",
+    "bible.text": "The verse is up in Louis Segond, but the preacher is reading from Darby? Click Darby and the same verse appears in that translation. Nothing to look up again.",
+    "bible.included": "Included: Darby, revised Darby and Louis Segond 1910. You can add your own.",
+    "bible.after": "Darby, one click later",
+    "alt.bible": "John 3 open in Verso, verse 16 on screen, with the DRB, DRR and LSG buttons to switch translation.",
+    "alt.lsg": "John 3:16 projected in Louis Segond 1910.",
+    "alt.drb": "The same verse projected in Darby.",
+    "pdf.title": "Your PDFs, shown as they are",
+    "pdf.text": "Announcements, posters, sheet music: add the file to Verso and all its pages show up as thumbnails. One click or one arrow key and the page is on screen. Same for images.",
+    "alt.pdf": "A three-page announcements PDF open in Verso, its first page on screen.",
+    "speed.title": "Ready in seconds, updated in one click",
+    "speed.text": "Verso is light: it installs quickly, opens right away and only needs the internet to update. When a new version is out, it tells you at startup; one click installs it.",
+    "speed.size": "10 MB",
+    "speed.sizeLabel": "to download",
+    "speed.click": "1 click",
+    "speed.clickLabel": "to install an update",
+    "speed.zero": "No account",
+    "speed.zeroLabel": "no subscription, no ads",
+    "dl.title": "Download Verso",
+    "dl.free": "Free, for Windows 10 and 11 and for Mac.",
     "dl.win": "10 and 11",
     "dl.macArm": "Apple chip (M1 and later)",
     "dl.macIntel": "Intel processor",
-    "dl.whichMac": "Which Mac? Apple menu → About This Mac, “Chip” or “Processor” line.",
-    "scene.songs": "Songs",
-    "slide.1": "Your kingdom come,",
-    "slide.2": "your will be done,",
-    "slide.3": "on earth as it is in heaven.",
-    "features.title": "What Verso does",
-    "f.songs.t": "Songs",
-    "f.songs.d": "Find a song by its number or first words, accents don't matter. Comes with the Reflets 4 and Hymnes et Cantiques songbooks.",
-    "f.bible.t": "Bible",
-    "f.bible.d": "Project a passage in a few keystrokes. Darby, revised Darby and Louis Segond 1910 are included, and you can add more.",
-    "f.docs.t": "PDFs and images",
-    "f.docs.d": "Drop your files into the Verso folder: announcements, posters or sheet music are shown like everything else.",
-    "f.updates.t": "Always up to date",
-    "f.updates.d": "Verso checks for a new version at startup and installs it by itself. Interface in English and French.",
     "install.title": "First launch",
-    "install.lead": "The very first time, your computer will show a warning. This is normal and it is not a virus: Verso is free software without the paid certificates from Microsoft and Apple. You only do this once; later updates install by themselves.",
+    "install.lead": "The first time, your computer shows a warning. This is expected: Verso is free and does not have the paid certificates from Microsoft and Apple. You only do this once; after that, updates install from within Verso in one click.",
     "win.1": "Open the downloaded file (it ends with <code>setup.exe</code>).",
     "win.2": "If a blue screen says “Windows protected your PC”, click <strong>More info</strong>.",
     "win.3": "Click <strong>Run anyway</strong>. Installation continues normally.",
@@ -46,15 +71,14 @@
     "copy": "Copy",
     "copied": "Copied",
     "footer.source": "Source code",
-    "footer.releases": "Release notes",
-    "footer.docs": "User guide"
+    "footer.releases": "Release notes"
   };
 
   var FR_EXTRA = { copied: "Copié" };
 
   var LABELS = {
-    fr: { win: "Télécharger pour Windows", macArm: "Télécharger pour Mac (puce Apple)", macIntel: "Télécharger pour Mac (Intel)" },
-    en: { win: "Download for Windows", macArm: "Download for Mac (Apple chip)", macIntel: "Download for Mac (Intel)" }
+    fr: { win: "Télécharger pour Windows", macArm: "Télécharger pour Mac", macIntel: "Télécharger pour Mac (Intel)" },
+    en: { win: "Download for Windows", macArm: "Download for Mac", macIntel: "Download for Mac (Intel)" }
   };
 
   var FR = {};
@@ -65,17 +89,24 @@
   document.querySelectorAll("[data-i18n]").forEach(function (el) {
     FR[el.getAttribute("data-i18n")] = el.innerHTML;
   });
+  document.querySelectorAll("[data-i18n-alt]").forEach(function (el) {
+    FR[el.getAttribute("data-i18n-alt")] = el.getAttribute("alt");
+  });
+
+  // Same modifier key as the app shows: ⌘ on Mac, Ctrl elsewhere.
+  if (/Mac/i.test(navigator.platform || navigator.userAgent || "")) {
+    document.querySelectorAll("kbd[data-mod]").forEach(function (k) { k.textContent = "⌘"; });
+  }
 
   function t(key) {
     var dict = lang === "en" ? EN : FR;
     return dict[key] || FR_EXTRA[key] || FR[key] || key;
   }
 
-  function storageGet(key) {
-    try { return localStorage.getItem(key); } catch (e) { return null; }
-  }
+  // A language picked on the page lasts for the visit only: the next visit
+  // starts again from the browser language (chosen in index.html <head>).
   function storageSet(key, value) {
-    try { localStorage.setItem(key, value); } catch (e) { /* ignore */ }
+    try { sessionStorage.setItem(key, value); } catch (e) { /* ignore */ }
   }
 
   function setLang(next) {
@@ -84,14 +115,19 @@
     document.querySelectorAll("[data-i18n]").forEach(function (el) {
       el.innerHTML = t(el.getAttribute("data-i18n"));
     });
+    document.querySelectorAll("[data-i18n-alt]").forEach(function (el) {
+      el.setAttribute("alt", t(el.getAttribute("data-i18n-alt")));
+    });
+    // Screenshots of the app interface exist in both languages.
+    document.querySelectorAll("img[data-shot]").forEach(function (img) {
+      img.src = "img/" + img.getAttribute("data-shot") + "-" + lang + ".webp";
+    });
     document.querySelectorAll(".lang button").forEach(function (b) {
       b.setAttribute("aria-pressed", String(b.getAttribute("data-lang") === lang));
     });
-    document.getElementById("doc-link").href =
-      "https://github.com/" + REPO + "/blob/master/" + (lang === "en" ? "README.md" : "README.fr.md");
     document.title = lang === "en"
-      ? "Verso: project songs and Bible verses during worship"
-      : "Verso : projeter chants et Bible pendant le culte";
+      ? "Verso: project songs, Bible verses and PDFs during worship"
+      : "Verso : projeter chants, Bible et PDF pendant le culte";
     renderDownloads();
   }
 
@@ -178,18 +214,7 @@
     });
   });
 
-  document.querySelectorAll("[data-copy]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      var text = document.getElementById(btn.getAttribute("data-copy")).textContent;
-      navigator.clipboard.writeText(text).then(function () {
-        btn.textContent = t("copied");
-        setTimeout(function () { btn.textContent = t("copy"); }, 1600);
-      });
-    });
-  });
-
-  var saved = storageGet("verso-lang");
-  var browserLang = (navigator.language || "fr").slice(0, 2).toLowerCase();
-  setLang(saved || (browserLang === "fr" ? "fr" : "en"));
+  document.getElementById("year").textContent = new Date().getFullYear();
+  setLang(document.documentElement.lang);
   loadRelease();
 })();

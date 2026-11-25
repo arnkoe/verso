@@ -1,0 +1,50 @@
+<!doctype html>
+<!-- Sample announcement deck printed to PDF by shoot.mjs, then opened in the
+     PDF tab of the screenshots. ?lang=en for the English version. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&display=swap">
+<style>
+  @page { size: 1600px 900px; margin: 0; }
+  * { margin: 0; box-sizing: border-box; }
+  body { font-family: "Figtree", -apple-system, "Helvetica Neue", Arial, sans-serif; color: #000; }
+  section {
+    width: 1600px; height: 900px; padding: 120px 140px;
+    display: flex; flex-direction: column; justify-content: center;
+    page-break-after: always; background: #f6f8fa;
+  }
+  section:nth-child(2) { background: #fff; }
+  .kicker { font-size: 34px; letter-spacing: .12em; text-transform: uppercase; color: #2563eb; font-weight: 600; margin-bottom: 28px; }
+  h1 { font-weight: 700; font-size: 128px; line-height: 1.05; letter-spacing: -.02em; }
+  p { font-size: 46px; line-height: 1.4; margin-top: 36px; color: #53585f; }
+  ul { list-style: none; padding: 0; margin-top: 40px; }
+  li { font-size: 50px; padding: 26px 0; border-top: 2px solid #dfe3e8; display: flex; gap: 48px; }
+  li b { width: 360px; flex: none; font-weight: 600; }
+</style>
+</head>
+<body>
+<section>
+  <div class="kicker" data-fr="Dimanche matin" data-en="Sunday morning"></div>
+  <h1 data-fr="Bienvenue&nbsp;!" data-en="Welcome!"></h1>
+  <p data-fr="Merci d’être avec nous ce matin." data-en="Thank you for joining us this morning."></p>
+</section>
+<section>
+  <h1 data-fr="Cette semaine" data-en="This week"></h1>
+  <ul>
+    <li><b data-fr="Mardi 20 h" data-en="Tuesday 8 pm"></b><span data-fr="Étude biblique" data-en="Bible study"></span></li>
+    <li><b data-fr="Jeudi 18 h" data-en="Thursday 6 pm"></b><span data-fr="Répétition de la chorale" data-en="Choir rehearsal"></span></li>
+    <li><b data-fr="Samedi 14 h" data-en="Saturday 2 pm"></b><span data-fr="Rencontre des jeunes" data-en="Youth group"></span></li>
+  </ul>
+</section>
+<section>
+  <div class="kicker" data-fr="Dimanche prochain" data-en="Next Sunday"></div>
+  <h1 data-fr="Repas en commun" data-en="Shared lunch"></h1>
+  <p data-fr="Après le culte, dans la grande salle." data-en="After the service, in the main hall."></p>
+</section>
+<script>
+  const lang = new URLSearchParams(location.search).get('lang') === 'en' ? 'en' : 'fr';
+  document.querySelectorAll('[data-fr]').forEach(el => { el.innerHTML = el.dataset[lang]; });
+</script>
+</body>
+</html>

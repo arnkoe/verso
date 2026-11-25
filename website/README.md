@@ -28,6 +28,22 @@ Apple Silicon.
 The page is in French and English; the language follows the browser and can be
 switched with the FR / EN toggle.
 
+## Screenshots
+
+The images in `img/` are captures of the real Verso interface (operator
+window in French and English, projection slides). Regenerate them after a
+visible change to the app:
+
+```bash
+node scripts/website-shots/shoot.mjs
+```
+
+The script loads `src/operator.html` and `src/projection.html` in headless
+Google Chrome, with `scripts/website-shots/mock-tauri.js` answering in place of
+the Rust back end from the bundled songbooks and Bibles, then searches,
+selects and projects like an operator. It needs Chrome and `python3`, no npm
+dependency.
+
 ## Deploy
 
 `verso.akurba.com` is a cPanel subdomain on the `akurba` host (SSH alias),
