@@ -264,28 +264,6 @@ kbd {
 .install-grid ol { margin: 0; padding-left: 1.3em; }
 .install-grid li { margin-bottom: 10px; }
 
-.cmd { display: flex; gap: 8px; margin-top: 12px; }
-.cmd code {
-  flex: 1;
-  min-width: 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-  overflow-x: auto;
-  white-space: nowrap;
-}
-.copy {
-  font: inherit;
-  font-size: .9rem;
-  font-weight: 600;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 0 14px;
-  cursor: pointer;
-}
-.copy:hover { border-color: var(--text); }
-
 /* Footer */
 .bottom {
   display: flex;

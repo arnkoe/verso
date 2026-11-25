@@ -61,20 +61,15 @@
     "dl.macArm": "Apple chip (M1 and later)",
     "dl.macIntel": "Intel processor",
     "install.title": "First launch",
-    "install.lead": "The first time, your computer shows a warning. This is expected: Verso is free and does not have the paid certificates from Microsoft and Apple. You only do this once; after that, updates install from within Verso in one click.",
+    "install.lead": "On Windows, the first time, your computer shows a warning. This is expected: Verso is free and does not have the paid Microsoft certificate. You only do this once; after that, updates install from within Verso in one click.",
     "win.1": "Open the downloaded file (it ends with <code>setup.exe</code>).",
     "win.2": "If a blue screen says “Windows protected your PC”, click <strong>More info</strong>.",
     "win.3": "Click <strong>Run anyway</strong>. Installation continues normally.",
     "mac.1": "Open the <code>.dmg</code> file, then drag Verso into the <strong>Applications</strong> folder.",
-    "mac.2": "If the Mac says “Verso is damaged”, open <strong>Terminal</strong> (Cmd + Space, type “Terminal”, Return).",
-    "mac.3": "Paste this line, press Return, then open Verso normally:",
-    "copy": "Copy",
-    "copied": "Copied",
+    "mac.2": "Open Verso from Applications. If the Mac asks for confirmation because the app comes from the Internet, click <strong>Open</strong>.",
     "footer.source": "Source code",
     "footer.releases": "Release notes"
   };
-
-  var FR_EXTRA = { copied: "Copié" };
 
   var LABELS = {
     fr: { win: "Télécharger pour Windows", macArm: "Télécharger pour Mac", macIntel: "Télécharger pour Mac (Intel)" },
@@ -100,7 +95,7 @@
 
   function t(key) {
     var dict = lang === "en" ? EN : FR;
-    return dict[key] || FR_EXTRA[key] || FR[key] || key;
+    return dict[key] || FR[key] || key;
   }
 
   // A language picked on the page lasts for the visit only: the next visit

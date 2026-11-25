@@ -62,10 +62,10 @@ jobs:
             Pas sûr de votre Mac ? Menu Pomme → **À propos de ce Mac**, regardez
             la ligne « Puce » ou « Processeur ».
 
-            > Au premier lancement, votre ordinateur affichera un message qui fait
-            > peur. **C'est normal et ce n'est pas un virus** : Verso est un logiciel
-            > gratuit qui n'a pas les certificats payants de Microsoft et d'Apple.
-            > Voici comment passer cette étape, une seule fois.
+            > Sur Windows, le premier lancement affiche un message qui fait peur.
+            > **C'est normal et ce n'est pas un virus** : Verso est un logiciel
+            > gratuit qui n'a pas le certificat payant de Microsoft. Voici comment
+            > passer cette étape, une seule fois.
 
             ## Premier lancement sur Windows
 
@@ -81,23 +81,11 @@ jobs:
 
             1. Ouvrez le fichier \`.dmg\`, puis **glissez Verso dans le dossier
                Applications**.
-            2. Si le Mac affiche « "Verso" est endommagé et ne peut pas être ouvert »,
-               une petite manipulation est nécessaire, **une seule fois** :
+            2. Ouvrez Verso depuis le dossier Applications. Si le Mac demande une
+               confirmation parce que l'app vient d'Internet, cliquez sur **Ouvrir**.
 
-               a. Ouvrez le **Terminal** : appuyez sur **Cmd + Espace**, tapez
-                  \`Terminal\`, puis **Entrée**.
-
-               b. Copiez-collez cette ligne dans la fenêtre noire :
-
-                  \`\`\`
-                  xattr -dr com.apple.quarantine /Applications/Verso.app
-                  \`\`\`
-
-               c. Appuyez sur **Entrée** (rien ne s'affiche, c'est normal), puis
-                  fermez le Terminal.
-
-            3. Ouvrez Verso normalement. Les mises à jour suivantes s'installeront
-               toutes seules, sans cette étape.
+            Verso est signé et vérifié par Apple. Les mises à jour suivantes
+            s'installeront toutes seules.
 
             ---
 
@@ -152,6 +140,39 @@ jobs:
       - name: Installer les dépendances npm
         run: npm ci
 
+      # Signature et notarisation macOS avec le certificat « Developer ID
+      # Application » du compte Apple Developer (procédure documentée par Tauri :
+      # https://v2.tauri.app/distribute/sign/macos/). Le .p12 (encodé en base64
+      # dans le secret APPLE_CERTIFICATE) est importé dans un trousseau
+      # temporaire ; son identité est ensuite passée à tauri-action, qui signe
+      # l'app puis la fait notariser par Apple (APPLE_ID / APPLE_PASSWORD /
+      # APPLE_TEAM_ID). Sans notarisation, macOS bloque l'app téléchargée
+      # (« Verso est endommagé »).
+      - name: Importer le certificat Apple
+        if: matrix.platform == 'macos-latest'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+          rm certificate.p12
+          # L'exemple de la doc Tauri cherche « Apple Development » (certificat
+          # de développement) ; une distribution hors App Store exige
+          # « Developer ID Application ». Échec explicite sinon.
+          CERT_ID=$(security find-identity -v -p codesigning build.keychain | grep "Developer ID Application" | head -n 1 | awk -F'"' '{print $2}')
+          if [ -z "$CERT_ID" ]; then
+            echo "::error::Aucun certificat « Developer ID Application » dans APPLE_CERTIFICATE."
+            exit 1
+          fi
+          echo "CERT_ID=$CERT_ID" >> "$GITHUB_ENV"
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -160,6 +181,13 @@ jobs:
           # Clé générée sans passphrase : password vide. On force la chaîne vide
           # littérale (pas de secret, GitHub interdisant les secrets vides).
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          # Signature et notarisation macOS (ignorées par le build Windows).
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           # Rattache les bundles à la release brouillon créée en amont : pas de
           # tagName/releaseName ici, sinon chaque job retenterait de créer sa

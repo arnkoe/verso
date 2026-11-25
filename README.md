@@ -28,7 +28,7 @@ You can also download the files from GitHub:
 
 3. Open the downloaded file and follow the instructions below for your system.
 
-> The very first time you launch it, your computer will show a scary-looking message. **This is normal and it is not a virus.** It happens because Verso is a small, free program that has not paid for the expensive Microsoft and Apple certificates. Here is how to get past this step, once.
+> On Windows, the very first launch shows a scary-looking message. **This is normal and it is not a virus.** It happens because Verso is a small, free program that has not paid for the expensive Microsoft certificate. Here is how to get past this step, once.
 
 ### On Windows
 
@@ -45,21 +45,9 @@ Installation continues normally. You will never have to do this again: future up
 
 1. Open the `.dmg` file you downloaded.
 2. A window opens. **Drag the Verso icon onto the Applications folder** shown next to it.
-3. If, when you try to open Verso, the Mac says "Verso" is damaged and can't be opened", you need a small one-time fix:
+3. Open Verso from the Applications folder. If the Mac asks for confirmation because the app was downloaded from the Internet, click **Open**.
 
-   a. Open the **Terminal** app. To find it: press **Cmd () + Space**, type `Terminal`, then press **Enter**.
-
-   b. In the black window that opens, copy and paste exactly the following line:
-
-   ```
-   xattr -dr com.apple.quarantine /Applications/Verso.app
-   ```
-
-   c. Press **Enter**. (Nothing is displayed: that's a good sign.)
-
-   d. Close the Terminal and open Verso normally.
-
-You will never have to do this again: future updates install by themselves.
+Verso is signed and checked by Apple. Future updates install by themselves.
 
 ---
 
