@@ -6,7 +6,16 @@ No build step: `index.html`, `guide.html`, `style.css`, `app.js`, `guide.js`,
 the images and the icons are served as is. The user guide page loads `marked`
 and `DOMPurify` from cdnjs (pinned versions with SRI hashes).
 
-## Run locally
+## Test locally before deploying
+
+Like the other local projects, the site has an Apache virtual host
+(Homebrew `httpd`, `/opt/homebrew/etc/httpd/extra/httpd-vhosts.conf`) whose
+document root is this `website/` folder, on http://verso.test and
+https://verso.test (certificate in `/opt/homebrew/etc/httpd/certs/`,
+`/etc/hosts` entry for `verso.test`). Edits are live: save, reload the page,
+check, then deploy.
+
+Without Apache:
 
 ```bash
 python3 -m http.server 4180 --bind 127.0.0.1 --directory website
