@@ -39,7 +39,8 @@ fn default_verse_type() -> String {
 }
 
 /// Normalise un code de type de section vers la forme canonique internationale
-/// (`verse`, `chorus`, `bridge`, `intro`, `outro`, `prechorus`). Accepte aussi
+/// (`verse`, `chorus`, `bridge`, `intro`, `outro`, `prechorus`, `middle`,
+/// `solo`, `other` ; les trois derniers viennent d'OpenLyrics). Accepte aussi
 /// les anciens codes français (`S`, `R`, `P`, `I`, `O`) des recueils existants
 /// ainsi que les alias longs FR/EN, pour une lecture rétrocompatible. Tout code
 /// inconnu retombe sur `verse`.
@@ -51,6 +52,9 @@ pub fn canonical_vtype(raw: &str) -> &'static str {
         "i" | "intro" | "introduction" => "intro",
         "o" | "outro" | "final" | "coda" => "outro",
         "pc" | "prechorus" | "pre-chorus" | "pré-refrain" | "pre-refrain" => "prechorus",
+        "middle" | "transition" => "middle",
+        "solo" => "solo",
+        "other" | "autre" => "other",
         _ => "verse",
     }
 }
@@ -68,6 +72,14 @@ pub struct Song {
     pub title: String,
     #[serde(default)]
     pub author: Option<String>,
+    /// Mention de copyright, affichée après l'auteur dans la ligne de crédit
+    /// de la projection. Reprise d'OpenLyrics (`<copyright>`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub copyright: Option<String>,
+    /// Numéro CCLI du chant : conservé (et réécrit à l'export OpenLyrics
+    /// `<ccliNo>`), jamais affiché.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ccli: Option<u64>,
     #[serde(default)]
     pub songbook_code: Option<String>,
     #[serde(default)]
@@ -85,6 +97,11 @@ pub struct Songbook {
     pub songbook_code: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub songbook_name: Option<String>,
+    /// Date et heure d'ajout du recueil à Verso (RFC 3339, UTC), affichées dans
+    /// Réglages > Recueils. Stockée dans le fichier car celui-ci est réécrit à
+    /// chaque enregistrement : sa date de création système ne tient pas.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub songbook_added_at: Option<String>,
     pub songs: Vec<Song>,
 }
 
@@ -411,6 +428,7 @@ fn parse_songbook(bytes: &[u8]) -> Result<Songbook, serde_json::Error> {
         Err(_) => serde_json::from_slice::<Vec<Song>>(bytes).map(|songs| Songbook {
             songbook_code: None,
             songbook_name: None,
+            songbook_added_at: None,
             songs,
         }),
     }
@@ -518,14 +536,16 @@ pub fn save_songs(app: &AppHandle, state: &AppState, songs: &[Song]) -> Result<(
             .iter()
             .find_map(|s| s.songbook_code.clone())
             .filter(|s| !s.is_empty());
-        let existing_name = fs::read(&path)
-            .ok()
-            .and_then(|b| parse_songbook(&b).ok())
-            .and_then(|b| b.songbook_name)
+        let existing = fs::read(&path).ok().and_then(|b| parse_songbook(&b).ok());
+        let existing_name = existing
+            .as_ref()
+            .and_then(|b| b.songbook_name.clone())
             .filter(|s| !s.is_empty());
+        let existing_added = existing.and_then(|b| b.songbook_added_at);
         let book = Songbook {
             songbook_code: code,
             songbook_name: existing_name,
+            songbook_added_at: existing_added,
             songs: items.iter().map(|s| (*s).clone()).collect(),
         };
         let json = serde_json::to_vec(&book).map_err(|e| format!("Sérialisation : {e}"))?;
@@ -613,6 +633,12 @@ pub struct ContentEntry {
     pub filename: String,
     /// Libellé affiché (recueil : nom lisible ; bible : traduction ; sinon le nom).
     pub label: String,
+    /// Recueil : code (préfixe du nom de fichier proposé à l'export).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+    /// Recueil : date d'ajout (RFC 3339), affichée sous le nom.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub added_at: Option<String>,
 }
 
 /// Liste les contenus d'un type donné pour la modale (triés par libellé).
@@ -630,18 +656,69 @@ pub fn list_content(app: &AppHandle, kind: &str) -> Result<Vec<ContentEntry>, St
             if !exts.iter().any(|e| lower.ends_with(e)) {
                 continue;
             }
+            if kind == "songbooks" {
+                let path = entry.path();
+                let book = fs::read(&path).ok().and_then(|b| parse_songbook(&b).ok());
+                let code = book.as_ref().and_then(book_code);
+                let label = book
+                    .as_ref()
+                    .and_then(|b| b.songbook_name.clone())
+                    .filter(|s| !s.is_empty())
+                    .or_else(|| code.clone())
+                    .unwrap_or_else(|| name.clone());
+                let added_at = match book.as_ref().and_then(|b| b.songbook_added_at.clone()) {
+                    Some(at) => Some(at),
+                    None if book.is_some() => backfill_added_at(&path),
+                    None => None,
+                };
+                out.push(ContentEntry { filename: name, label, code, added_at });
+                continue;
+            }
             let label = match kind {
-                "songbooks" => songbook_label(&entry.path()).unwrap_or_else(|| name.clone()),
                 "bibles" => bible_label(&entry.path())
                     .or_else(|| bible_code(&entry.path()))
                     .unwrap_or_else(|| name.strip_suffix(".json").unwrap_or(&name).to_string()),
                 _ => name.clone(),
             };
-            out.push(ContentEntry { filename: name, label });
+            out.push(ContentEntry { filename: name, label, code: None, added_at: None });
         }
     }
     out.sort_by(|a, b| a.label.to_lowercase().cmp(&b.label.to_lowercase()));
     Ok(out)
+}
+
+/// Code d'un recueil lu : celui du wrapper, sinon celui du premier chant.
+fn book_code(book: &Songbook) -> Option<String> {
+    book.songbook_code
+        .clone()
+        .or_else(|| book.songs.first().and_then(|s| s.songbook_code.clone()))
+        .filter(|s| !s.is_empty())
+}
+
+/// Horodatage RFC 3339 en UTC, à la seconde (`2026-11-26T14:20:00Z`).
+fn utc_stamp(t: std::time::SystemTime) -> String {
+    chrono::DateTime::<chrono::Utc>::from(t).to_rfc3339_opts(chrono::SecondsFormat::Secs, true)
+}
+
+/// Recueil antérieur au champ `songbook_added_at` : on y inscrit une fois la
+/// date actuelle du fichier (création, sinon modification), pour qu'elle ne
+/// change plus aux enregistrements suivants. Le reste du JSON est conservé tel
+/// quel ; un ancien recueil en tableau nu passe au format wrapper.
+fn backfill_added_at(path: &Path) -> Option<String> {
+    let meta = fs::metadata(path).ok()?;
+    let stamp = utc_stamp(meta.created().or_else(|_| meta.modified()).ok()?);
+    let bytes = fs::read(path).ok()?;
+    let mut value: serde_json::Value = serde_json::from_slice(&bytes).ok()?;
+    if value.is_array() {
+        value = serde_json::json!({ "songs": value });
+    }
+    value
+        .as_object_mut()?
+        .insert("songbook_added_at".into(), stamp.clone().into());
+    if let Ok(json) = serde_json::to_vec(&value) {
+        let _ = write_atomic(path, &json);
+    }
+    Some(stamp)
 }
 
 /// Nom lisible d'un recueil : `songbook_name` du wrapper si présent, sinon le
@@ -831,9 +908,111 @@ pub fn import_content(
     };
 
     let dest = content_dir(app, sub).join(&dest_name);
-    fs::copy(src, &dest).map_err(|e| format!("Copie : {e}"))?;
+    if kind == "songbooks" {
+        // Recueil : copie avec la date d'ajout à Verso (le reste du JSON est
+        // conservé tel quel ; le parse ci-dessus a validé la structure).
+        let bytes = fs::read(src).map_err(|e| format!("Lecture : {e}"))?;
+        let mut value: serde_json::Value =
+            serde_json::from_slice(&bytes).map_err(|e| format!("Recueil invalide : {e}"))?;
+        if let Some(obj) = value.as_object_mut() {
+            obj.insert(
+                "songbook_added_at".into(),
+                utc_stamp(std::time::SystemTime::now()).into(),
+            );
+        }
+        let json = serde_json::to_vec(&value).map_err(|e| format!("Sérialisation : {e}"))?;
+        write_atomic(&dest, &json)?;
+    } else {
+        fs::copy(src, &dest).map_err(|e| format!("Copie : {e}"))?;
+    }
     invalidate_caches(state, kind);
     Ok(())
+}
+
+// ─── OpenLyrics ─────────────────────────────────────────────────────────────
+
+/// Résultat d'un import OpenLyrics : chants écrits et fichiers ignorés.
+#[derive(Debug, Clone, Serialize)]
+pub struct OpenLyricsImport {
+    pub imported: usize,
+    pub ignored: usize,
+}
+
+/// Importe des fichiers OpenLyrics (`.xml`, ou `.zip` qui les réunit) dans un
+/// NOUVEAU recueil `name`/`code`. Refuse un nom, un code ou un fichier de
+/// recueil déjà existants : l'import n'ajoute jamais à un recueil existant.
+/// Rien n'est écrit si aucun chant n'est lisible (`imported` = 0).
+pub fn import_openlyrics(
+    app: &AppHandle,
+    state: &AppState,
+    sources: &[String],
+    name: &str,
+    code: &str,
+) -> Result<OpenLyricsImport, String> {
+    let name = name.trim();
+    let code = code.trim();
+    if name.is_empty() || code.is_empty() {
+        return Err("Nom et code du recueil requis.".into());
+    }
+    if !code.chars().any(|c| c.is_ascii_alphanumeric()) {
+        return Err("Le code doit contenir au moins une lettre ou un chiffre sans accent.".into());
+    }
+    for book in list_songbooks(app) {
+        if book.code.eq_ignore_ascii_case(code) {
+            return Err(format!("Un recueil porte déjà le code {code}."));
+        }
+        if book.name.to_lowercase() == name.to_lowercase() {
+            return Err(format!("Un recueil porte déjà le nom « {name} »."));
+        }
+    }
+    let path = songbooks_dir(app).join(format!("songbook-{}.json", book_slug(code)));
+    if path.exists() {
+        return Err(format!("Le fichier {} existe déjà.", path.display()));
+    }
+
+    let docs = crate::openlyrics::read_sources(sources)?;
+    let converted = crate::openlyrics::convert(docs, name, code);
+    let imported = converted.songs.len();
+    if imported > 0 {
+        let book = Songbook {
+            songbook_code: Some(code.to_string()),
+            songbook_name: Some(name.to_string()),
+            songbook_added_at: Some(utc_stamp(std::time::SystemTime::now())),
+            songs: converted.songs,
+        };
+        let json = serde_json::to_vec(&book).map_err(|e| format!("Sérialisation : {e}"))?;
+        write_atomic(&path, &json)?;
+        invalidate_caches(state, "songbooks");
+    }
+    Ok(OpenLyricsImport { imported, ignored: converted.ignored })
+}
+
+/// Exporte un recueil (nom de fichier du dossier `songbooks/`) en archive
+/// `.zip` d'un fichier OpenLyrics par chant, au chemin `dest` choisi par
+/// l'utilisateur. Renvoie le nombre de chants exportés.
+pub fn export_openlyrics(app: &AppHandle, filename: &str, dest: &str) -> Result<usize, String> {
+    let fname = sanitize_filename(filename).ok_or("Nom de fichier invalide")?;
+    if !fname.starts_with("songbook-") || !fname.ends_with(".json") {
+        return Err("Ce n'est pas un recueil.".into());
+    }
+    let bytes = fs::read(songbooks_dir(app).join(&fname)).map_err(|e| format!("Lecture : {e}"))?;
+    let mut book = parse_songbook(&bytes).map_err(|e| format!("Recueil invalide : {e}"))?;
+    let name = book
+        .songbook_name
+        .clone()
+        .filter(|s| !s.is_empty())
+        .or_else(|| book_code(&book))
+        .unwrap_or_default();
+    for s in &mut book.songs {
+        for v in &mut s.verses {
+            v.vtype = canonical_vtype(&v.vtype).to_string();
+        }
+    }
+    let generator = format!("Verso {}", app.package_info().version);
+    let modified = chrono::Local::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, false);
+    let zip = crate::openlyrics::songbook_zip(&book.songs, &name, &generator, &modified)?;
+    fs::write(dest, zip).map_err(|e| format!("Écriture : {e}"))?;
+    Ok(book.songs.len())
 }
 
 /// Supprime un contenu de son sous-dossier (nom de fichier assaini).

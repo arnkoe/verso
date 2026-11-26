@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>Verso : fixture Réglages, import et export OpenLyrics</title>
+<script>
+// Charge la vraie fenêtre Réglages (src/utility.html) avec une API Tauri
+// simulée (settings-openlyrics-stub.js) injectée avant ses scripts. Ouvrir
+// avec ?window=settings (et &lang=en pour l'anglais).
+(async () => {
+  const html = await (await fetch('../../src/utility.html')).text();
+  const inject = '<base href="../../src/">'
+    + '<script src="../tests/fixtures/settings-openlyrics-stub.js"><\/script>';
+  document.open();
+  document.write(html.replace('<head>', '<head>' + inject));
+  document.close();
+})();
+</script>

@@ -1,10 +1,13 @@
 {
   "songbook_code": "ABC",
   "songbook_name": "Mon recueil",
+  "songbook_added_at": "2026-03-03T17:47:00Z",
   "songs": [
     {
       "title": "Titre du premier chant",
       "author": "Auteur (ou null si inconnu)",
+      "copyright": "© 2001 Éditeur (facultatif)",
+      "ccli": 1234567,
       "source_number": 1,
       "verses": [
         {

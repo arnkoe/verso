@@ -191,10 +191,46 @@
     </div>
     <div class="content-modal-foot">
       <div class="settings-update-status" id="contentStatus" aria-live="polite"></div>
-      <button class="hdr-btn" id="contentAddBtn" data-action="addCurrentContent">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-        <span data-i18n="settings.add">Ajouter</span>
+      <span class="content-foot-btns">
+        <button class="hdr-btn" id="contentImportBtn" data-action="openOpenLyricsImport" hidden>
+          <span data-i18n="openlyrics.importButton">Importer OpenLyrics…</span>
+        </button>
+        <button class="hdr-btn" id="contentAddBtn" data-action="addCurrentContent">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          <span data-i18n="settings.add">Ajouter</span>
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Import OpenLyrics : crée toujours un nouveau recueil. Superposé à la
+     modale « Recueils », qui reçoit la ligne de résultat. -->
+<div class="content-modal" id="olImportModal" role="dialog" aria-modal="true" aria-labelledby="olImportTitle" hidden>
+  <div class="content-modal-dialog content-modal-dialog-fit">
+    <div class="content-modal-head">
+      <h2 class="content-modal-title" id="olImportTitle" data-i18n="openlyrics.title">Importer un recueil</h2>
+      <button class="settings-close" data-action="closeOpenLyricsImport" title="Fermer" aria-label="Fermer" data-i18n-title="settings.close" data-i18n-aria-label="settings.close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
+    </div>
+    <div class="content-modal-body ol-body">
+      <div class="ol-pick">
+        <button class="hdr-btn" id="olPickBtn" data-action="pickOpenLyricsFiles"><span data-i18n="openlyrics.pick">Choisir les fichiers…</span></button>
+        <span class="ol-picked" id="olPicked" data-i18n="openlyrics.nothingPicked">Aucun fichier choisi</span>
+      </div>
+      <div class="ol-fields">
+        <label><span data-i18n="openlyrics.name">Nom</span><input class="ol-input" id="olName" type="text" autocomplete="off" spellcheck="false"></label>
+        <label><span data-i18n="openlyrics.code">Code</span><input class="ol-input" id="olCode" type="text" autocomplete="off" spellcheck="false" autocapitalize="characters"></label>
+      </div>
+      <p class="ol-line error" id="olError" role="alert" hidden></p>
+    </div>
+    <div class="content-modal-foot">
+      <div class="settings-update-status" id="olStatus" aria-live="polite"></div>
+      <span class="content-foot-btns">
+        <button class="hdr-btn" data-action="closeOpenLyricsImport"><span data-i18n="common.cancel">Annuler</span></button>
+        <button class="hdr-btn" id="olImportBtn" data-action="runOpenLyricsImport" disabled><span data-i18n="openlyrics.import">Importer</span></button>
+      </span>
     </div>
   </div>
 </div>

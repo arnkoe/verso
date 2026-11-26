@@ -1556,6 +1556,30 @@ html[data-window-mode="shortcuts"] .utility-section + .utility-section {
 .content-mgr-item:has(.content-mgr-confirm) { align-items: flex-start; }
 .content-mgr-item:has(.content-mgr-confirm) .content-mgr-name { line-height: var(--control-h); }
 .content-mgr-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Recueil : nom puis date d'ajout, sur deux lignes. */
+.content-mgr-book { display: grid; gap: var(--sp-1); min-width: 0; }
+.content-mgr-date { font-size: var(--fs-sm); color: var(--mute-2); }
+.content-foot-btns { display: inline-flex; align-items: center; gap: var(--sp-2); flex: none; }
+/* `all: revert` sur les boutons natifs de la fenêtre Réglages annule aussi la
+   règle [hidden] : on la rétablit pour le bouton d'import (recueils seulement). */
+.content-modal .hdr-btn[hidden] { display: none !important; }
+
+/* Import OpenLyrics : petite boîte à hauteur de contenu, superposée à la
+   modale « Recueils ». */
+.content-modal-dialog.content-modal-dialog-fit { height: auto; }
+.ol-body { padding: var(--sp-4) var(--sp-5); }
+.ol-pick { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-4); min-width: 0; }
+.ol-picked { font-size: var(--fs-sm); color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ol-fields { display: grid; grid-template-columns: 1fr 96px; gap: var(--sp-2); }
+.ol-fields label { display: grid; gap: var(--sp-1); font-size: var(--fs-sm); color: var(--mute); }
+.ol-input {
+  height: var(--control-h); padding: 0 var(--row-inset); width: 100%;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  font-family: inherit; font-size: var(--fs-md); color: var(--ink); background: var(--panel); outline: none;
+}
+.ol-input:focus { border-color: var(--accent); }
+.ol-input.error { border-color: var(--danger); }
+.ol-line.error { margin: var(--sp-3) 0 0; color: var(--danger); font-size: var(--fs-sm); }
 .content-mgr-empty {
   padding: var(--sp-6) var(--sp-3);
   font-size: var(--fs-md);

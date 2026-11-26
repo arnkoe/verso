@@ -101,7 +101,7 @@ When a song is open, the **Edit** button (above the verse list) opens a text are
 The text uses simple formatting:
 
 - Verses, choruses and other sections are separated by a **blank line**.
-- The **first line** of a block gives its type, in one or two letters: `V` for verse, `C` for chorus, `B` for bridge, `I` for intro, `O` for outro, `PC` for pre-chorus. Add a number when needed (`V2`).
+- The **first line** of a block gives its type, in one or two letters: `V` for verse, `C` for chorus, `B` for bridge, `I` for intro, `O` for outro, `PC` for pre-chorus. Add a number when needed (`V2`). `Middle`, `Solo` and `Other` are written in full.
 - Without a recognised type, the block is treated as a verse and numbered automatically, so you can type the lyrics with no labels at all.
 - The following lines are the projected text; each line break starts a new line.
 
@@ -127,7 +127,7 @@ Keyboard shortcuts let you switch tabs, search and project without the mouse. Th
 Open Settings from **Verso → Settings…** (`⌘,`) on macOS, **File → Settings…** (`Ctrl+,`) on Windows, or the **Help** menu on Linux. They open in a separate window with four sections:
 
 - **Projection**: the screen used for projection, chosen from the drop-down menu. The choice is remembered.
-- **Content**: for each category (collections, Bibles, PDFs, images), you can **Add** files, **Manage** the existing items and **Delete** them. You can also open the Verso folder.
+- **Content**: for each category (collections, Bibles, PDFs, images), you can **Add** files, **Manage** the existing items and **Delete** them. Each collection shows the date it was added, and collections can also be imported and exported in OpenLyrics format (see below). You can also open the Verso folder.
 - **Language**: the interface language.
 - **Updates**: the update status, the manual check and the installation of a new version.
 
@@ -140,6 +140,27 @@ Menus follow the language chosen in Settings.
 <!-- website:end -->
 
 ---
+
+### OpenLyrics import and export
+
+[OpenLyrics](https://docs.openlyrics.org) is an open XML format for songs (one `.xml` file per song), used by OpenLP among others. Verso keeps its own JSON format and uses OpenLyrics only to exchange songs. Both actions are in **Settings → Content → Songbooks → Manage**.
+
+- **Import**: **Import OpenLyrics…** opens a small window. Click **Choose files…** and select the collection's `.xml` files (several at once) or a `.zip` archive containing them (subfolders included), then type the **Name** and **Code** of the new collection. **Import** stays disabled until files are chosen and both fields are filled, and while a collection already uses this name or this code. Import always creates a new collection; it never adds songs to an existing one. The result is shown at the bottom of the window ("128 songs imported."), with the number of ignored files (unreadable XML, or not an OpenLyrics song).
+- **Export**: **Export**, on a collection's row, opens the save dialog. Verso writes a `.zip` archive with one OpenLyrics file per song, whatever the number of songs.
+
+| OpenLyrics | Verso |
+| --- | --- |
+| first `<title>` | `title` |
+| every `<author>` | `author`, separated by commas (a single `<author>` on export) |
+| `<copyright>` | `copyright` |
+| `<ccliNo>` | `ccli` |
+| `<songbook name entry>` | `source_number`, only when `entry` is a plain whole number not already used by another song of the same import; otherwise the song has no number |
+| `<lines>` and `<br/>` | `text`, one line per `<br/>` |
+| `<verseOrder>` | followed: a repeated section (a chorus, for example) is copied each time, as in Verso collections. Without `<verseOrder>`, the file order is kept. On export, `<verseOrder>` is written and a repeated section is written once. |
+| `v1`, `c`, `p`, `b`, `i`, `e`, `o` | `verse` (with its number), `chorus`, `prechorus`, `bridge`, `intro`, `outro`, `other` |
+| `m`, `s` | `middle`, `solo`; exported as `o`, because OpenLyrics 0.9 keeps `m` and `s` for instrumental parts |
+
+Not kept: chords (the lyrics are kept), comments, themes, key, tempo and the other properties. With several languages, only the first one is imported. With several `<songbook>`, Verso uses the one named like the new collection, otherwise the first. Songs without a number are found by their title or first line. [`examples/openlyrics-abc.xml`](examples/openlyrics-abc.xml) is the first song of the example collection in OpenLyrics format.
 
 ## Going further (technical section)
 
@@ -155,10 +176,13 @@ The file holds the collection's code and name, then the list of songs:
 {
   "songbook_code": "ABC",
   "songbook_name": "My collection",
+  "songbook_added_at": "2026-03-03T17:47:00Z",
   "songs": [
     {
       "title": "Song title",
       "author": "Author or null",
+      "copyright": "© 2001 Publisher",
+      "ccli": 1234567,
       "source_number": 1,
       "verses": [
         { "type": "verse", "number": 1, "text": "Verse 1, line 1.\nLine 2." },
@@ -172,12 +196,15 @@ The file holds the collection's code and name, then the list of songs:
 
 - `songbook_code`: the collection code; the file name is derived from it.
 - `songbook_name`: the collection name.
+- `songbook_added_at`: the date and time the collection was added to Verso (RFC 3339, UTC), shown under its name in **Settings → Content → Songbooks**. Verso fills it in by itself when a collection is added or imported, and the first time an older collection without it is listed (it then takes the file's current date).
 - `songs`: the list of songs. Each song has:
   - `title`: the title, shown and used for search.
-  - `author`: the author, or `null` if unknown. Shown at the bottom of the projection while a verse of the song is on screen.
+  - `author`: the author, or `null` if unknown. Shown at the bottom of the projection while a verse of the song is on screen, followed by `copyright` when present.
+  - `copyright` (optional): the copyright notice.
+  - `ccli` (optional): the song's CCLI number, a whole number. Kept and exported, never shown.
   - `source_number`: the song's number in the collection (or `null`).
   - `verses`: the **ordered** list of the song's sections. Each section has:
-    - `type`: section type. Common values: `"verse"`, `"chorus"`, `"bridge"`, `"intro"`, `"outro"`, `"prechorus"`; verse by default. Only choruses are labelled "Chorus": every other type is shown as a verse.
+    - `type`: section type. Values: `"verse"`, `"chorus"`, `"bridge"`, `"intro"`, `"outro"`, `"prechorus"`, `"middle"`, `"solo"`, `"other"`; verse by default and for any unknown value. Each type has its own label in the verse list and on the projection.
     - `number`: verse number (optional).
     - `text`: the lyrics. JSON does not allow a real line break inside a text value, so each line break is written `\n`.
 
@@ -259,6 +286,7 @@ src-tauri/                 Rust backend
   src/lib.rs               Tauri commands + windows
   src/storage.rs           file storage + initial seeding
   src/bible_search.rs      Bible reference resolution
+  src/openlyrics.rs        OpenLyrics import/export (XML, .zip)
   resources/               bundled collections + Bibles + images (seed)
   tauri.conf.json          config (windows, CSP, bundle)
 ```

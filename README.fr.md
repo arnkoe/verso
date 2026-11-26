@@ -101,7 +101,7 @@ Quand un chant est ouvert, le bouton **Modifier** (au-dessus de la liste des str
 Le texte suit une mise en forme simple :
 
 - Les strophes, refrains et autres sections sont séparés par une **ligne vide**.
-- La **première ligne** d'un bloc indique son type, en une ou deux lettres : `S` pour strophe, `R` pour refrain, `P` pour pont, `I` pour introduction, `O` pour final, `PC` pour pré-refrain. Ajoutez un numéro si besoin (`S2`).
+- La **première ligne** d'un bloc indique son type, en une ou deux lettres : `S` pour strophe, `R` pour refrain, `P` pour pont, `I` pour introduction, `O` pour final, `PC` pour pré-refrain. Ajoutez un numéro si besoin (`S2`). `Transition`, `Solo` et `Autre` s'écrivent en entier.
 - Sans type reconnu, le bloc est traité comme une strophe et numéroté automatiquement : vous pouvez donc saisir les paroles sans aucune étiquette.
 - Les lignes suivantes forment le texte projeté ; chaque retour à la ligne commence un nouveau vers.
 
@@ -127,7 +127,7 @@ Des raccourcis clavier permettent de changer d'onglet, de chercher et de projete
 Ouvrez les Réglages par **Verso → Réglages…** (`⌘,`) sur macOS, **Fichier → Réglages…** (`Ctrl+,`) sous Windows, ou le menu **Aide** sous Linux. Ils s'ouvrent dans une fenêtre séparée, avec quatre rubriques :
 
 - **Projection** : l'écran utilisé pour la projection, à choisir dans la liste déroulante. Ce choix est mémorisé.
-- **Contenus** : pour chaque catégorie (recueils, Bibles, PDF, images), vous pouvez **Ajouter** des fichiers, **Gérer** les éléments existants et les **Supprimer**. Vous pouvez aussi ouvrir le dossier Verso.
+- **Contenus** : pour chaque catégorie (recueils, Bibles, PDF, images), vous pouvez **Ajouter** des fichiers, **Gérer** les éléments existants et les **Supprimer**. Chaque recueil indique sa date d'ajout, et les recueils peuvent aussi être importés et exportés au format OpenLyrics (voir plus bas). Vous pouvez aussi ouvrir le dossier Verso.
 - **Langue** : la langue de l'interface.
 - **Mises à jour** : l'état de la mise à jour, la vérification manuelle et l'installation d'une nouvelle version.
 
@@ -140,6 +140,27 @@ Les menus suivent la langue choisie dans les Réglages.
 <!-- website:end -->
 
 ---
+
+### Import et export OpenLyrics
+
+[OpenLyrics](https://docs.openlyrics.org) est un format XML ouvert pour les chants (un fichier `.xml` par chant), utilisé notamment par OpenLP. Verso garde son propre format JSON et ne se sert d'OpenLyrics que pour échanger des chants. Les deux actions se trouvent dans **Réglages → Contenus → Recueils → Gérer**.
+
+- **Import** : **Importer OpenLyrics…** ouvre une petite fenêtre. Cliquez sur **Choisir les fichiers…** et sélectionnez les fichiers `.xml` du recueil (plusieurs à la fois) ou une archive `.zip` qui les réunit (sous-dossiers compris), puis saisissez le **Nom** et le **Code** du nouveau recueil. **Importer** reste inactif tant que les fichiers ne sont pas choisis et les deux champs remplis, et tant qu'un recueil porte déjà ce nom ou ce code. L'import crée toujours un nouveau recueil ; il n'ajoute jamais de chants à un recueil existant. Le résultat s'affiche au bas de la fenêtre (« 128 chants importés. »), avec le nombre de fichiers ignorés (XML illisible, ou qui n'est pas un chant OpenLyrics).
+- **Export** : **Exporter**, sur la ligne d'un recueil, ouvre la boîte d'enregistrement. Verso écrit une archive `.zip` contenant un fichier OpenLyrics par chant, quel que soit le nombre de chants.
+
+| OpenLyrics | Verso |
+| --- | --- |
+| premier `<title>` | `title` |
+| tous les `<author>` | `author`, séparés par des virgules (un seul `<author>` à l'export) |
+| `<copyright>` | `copyright` |
+| `<ccliNo>` | `ccli` |
+| `<songbook name entry>` | `source_number`, seulement si `entry` est un nombre entier sans autre caractère et qu'aucun autre chant du même import ne l'a déjà ; sinon le chant n'a pas de numéro |
+| `<lines>` et `<br/>` | `text`, une ligne par `<br/>` |
+| `<verseOrder>` | suivi : une section répétée (un refrain, par exemple) est recopiée à chaque fois, comme dans les recueils de Verso. Sans `<verseOrder>`, l'ordre du fichier est gardé. À l'export, `<verseOrder>` est écrit et une section répétée n'est écrite qu'une fois. |
+| `v1`, `c`, `p`, `b`, `i`, `e`, `o` | `verse` (avec son numéro), `chorus`, `prechorus`, `bridge`, `intro`, `outro`, `other` |
+| `m`, `s` | `middle`, `solo` ; exportés en `o`, car OpenLyrics 0.9 réserve `m` et `s` aux parties instrumentales |
+
+Non repris : les accords (les paroles sont gardées), les commentaires, les thèmes, la tonalité, le tempo et les autres propriétés. Avec plusieurs langues, seule la première est importée. Avec plusieurs `<songbook>`, Verso prend celui qui porte le nom du nouveau recueil, sinon le premier. Les chants sans numéro se trouvent par leur titre ou leur première ligne. [`examples/openlyrics-abc.xml`](examples/openlyrics-abc.xml) est le premier chant du recueil d'exemple au format OpenLyrics.
 
 ## Pour aller plus loin (partie technique)
 
@@ -155,10 +176,13 @@ Le fichier contient le code et le nom du recueil, puis la liste des chants :
 {
   "songbook_code": "ABC",
   "songbook_name": "Mon recueil",
+  "songbook_added_at": "2026-03-03T17:47:00Z",
   "songs": [
     {
       "title": "Titre du chant",
       "author": "Auteur ou null",
+      "copyright": "© 2001 Éditeur",
+      "ccli": 1234567,
       "source_number": 1,
       "verses": [
         { "type": "verse", "number": 1, "text": "Strophe 1, ligne 1.\nLigne 2." },
@@ -172,12 +196,15 @@ Le fichier contient le code et le nom du recueil, puis la liste des chants :
 
 - `songbook_code` : code du recueil ; le nom du fichier en est dérivé.
 - `songbook_name` : nom du recueil.
+- `songbook_added_at` : date et heure d'ajout du recueil à Verso (RFC 3339, UTC), affichées sous son nom dans **Réglages → Contenus → Recueils**. Verso la remplit lui-même quand un recueil est ajouté ou importé, et la première fois qu'un recueil plus ancien qui n'en a pas est listé (il prend alors la date actuelle du fichier).
 - `songs` : liste des chants. Chaque chant a :
   - `title` : titre, affiché et utilisé pour la recherche.
-  - `author` : auteur, ou `null` s'il est inconnu. Affiché au bas de la projection tant qu'une strophe du chant est à l'écran.
+  - `author` : auteur, ou `null` s'il est inconnu. Affiché au bas de la projection tant qu'une strophe du chant est à l'écran, suivi de `copyright` s'il existe.
+  - `copyright` (facultatif) : mention de copyright.
+  - `ccli` (facultatif) : numéro CCLI du chant, un nombre entier. Conservé et exporté, jamais affiché.
   - `source_number` : numéro du chant dans le recueil (ou `null`).
   - `verses` : liste **ordonnée** des sections du chant. Chaque section a :
-    - `type` : type de section. Valeurs courantes : `"verse"`, `"chorus"`, `"bridge"`, `"intro"`, `"outro"`, `"prechorus"` ; strophe par défaut. Seuls les refrains sont étiquetés « Refrain » : les autres types s'affichent comme des strophes.
+    - `type` : type de section. Valeurs : `"verse"`, `"chorus"`, `"bridge"`, `"intro"`, `"outro"`, `"prechorus"`, `"middle"`, `"solo"`, `"other"` ; strophe par défaut et pour toute valeur inconnue. Chaque type a sa propre étiquette dans la liste des strophes et sur la projection.
     - `number` : numéro de strophe (facultatif).
     - `text` : les paroles. JSON n'acceptant pas de vrai retour à la ligne dans un texte, chaque saut de ligne s'écrit `\n`.
 
@@ -259,6 +286,7 @@ src-tauri/                 backend Rust
   src/lib.rs               commandes Tauri + fenêtres
   src/storage.rs           stockage fichiers + amorçage initial
   src/bible_search.rs      résolution de référence biblique
+  src/openlyrics.rs        import/export OpenLyrics (XML, .zip)
   resources/               recueils + Bibles + images empaquetés (seed)
   tauri.conf.json          config (fenêtres, CSP, bundle)
 ```

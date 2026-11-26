@@ -75,6 +75,19 @@ async function apiDeleteContent(kind, filename) {
   return await invoke('delete_content', { kind, filename });
 }
 
+/**
+ * Importe des fichiers OpenLyrics (.xml, ou .zip qui les réunit) dans un
+ * nouveau recueil : { imported, ignored }. Rien n'est écrit si imported = 0.
+ */
+async function apiImportOpenLyrics(sources, name, code) {
+  return await invoke('import_openlyrics', { sources, name, code });
+}
+
+/** Exporte un recueil (nom de fichier) en .zip OpenLyrics : nombre de chants. */
+async function apiExportOpenLyrics(filename, dest) {
+  return await invoke('export_openlyrics', { filename, dest });
+}
+
 
 /**
  * URL `asset://` utilisable dans <img src> ou pdf.js, pour un média stocké.
