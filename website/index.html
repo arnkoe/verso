@@ -50,7 +50,7 @@
   <main>
     <section class="hero">
       <h1 data-i18n="hero.title">Projetez chants et versets sans perdre le fil du culte.</h1>
-      <p class="lead" data-i18n="hero.lead">Pendant que l'assemblée chante, une touche suffit pour passer à la strophe suivante. Une lecture biblique&nbsp;? Tapez la référence, le texte s'affiche. Verso est gratuit, sur Windows comme sur Mac, et fonctionne sans Internet.</p>
+      <p class="lead" data-i18n="hero.lead">Verso projette chants, versets et PDF au moment où vous en avez besoin : rien à préparer avant le culte, tout se pilote au clavier. Gratuit, sur Windows comme sur Mac, sans compte ni connexion Internet.</p>
       <div class="cta">
         <a class="button" id="primary-download" href="https://github.com/arnkoe/verso/releases/latest">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -71,11 +71,24 @@
       </div>
     </section>
 
-    <section class="feature" aria-labelledby="f-keys">
+    <section class="feature" aria-labelledby="f-prep">
+      <div class="feature-text">
+        <h2 id="f-prep" data-i18n="prep.title">Rien à préparer à l'avance</h2>
+        <p data-i18n="prep.text">Inutile de préparer le culte dans Verso. Quand un chant est proposé ou qu'un verset est cité, tapez son numéro ou sa référence et il s'affiche. Le déroulement change en cours de route&nbsp;? Vous suivez sans difficulté.</p>
+        <p class="aside" data-i18n="prep.search">Pour retrouver un chant, tapez son numéro ou quelques mots du titre ou du début d'une strophe ; les accents sont facultatifs. Une première pression sur Entrée ouvre le résultat, une seconde l'affiche à l'écran.</p>
+      </div>
+      <ol class="timeline">
+        <li><span class="moment" data-i18n="prep.t1">Un premier chant est proposé</span><span class="typed"><kbd>/</kbd><kbd class="query">240</kbd><kbd data-i18n="keys.enter">Entrée</kbd><kbd data-i18n="keys.enter">Entrée</kbd></span></li>
+        <li><span class="moment" data-i18n="prep.t2">Un intervenant cite un verset de Romains 8</span><span class="typed"><kbd>Tab</kbd><kbd class="query">rom 8:28</kbd><kbd data-i18n="keys.enter">Entrée</kbd><kbd data-i18n="keys.enter">Entrée</kbd></span></li>
+        <li><span class="moment" data-i18n="prep.t3">Un deuxième chant est proposé</span><span class="typed"><kbd data-i18n="keys.shift">Maj</kbd><kbd>Tab</kbd><kbd class="query">dieu seul</kbd><kbd data-i18n="keys.enter">Entrée</kbd><kbd data-i18n="keys.enter">Entrée</kbd></span></li>
+        <li><span class="moment" data-i18n="prep.t4">Une image de la cène doit être projetée</span><span class="typed"><kbd data-i18n="keys.shift">Maj</kbd><kbd>Tab</kbd><kbd class="query">cène</kbd><kbd data-i18n="keys.enter">Entrée</kbd><kbd data-i18n="keys.enter">Entrée</kbd></span></li>
+      </ol>
+    </section>
+
+    <section class="feature feature-flip" aria-labelledby="f-keys">
       <div class="feature-text">
         <h2 id="f-keys" data-i18n="keys.title">Tout se fait au clavier</h2>
-        <p data-i18n="keys.text">Tapez le numéro d'un chant ou ses premiers mots, avec ou sans accents, ou une référence comme « jean 3 », puis appuyez sur Entrée. Ensuite, les flèches font défiler les strophes et les versets. Vos mains restent sur le clavier : pas besoin de chercher la souris en plein culte.</p>
-        <p class="aside" data-i18n="keys.included">Les recueils Reflets 4 et Hymnes et Cantiques sont fournis avec Verso.</p>
+        <p data-i18n="keys.text">Une fois le chant ou le passage ouvert, les flèches font défiler les strophes et les versets. Pour plus de réactivité pendant un culte, vos mains peuvent rester sur le clavier : l'utilisation de la souris est possible, mais pas nécessaire.</p>
       </div>
       <table class="keys">
         <caption class="visually-hidden" data-i18n="keys.caption">Principaux raccourcis clavier</caption>
@@ -120,14 +133,26 @@
       </div>
     </section>
 
-    <section class="speed" aria-labelledby="f-speed">
-      <h2 id="f-speed" data-i18n="speed.title">Rapide à installer, facile à mettre à jour</h2>
-      <p data-i18n="speed.text">Verso se télécharge et s'installe en quelques instants. Une fois installé, il fonctionne sans connexion Internet : elle ne sert qu'à recevoir les nouvelles versions. Lorsqu'une nouvelle version est disponible, un bouton « Mise à jour disponible » apparaît à l'ouverture de Verso : cliquez dessus et laissez-vous guider.</p>
-      <dl class="facts">
-        <div><dt data-i18n="speed.size">10 Mo</dt><dd data-i18n="speed.sizeLabel">à télécharger</dd></div>
-        <div><dt data-i18n="speed.offline">Hors ligne</dt><dd data-i18n="speed.offlineLabel">aucune connexion requise pendant le culte</dd></div>
-        <div><dt data-i18n="speed.zero">Aucun compte</dt><dd data-i18n="speed.zeroLabel">ni abonnement ni publicité</dd></div>
-      </dl>
+    <section class="feature" aria-labelledby="f-speed">
+      <div class="feature-text">
+        <h2 id="f-speed" data-i18n="speed.title">Rapide à installer, facile à mettre à jour</h2>
+        <p data-i18n="speed.text">Verso se télécharge et s'installe en quelques instants. Une fois installé, il fonctionne sans connexion Internet : elle ne sert qu'à recevoir les nouvelles versions. Lorsqu'une nouvelle version est disponible, un lien « Mise à jour disponible » apparaît à l'ouverture de Verso : cliquez dessus et laissez-vous guider.</p>
+      </div>
+      <figure class="feature-visual">
+        <div class="app-mock">
+          <div class="app-mock-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div class="app-mock-body">
+            <div class="app-mock-side" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+            <div class="app-mock-main">
+              <div class="app-mock-mark" aria-hidden="true"><svg viewBox="100 100 824 824"><path d="M366 439 L512 690 L658 439" stroke-width="92"/><circle cx="760" cy="264" r="74"/></svg></div>
+              <div class="app-mock-title" data-i18n="mock.title">Aucun contenu sélectionné</div>
+              <div class="app-mock-text" data-i18n="mock.text">Faites une recherche dans la barre latérale</div>
+              <div class="app-mock-update" data-i18n="mock.update">Mise à jour disponible</div>
+            </div>
+          </div>
+        </div>
+        <figcaption data-i18n="mock.caption">À l'ouverture de Verso, quand une nouvelle version est prête</figcaption>
+      </figure>
     </section>
 
     <section class="download" id="telecharger" aria-labelledby="dl-title">

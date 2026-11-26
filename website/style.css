@@ -173,7 +173,7 @@ figcaption {
   padding: 96px 0;
   border-top: 1px solid var(--line);
 }
-.feature h2, .speed h2, .download h2 {
+.feature h2, .download h2 {
   font-size: clamp(1.9rem, 3.4vw, 2.7rem);
   line-height: 1.12;
   margin-bottom: 22px;
@@ -208,6 +208,47 @@ kbd {
 }
 .or { color: var(--muted); font-size: .9rem; margin: 0 2px; }
 
+/* An unprepared service, step by step: what happens, then what you type. */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 36px 40px;
+  background: var(--bg-alt);
+  border-radius: 14px;
+}
+.timeline li { position: relative; padding: 0 0 30px 30px; }
+.timeline li:last-child { padding-bottom: 0; }
+.timeline li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: .4em;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.timeline li::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: calc(.4em + 16px);
+  bottom: 6px;
+  width: 2px;
+  background: var(--line);
+}
+.timeline li:last-child::after { display: none; }
+.moment { display: block; font-size: 1.05rem; margin-bottom: 10px; }
+.typed { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.typed kbd { margin-left: 0; }
+.typed .query {
+  min-width: 7em;
+  text-align: left;
+  font-weight: 500;
+  background: var(--surface);
+  border-bottom-width: 1px;
+}
+
 .compare {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -215,21 +256,52 @@ kbd {
   margin-top: 28px;
 }
 
-/* Speed */
-.speed {
-  padding: 96px 0;
-  border-top: 1px solid var(--line);
+/* Install section: the app as it opens when an update is ready. */
+.app-mock {
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--bg-alt);
+  box-shadow: 0 0 0 1px var(--shot-edge), 0 30px 70px -30px rgba(15, 23, 42, .3);
 }
-.speed > p { font-size: 1.12rem; max-width: 40em; margin: 0; }
-.facts {
+.app-mock-bar { display: flex; gap: 7px; padding: 12px 14px; }
+.app-mock-bar span { width: 11px; height: 11px; border-radius: 50%; background: var(--line-strong); }
+.app-mock-body {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
-  margin: 56px 0 0;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr);
+  gap: 10px;
+  padding: 0 10px 10px;
 }
-.facts div { border-top: 2px solid var(--live); padding-top: 16px; }
-.facts dt { font-size: clamp(2rem, 3.6vw, 2.8rem); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
-.facts dd { margin: 6px 0 0; color: var(--muted); }
+.app-mock-side { display: flex; flex-direction: column; gap: 10px; padding: 6px 4px; }
+.app-mock-side span { height: 12px; border-radius: 6px; background: var(--surface-1); }
+.app-mock-side span:first-child { height: 30px; background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.app-mock-side span:nth-child(3) { width: 70%; }
+.app-mock-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 260px;
+  padding: 28px 20px;
+  text-align: center;
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px var(--line);
+}
+.app-mock-mark {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 4px;
+  border-radius: 14px;
+  background: var(--surface-1);
+}
+.app-mock-mark svg { width: 48px; height: 48px; fill: none; stroke: var(--text); stroke-linecap: round; stroke-linejoin: round; }
+.app-mock-mark circle { fill: var(--live); stroke: none; }
+.app-mock-title { font-weight: 600; }
+.app-mock-text { font-size: .9rem; color: var(--mute-2); }
+.app-mock-update { font-size: .9rem; color: var(--accent); text-decoration: underline; }
 
 /* Download */
 .download {
@@ -400,11 +472,12 @@ kbd {
   /* No overlap on phones: the slide would hide the window's caption. */
   .stage-screen { width: 82%; margin-top: 20px; }
   .feature, .feature-wide, .feature-flip { padding: 56px 0; }
-  .speed, .download { padding: 56px 0; }
+  .download { padding: 56px 0; }
+  .timeline { padding: 26px 20px; }
+  .typed .query { min-width: 5em; }
   .install-title { margin-top: 48px; }
   .button { width: 100%; justify-content: center; }
-  .compare, .platforms, .install-grid, .facts { grid-template-columns: 1fr; }
-  .facts { gap: 24px; }
+  .compare, .platforms, .install-grid { grid-template-columns: 1fr; }
   /* Label and keys share a line when they fit, keys wrap below otherwise. */
   .keys, .keys tbody { display: block; }
   .keys tr {
