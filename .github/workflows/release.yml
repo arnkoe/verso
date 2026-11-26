@@ -85,7 +85,43 @@ jobs:
                confirmation parce que l'app vient d'Internet, cliquez sur **Ouvrir**.
 
             Verso est signé et vérifié par Apple. Les mises à jour suivantes
-            s'installeront toutes seules.`,
+            s'installeront toutes seules.
+
+            ---
+
+            ## Which file should I download?
+
+            - **Windows**: the file ending in \`setup.exe\`.
+            - **Recent Mac (Apple chip)**: the \`.dmg\` file containing \`aarch64\`.
+            - **Older Mac (Intel chip)**: the \`.dmg\` file containing \`x64\`.
+
+            Not sure which Mac you have? Apple menu → **About This Mac**, and look
+            at the "Chip" or "Processor" line.
+
+            > On Windows, the first launch shows a scary warning.
+            > **This is normal and it is not a virus**: Verso is free software
+            > without Microsoft's paid certificate. Here is how to get past this
+            > step, only once.
+
+            ## First launch on Windows
+
+            Windows may show a **blue screen**: "Windows protected your PC". To
+            continue:
+
+            1. Click the small **"More info"** link.
+            2. Click the **"Run anyway"** button that appears.
+
+            Later updates will install on their own, without this step.
+
+            ## First launch on Mac
+
+            1. Open the \`.dmg\` file, then **drag Verso into the Applications
+               folder**.
+            2. Open Verso from the Applications folder. If the Mac asks for
+               confirmation because the app comes from the Internet, click **Open**.
+
+            Verso is signed and notarized by Apple. Later updates will install on
+            their own.`,
             });
             return data.id;
 
