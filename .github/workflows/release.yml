@@ -85,11 +85,7 @@ jobs:
                confirmation parce que l'app vient d'Internet, cliquez sur **Ouvrir**.
 
             Verso est signé et vérifié par Apple. Les mises à jour suivantes
-            s'installeront toutes seules.
-
-            ---
-
-            Voir les changements ci-dessous.`,
+            s'installeront toutes seules.`,
             });
             return data.id;
 
