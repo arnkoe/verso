@@ -4,11 +4,11 @@
 
 <!-- website:start -->
 
-Verso est un logiciel pour projeter des chants et des textes de la Bible sur un grand écran ou un vidéoprojecteur pendant un culte.
+Verso projette des chants et des textes de la Bible sur un grand écran ou un vidéoprojecteur pendant un culte.
 
-Vous travaillez sur une fenêtre (la fenêtre **opérateur**, sur votre ordinateur) et ce que vous choisissez s'affiche sur une deuxième fenêtre, en plein écran, sur le vidéoprojecteur.
+Vous travaillez dans la fenêtre **opérateur**, sur votre ordinateur ; ce que vous y choisissez s'affiche en plein écran sur le vidéoprojecteur, dans une seconde fenêtre.
 
-L'interface est disponible en **anglais** (par défaut) et en **français**. Vous pouvez changer de langue à tout moment depuis les Réglages.
+L'interface existe en **anglais** (par défaut) et en **français** ; vous pouvez changer de langue à tout moment dans les Réglages.
 
 ---
 
@@ -21,60 +21,66 @@ Vous pouvez aussi télécharger les fichiers depuis GitHub :
 1. Allez sur la [page des **versions** (« Releases »)](https://github.com/arnkoe/verso/releases/latest), puis ouvrez la section **Assets** en bas de la dernière version.
 2. Téléchargez le fichier qui correspond à votre ordinateur :
    - **Windows** : le fichier dont le nom finit par `setup.exe`.
-   - **Mac récent (puce Apple, depuis 2020)** : le fichier `.dmg` qui contient `aarch64`.
-   - **Mac plus ancien (puce Intel)** : le fichier `.dmg` qui contient `x64`.
+   - **Mac récent (puce Apple, depuis 2020)** : le fichier `.dmg` dont le nom contient `aarch64`.
+   - **Mac plus ancien (puce Intel)** : le fichier `.dmg` dont le nom contient `x64`.
 
-   Si vous ne savez pas quel Mac vous avez : menu Pomme  (en haut à gauche) → **À propos de ce Mac**. La ligne « Puce » ou « Processeur » vous le dit.
+   Pour savoir quel Mac vous avez : menu Pomme  (en haut à gauche) → **À propos de ce Mac**. La ligne « Puce » ou « Processeur » l'indique.
 
-3. Ouvrez le fichier téléchargé et suivez les indications ci-dessous selon votre système.
+3. Ouvrez le fichier téléchargé, puis suivez les indications ci-dessous pour votre système.
 
-> Sur Windows, le tout premier lancement affiche un message qui fait peur. **C'est normal et ce n'est pas un virus.** Cela arrive parce que Verso est un petit logiciel gratuit qui n'a pas payé le certificat coûteux de Microsoft. Voici comment passer cette étape, une seule fois.
+> Sur Windows, un avertissement inquiétant s'affiche au premier lancement de l'installateur. **C'est normal : ce n'est pas un virus.** Verso est un petit logiciel gratuit, qui n'a pas acheté le coûteux certificat de Microsoft. Cette étape ne se présente qu'une fois.
 
 ### Sur Windows
 
-Quand vous lancez le fichier `setup.exe`, Windows peut afficher un **écran bleu** : « Windows a protégé votre ordinateur ».
+Quand vous lancez le fichier `setup.exe`, Windows peut afficher une **fenêtre bleue** : « Windows a protégé votre ordinateur ».
 
 Pour continuer :
 
-1. Cliquez sur le petit texte **« Informations complémentaires »**.
-2. Un bouton **« Exécuter quand même »** apparaît. Cliquez dessus.
+1. Cliquez sur **« Informations complémentaires »**.
+2. Cliquez sur le bouton **« Exécuter quand même »** qui apparaît.
 
-L'installation se poursuit normalement. Vous n'aurez plus jamais à faire cela : les prochaines mises à jour s'installeront toutes seules.
+L'installation se poursuit alors normalement. Cette manipulation n'est à faire qu'une fois : les mises à jour s'installent ensuite depuis Verso.
 
 ### Sur Mac
 
-1. Ouvrez le fichier `.dmg` que vous avez téléchargé.
-2. Une fenêtre s'ouvre. **Glissez l'icône de Verso sur le dossier Applications** affiché à côté.
-3. Ouvrez Verso depuis le dossier Applications. Si le Mac demande une confirmation parce que l'app a été téléchargée sur Internet, cliquez sur **Ouvrir**.
+1. Ouvrez le fichier `.dmg` téléchargé.
+2. Dans la fenêtre qui s'ouvre, **glissez l'icône de Verso sur le dossier Applications**.
+3. Ouvrez Verso depuis le dossier Applications. Si macOS demande une confirmation parce que l'app a été téléchargée sur Internet, cliquez sur **Ouvrir**.
 
-Verso est signé et vérifié par Apple. Les prochaines mises à jour s'installeront toutes seules.
+Verso est signé et vérifié par Apple. Les mises à jour s'installent ensuite depuis Verso.
 
 ---
 
 ## Mettre à jour Verso
 
-Verso vérifie silencieusement au démarrage si une version plus récente existe. Lorsqu'elle est disponible, un lien **Mise à jour disponible** apparaît sous le message de la page vide dans la fenêtre principale et ouvre les **Réglages**. Dans la rubrique **Mises à jour**, l'état courant est affiché directement sous le bouton, qui propose si nécessaire d'installer la mise à jour et de redémarrer Verso.
+Au démarrage, Verso vérifie discrètement s'il existe une version plus récente. Si c'est le cas, un lien **Mise à jour disponible** apparaît dans la fenêtre principale, sous le message de la page vide. Il ouvre les **Réglages**, où le bouton de la rubrique **Mises à jour** installe la nouvelle version et redémarre Verso ; l'état de la mise à jour s'affiche sous ce bouton.
 
-Vous pouvez aussi lancer la vérification manuellement depuis cette rubrique.
+Vous pouvez aussi lancer la vérification vous-même depuis cette rubrique.
 
 ---
 
 ## Vos chants, vos Bibles, vos documents
 
-Verso range tout dans un dossier nommé **`Verso`**, à l'intérieur du dossier de données de l'application pour votre compte. Vous n'avez pas besoin d'en connaître l'emplacement exact : ouvrez les **Réglages** (`⌘,` sur macOS, `Ctrl+,` ailleurs), puis dans la rubrique **Contenus** cliquez sur **Ouvrir** à côté de « Dossier Verso » pour l'ouvrir directement.
+Verso range tout dans un dossier nommé **`Verso`**, parmi les données d'application de votre compte. Inutile d'en connaître l'emplacement : dans les **Réglages** (`⌘,` sur macOS, `Ctrl+,` ailleurs), rubrique **Contenus**, cliquez sur **Ouvrir** à côté de « Dossier Verso ».
 
-À l'intérieur, vous trouverez :
+Il contient quatre dossiers :
 
-- **`songbooks`** — vos recueils de chants (un fichier par recueil).
-- **`bibles`** — vos traductions de la Bible (un fichier par traduction).
-- **`pdf`** — les documents PDF que vous voulez projeter.
-- **`images`** — les images que vous voulez projeter.
+- **`songbooks`** : vos recueils de chants (un fichier par recueil).
+- **`bibles`** : vos traductions de la Bible (un fichier par traduction).
+- **`pdf`** : les documents PDF à projeter.
+- **`images`** : les images à projeter.
 
-Pour ajouter vos propres PDF ou images, déposez simplement vos fichiers dans le dossier `pdf` ou `images`.
+Pour ajouter des PDF ou des images, déposez-les dans le dossier `pdf` ou `images`.
 
-La première fois que vous lancez Verso, si le dossier est vide, Verso y dépose automatiquement quelques contenus gratuits pour commencer : les recueils **Reflets 4** et **Hymnes et Cantiques (révisés)**, les Bibles **Darby**, **Darby révisée** (Bibles et Publications Chrétiennes, CC BY-NC-ND 4.0) et **Louis Segond 1910**, ainsi que deux images de projection si aucune image compatible n'est présente. Vous pouvez les garder, les modifier ou les remplacer comme vous voulez. Les images ne sont ajoutées qu'à la première installation et ne remplacent jamais une image existante. S'il ne reste aucune Bible lisible, Verso restaure ces traductions embarquées au démarrage suivant ; dès qu'au moins une Bible est disponible, vos fichiers ne sont pas modifiés. Les fichiers JSON déjà présents sont reconnus grâce à leur code interne, même si leur nom ne suit pas la forme canonique `bible-<code>.json`.
+Au premier lancement, si ce dossier est vide, Verso y dépose quelques contenus gratuits :
 
-Verso se souvient aussi de ce qui était projeté la dernière fois et le reprend à la réouverture.
+- les recueils **Reflets 4** et **Hymnes et Cantiques (révisés)** ;
+- les Bibles **Darby**, **Darby révisée** (Bibles et Publications Chrétiennes, CC BY-NC-ND 4.0) et **Louis Segond 1910** ;
+- deux images de projection, s'il n'y a encore aucune image compatible.
+
+Vous pouvez les garder, les modifier ou les remplacer. Les images ne sont ajoutées qu'à la première installation et ne remplacent jamais une image existante. Si plus aucune Bible n'est lisible, Verso restaure ces trois traductions au démarrage suivant ; tant qu'il en reste une, vos fichiers ne sont pas modifiés. Les Bibles déjà présentes sont reconnues à leur code interne, même si le fichier ne s'appelle pas `bible-<code>.json`.
+
+À la réouverture, Verso reprend ce qui était projeté la dernière fois.
 
 ---
 
@@ -82,22 +88,22 @@ Verso se souvient aussi de ce qui était projeté la dernière fois et le repren
 
 La fenêtre opérateur a quatre onglets : **Chants**, **Bible**, **PDF** et **Images**.
 
-Le principe est toujours le même : vous cherchez ce que vous voulez, vous le sélectionnez, et il s'affiche sur le vidéoprojecteur.
+Le principe est le même partout : cherchez un contenu, sélectionnez-le, et il s'affiche sur le vidéoprojecteur.
 
-Sous l'aperçu de la projection, **Projeter** ouvre la fenêtre de projection sur l'écran configuré dans les Réglages, tandis que **Masquer** vide temporairement son contenu et affiche un écran blanc. Leurs raccourcis sont indiqués directement dans les boutons : **Cmd/Ctrl P** et **Cmd/Ctrl M**. Ils fonctionnent aussi lorsque la fenêtre de projection a le focus : **Cmd/Ctrl M** vide l'écran sans fermer ni réduire la fenêtre, et **Cmd/Ctrl P** réaffiche le dernier contenu projeté.
+Sous l'aperçu de la projection, **Projeter** ouvre la fenêtre de projection sur l'écran choisi dans les Réglages, et **Masquer** remplace temporairement son contenu par un écran blanc. Leurs raccourcis, **Cmd/Ctrl P** et **Cmd/Ctrl M**, sont rappelés sur les boutons. Ils fonctionnent aussi quand la fenêtre de projection est active : **Cmd/Ctrl M** vide l'écran sans fermer ni réduire la fenêtre, **Cmd/Ctrl P** réaffiche le dernier contenu projeté.
 
-La recherche de chants est tolérante : elle ignore les accents et les apostrophes, accepte plusieurs mots, et matche aussi bien le numéro du chant que ses premiers mots (incipit).
+La recherche de chants est tolérante : elle ignore les accents et les apostrophes, accepte plusieurs mots, et trouve un chant par son numéro comme par ses premiers mots (incipit).
 
 ### Modifier un chant
 
-Quand un chant est ouvert, le bouton **Modifier** (en haut de la liste des strophes) ouvre une zone de texte où vous pouvez corriger les paroles directement dans l'application, sans toucher au fichier JSON. **Sauvegarder** enregistre les changements dans le recueil ; **Annuler** referme la zone sans rien modifier.
+Quand un chant est ouvert, le bouton **Modifier** (au-dessus de la liste des strophes) ouvre une zone de texte pour corriger les paroles sans toucher au fichier JSON. **Sauvegarder** enregistre les changements dans le recueil ; **Annuler** referme la zone sans rien modifier.
 
 Le texte suit une mise en forme simple :
 
 - Les strophes, refrains et autres sections sont séparés par une **ligne vide**.
-- La **première ligne** d'un bloc indique son type, le plus simplement avec une lettre : `S` pour strophe, `R` pour refrain, `P` pour pont, `I` pour introduction, `O` pour final, `PC` pour pré-refrain. Ajoutez un numéro si besoin (`S2`).
-- Sans type reconnu, le bloc est considéré comme une strophe et numéroté automatiquement : vous pouvez écrire les paroles sans aucune étiquette.
-- Les lignes suivantes du bloc sont le texte projeté ; un simple retour à la ligne crée un nouveau vers.
+- La **première ligne** d'un bloc indique son type, en une ou deux lettres : `S` pour strophe, `R` pour refrain, `P` pour pont, `I` pour introduction, `O` pour final, `PC` pour pré-refrain. Ajoutez un numéro si besoin (`S2`).
+- Sans type reconnu, le bloc est traité comme une strophe et numéroté automatiquement : vous pouvez donc saisir les paroles sans aucune étiquette.
+- Les lignes suivantes forment le texte projeté ; chaque retour à la ligne commence un nouveau vers.
 
 Exemple :
 
@@ -110,22 +116,26 @@ R
 Texte du refrain.
 ```
 
-Les noms complets fonctionnent aussi (`Strophe 1`, `Refrain`, `Pont`…) si vous préférez.
+Les noms complets (`Strophe 1`, `Refrain`, `Pont`…) fonctionnent aussi.
 
 ### Raccourcis clavier
 
-Verso propose des raccourcis clavier pour changer d'onglet, chercher et projeter sans la souris. La liste complète et toujours à jour est intégrée à l'application : choisissez **Aide → Raccourcis clavier**. Elle s'ouvre dans une fenêtre séparée.
+Des raccourcis clavier permettent de changer d'onglet, de chercher et de projeter sans la souris. La liste complète, toujours à jour, s'ouvre dans une fenêtre séparée par **Aide → Raccourcis clavier**.
 
 ### Réglages
 
-Sur macOS, choisissez **Verso → Réglages…** ou utilisez `⌘,`. Sous Windows, choisissez **Fichier → Réglages…** ou utilisez `Ctrl+,` ; sous Linux, la commande se trouve dans **Aide**. Une fenêtre séparée s'ouvre avec les rubriques suivantes :
+Ouvrez les Réglages par **Verso → Réglages…** (`⌘,`) sur macOS, **Fichier → Réglages…** (`Ctrl+,`) sous Windows, ou le menu **Aide** sous Linux. Ils s'ouvrent dans une fenêtre séparée, avec quatre rubriques :
 
-- **Projection** — choisissez l'écran utilisé pour la projection dans la liste déroulante. Ce choix est mémorisé pour les prochaines sessions.
-- **Contenus** — gérez vos recueils, Bibles, PDF et images directement depuis les Réglages : pour chaque catégorie vous pouvez **Ajouter** des fichiers, **Gérer** les éléments existants et les **Supprimer**, sans quitter l'application. Vous pouvez aussi ouvrir le dossier Verso où se trouvent ces fichiers.
-- **Langue** — changer la langue de l'interface.
-- **Mises à jour** — consulter l'état courant sous le bouton, vérifier manuellement une nouvelle version et l'installer.
+- **Projection** : l'écran utilisé pour la projection, à choisir dans la liste déroulante. Ce choix est mémorisé.
+- **Contenus** : pour chaque catégorie (recueils, Bibles, PDF, images), vous pouvez **Ajouter** des fichiers, **Gérer** les éléments existants et les **Supprimer**. Vous pouvez aussi ouvrir le dossier Verso.
+- **Langue** : la langue de l'interface.
+- **Mises à jour** : l'état de la mise à jour, la vérification manuelle et l'installation d'une nouvelle version.
 
-Fermez les fenêtres **Réglages**, **Raccourcis clavier** et **À propos de Verso** comme toute fenêtre native, avec leur bouton de fermeture ou `Cmd/Ctrl W`. Verso conserve ces fenêtres légères prêtes en arrière-plan afin que leur réouverture soit immédiate. La fenêtre **À propos de Verso** regroupe la version, l'auteur et le contact, et permet de vérifier puis d'installer directement les mises à jour ; elle est accessible dans **Aide** et, sur macOS, également dans le menu **Verso**. Les boîtes de dialogue internes se ferment avec **Échap**. Les intitulés des menus natifs suivent la langue choisie dans les réglages.
+Les fenêtres **Réglages**, **Raccourcis clavier** et **À propos de Verso** se ferment avec leur bouton de fermeture ou `Cmd/Ctrl W` ; leurs boîtes de dialogue se ferment avec **Échap**. Elles restent prêtes en arrière-plan et se rouvrent donc instantanément.
+
+La fenêtre **À propos de Verso** (menu **Aide**, et menu **Verso** sur macOS) indique la version, l'auteur et le contact, et permet aussi de vérifier et d'installer les mises à jour.
+
+Les menus suivent la langue choisie dans les Réglages.
 
 <!-- website:end -->
 
@@ -137,9 +147,9 @@ Cette section s'adresse aux personnes à l'aise avec les fichiers JSON ou le cod
 
 ### Ajouter un recueil de chants
 
-Un recueil est un fichier rangé dans `songbooks`, nommé `songbook-<code>.json`, où `<code>` est le code du recueil (`songbook_code`) en minuscules, espaces remplacés par des tirets, accents et ponctuation supprimés. Pour un recueil dont le code est `ABC`, le fichier est `songbook-abc.json`. Verso régénère ce nom canonique à partir du code : vous n'avez pas à le respecter à la main.
+Un recueil est un fichier `songbook-<code>.json` rangé dans `songbooks`. `<code>` est le code du recueil (`songbook_code`) en minuscules, sans accents ni ponctuation, les espaces remplacés par des tirets : pour le code `ABC`, le fichier est `songbook-abc.json`. Verso rétablit lui-même ce nom à partir du code : inutile de le respecter à la main.
 
-Le fichier est un objet portant le nom du recueil une seule fois, puis la liste des chants :
+Le fichier contient le code et le nom du recueil, puis la liste des chants :
 
 ```json
 {
@@ -160,24 +170,22 @@ Le fichier est un objet portant le nom du recueil une seule fois, puis la liste 
 }
 ```
 
-- `songbook_code` — code du recueil, répété sur chaque fichier du recueil.
-- `songbook_name` — nom lisible du recueil.
-- `songs` — la liste des chants. Chaque chant a :
-- `title` — titre affiché et recherché.
-- `author` — texte, ou `null` si inconnu. Affiché en pied de page du slide projeté tant qu'une strophe du chant est à l'écran.
-- `source_number` — numéro du chant dans le recueil (ou `null`).
-- `verses` — liste **ordonnée** des couplets. Chaque couplet a :
-  - `type` — type de section. Valeurs courantes : `"verse"`, `"chorus"`, `"bridge"`, `"intro"`, `"outro"`, `"prechorus"`. Absent → strophe. Les refrains sont étiquetés « Refrain » ; tout autre type est affiché comme une strophe.
-  - `number` — numéro de strophe (facultatif).
-  - `text` — le texte ; les sauts de ligne se notent `\n`.
+- `songbook_code` : code du recueil ; le nom du fichier en est dérivé.
+- `songbook_name` : nom du recueil.
+- `songs` : liste des chants. Chaque chant a :
+  - `title` : titre, affiché et utilisé pour la recherche.
+  - `author` : auteur, ou `null` s'il est inconnu. Affiché au bas de la projection tant qu'une strophe du chant est à l'écran.
+  - `source_number` : numéro du chant dans le recueil (ou `null`).
+  - `verses` : liste **ordonnée** des sections du chant. Chaque section a :
+    - `type` : type de section. Valeurs courantes : `"verse"`, `"chorus"`, `"bridge"`, `"intro"`, `"outro"`, `"prechorus"` ; strophe par défaut. Seuls les refrains sont étiquetés « Refrain » : les autres types s'affichent comme des strophes.
+    - `number` : numéro de strophe (facultatif).
+    - `text` : les paroles. JSON n'acceptant pas de vrai retour à la ligne dans un texte, chaque saut de ligne s'écrit `\n`.
 
-Le format JSON n'autorise pas de vrai retour à la ligne à l'intérieur d'un texte : écrivez `\n` pour chaque saut de ligne dans `text`.
-
-Un fichier complet est disponible dans [`examples/songbook-abc.json`](examples/songbook-abc.json) : vous pouvez le copier et le remplir avec vos chants.
+[`examples/songbook-abc.json`](examples/songbook-abc.json) est un fichier complet, à copier puis à remplir avec vos chants.
 
 ### Ajouter une Bible
 
-Une traduction est un fichier rangé dans `bibles`, nommé `bible-<code>.json`, où `<code>` est le code de la traduction (`bible_code`) en minuscules, espaces remplacés par des tirets, accents et ponctuation supprimés. Pour une traduction dont le code est `S21`, le fichier est `bible-s21.json`. Verso régénère ce nom canonique à partir du code : vous n'avez pas à le respecter à la main.
+Une traduction est un fichier `bible-<code>.json` rangé dans `bibles`. `<code>` est le code de la traduction (`bible_code`) en minuscules, sans accents ni ponctuation, les espaces remplacés par des tirets : pour le code `S21`, le fichier est `bible-s21.json`. Verso rétablit lui-même ce nom à partir du code : inutile de le respecter à la main.
 
 ```json
 {
@@ -209,15 +217,15 @@ Une traduction est un fichier rangé dans `bibles`, nommé `bible-<code>.json`, 
 }
 ```
 
-Un fichier complet est disponible dans [`examples/bible-abc.json`](examples/bible-abc.json) : vous pouvez le copier et le remplir avec votre traduction.
+[`examples/bible-abc.json`](examples/bible-abc.json) est un fichier complet, à copier puis à remplir avec votre traduction.
 
-- `bible_code` — code de la traduction ; le nom du fichier en est dérivé.
-- `bible_name` — *(optionnel)* nom lisible de la traduction (par exemple `Segond 21`) ; affiché dans l'opérateur et dans la gestion des contenus. À défaut, on retombe sur le code.
-- `bible_copyright` — *(optionnel)* mention de crédit/licence de la traduction (éditeur, licence). Affichée discrètement dans l'opérateur quand la traduction est sélectionnée, ainsi qu'en pied de page du slide projeté tant qu'un verset est à l'écran ; utile pour les traductions dont la licence exige l'attribution (par exemple `CC BY-NC-ND`).
-- `books` — liste **ordonnée** des livres.
-  - `name` — nom du livre (utilisé pour la recherche de référence).
-  - `chapters` — tableau de chapitres ; chaque chapitre est un tableau de versets (textes).
-  - L'ordre fait foi : `chapters[0]` est le chapitre 1, et `chapters[0][0]` le verset 1.
+- `bible_code` : code de la traduction ; le nom du fichier en est dérivé.
+- `bible_name` : *(optionnel)* nom de la traduction (par exemple `Segond 21`), affiché dans la fenêtre opérateur et dans la gestion des contenus. S'il est absent, le code est affiché à la place.
+- `bible_copyright` : *(optionnel)* crédit de la traduction (éditeur, licence), pour les licences qui exigent l'attribution (par exemple `CC BY-NC-ND`). Affiché dans la fenêtre opérateur quand la traduction est sélectionnée, et au bas de la projection tant qu'un verset est à l'écran.
+- `books` : liste **ordonnée** des livres.
+  - `name` : nom du livre, utilisé pour la recherche par référence.
+  - `chapters` : tableau des chapitres, chacun étant un tableau de versets.
+  - La numérotation suit l'ordre : `chapters[0]` est le chapitre 1, et `chapters[0][0]` le verset 1.
 
 ### Développement
 
@@ -233,7 +241,7 @@ Tests Rust :
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-Le mode d'emploi du site (https://verso.akurba.com/guide.html) est le texte de ce README compris entre les marqueurs `<!-- website:start -->` et `<!-- website:end -->`, relu depuis GitHub à chaque visite : modifier ce passage et le pousser sur `master` suffit à mettre le site à jour. Voir `website/README.md`.
+Le mode d'emploi du site (https://verso.akurba.com/guide.html) reprend le texte de ce README situé entre les marqueurs `<!-- website:start -->` et `<!-- website:end -->`. Le site le relit depuis GitHub à chaque visite : il suffit de modifier ce passage et de le pousser sur `master`. Voir `website/README.md`.
 
 ### Structure du code
 
