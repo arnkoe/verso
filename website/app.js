@@ -16,7 +16,7 @@
     "nav.download": "Download",
     "nav.docs": "User guide",
     "hero.title": "Project songs and verses without missing a beat.",
-    "hero.lead": "Verso puts songs, Bible verses and PDFs on screen the moment you need them: nothing to prepare before the service, everything driven from the keyboard. Free on Windows and Mac, with no account and no Internet connection needed.",
+    "hero.lead": "Verso is designed for services that are not planned in advance: songs, Bible verses and PDFs go on screen the moment you need them, and everything is driven from the keyboard. Free on Windows and Mac, with no account and no Internet connection needed.",
     "dl.generic": "Download Verso",
     "dl.others": "Other systems",
     "stage.operator": "What you see",
