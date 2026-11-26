@@ -142,8 +142,9 @@ function switchSideTab(tab) {
 
   // Relit le dossier à l'ouverture de l'onglet : l'utilisateur dépose ses
   // fichiers directement dans pdf/ ou images/, sans import via l'interface.
-  if (tab === 'pdf') loadPdfList();
-  else if (tab === 'images') loadImageList();
+  const reload = tab === 'pdf' ? loadPdfList()
+               : tab === 'images' ? loadImageList()
+               : null;
 
   // Aligne le curseur clavier sur l'élément déjà chargé (classe .active) plutôt
   // que de le remettre en tête : sans ça, le curseur surlignerait le 1er résultat
@@ -152,6 +153,7 @@ function switchSideTab(tab) {
   const idx = active ? searchItems().indexOf(active) : -1;
   state.searchCursor = idx >= 0 ? idx : 0;
   updateSearchCursor();
+  return reload;
 }
 
 function showPanel(id) {
@@ -880,6 +882,89 @@ function projectImage() {
   });
 
   project({ type: 'image', filename: state.image.filename });
+}
+
+// ─── AJOUT DE PDF ET D'IMAGES ────────────────────────────────────────────────
+// Bouton + des onglets PDF et Images, et fichiers déposés n'importe où sur la
+// fenêtre. Mêmes types et extensions que la modale Contenus des Réglages
+// (utility.js) et que storage::content_kind côté Rust. Aucun retour visuel :
+// l'onglet du premier fichier ajouté s'affiche avec ce fichier sélectionné,
+// sans toucher à la projection en cours.
+
+const MEDIA_FILTERS = {
+  pdf:    { name: 'PDF', extensions: ['pdf'] },
+  images: { name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'webp'] },
+};
+
+function mediaKindOf(path) {
+  const ext = (mediaBasename(path).match(/\.([^.]+)$/)?.[1] || '').toLowerCase();
+  return Object.keys(MEDIA_FILTERS).find(k => MEDIA_FILTERS[k].extensions.includes(ext)) || null;
+}
+
+// Nom de destination : le back garde le nom du fichier source (sanitize_filename).
+function mediaBasename(path) {
+  return path.split(/[\\/]/).pop();
+}
+
+async function addMedia(kind) {
+  if (!MEDIA_FILTERS[kind]) return;
+  // Rend la main à la navigation clavier (flèches, Entrée, Espace) après le clic.
+  document.activeElement?.closest?.('.add-media')?.blur();
+  let selected;
+  try {
+    selected = await window.__TAURI__.dialog.open({
+      multiple: true,
+      filters: [MEDIA_FILTERS[kind]],
+    });
+  } catch (_) { return; }
+  if (!selected) return;
+  await importMedia(Array.isArray(selected) ? selected : [selected]);
+}
+
+// Importe les PDF et images parmi `paths` (le reste est ignoré), puis affiche
+// l'onglet du premier fichier importé avec ce fichier sélectionné.
+async function importMedia(paths) {
+  let first = null;
+  const kinds = new Set();
+  for (const path of paths || []) {
+    const kind = mediaKindOf(path);
+    if (!kind) continue;
+    try {
+      await apiImportContent(kind, path);
+      kinds.add(kind);
+      if (!first) first = { kind, filename: mediaBasename(path) };
+    } catch (err) {
+      console.warn('Import failed:', path, err);
+    }
+  }
+  if (!first) return;
+
+  // L'autre type éventuellement importé : sa liste est rechargée ici, celle du
+  // premier fichier l'est par switchSideTab.
+  if (kinds.has('pdf') && first.kind !== 'pdf') loadPdfList();
+  if (kinds.has('images') && first.kind !== 'images') loadImageList();
+
+  // Un filtre de recherche qui masquerait le fichier ajouté est effacé.
+  const input = tabSearchInput(first.kind);
+  if (input && input.value && !first.filename.toLowerCase().includes(input.value.trim().toLowerCase())) {
+    input.value = '';
+  }
+  await switchSideTab(first.kind);
+  const files = first.kind === 'pdf' ? pdfFiles : imageFiles;
+  if (!files.some(f => f.filename === first.filename)) return;
+  if (first.kind === 'pdf') selectPdf(first.filename);
+  else selectImage(first.filename);
+
+  const idx = searchItems().findIndex(el => el.classList.contains('active'));
+  if (idx >= 0) { state.searchCursor = idx; updateSearchCursor(); }
+}
+
+try {
+  window.__TAURI__.webview.getCurrentWebview().onDragDropEvent(e => {
+    if (e.payload.type === 'drop') importMedia(e.payload.paths);
+  }).catch(err => console.warn('Drag and drop unavailable:', err));
+} catch (err) {
+  console.warn('Drag and drop unavailable:', err);
 }
 
 // ─── MASQUAGE DE LA PROJECTION ───────────────────────────────────────────────

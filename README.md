@@ -70,7 +70,7 @@ It contains four folders:
 - **`pdf`**: the PDF documents to project.
 - **`images`**: the images to project.
 
-To add PDFs or images, drop them into the `pdf` or `images` folder.
+The easiest way to add PDFs or images is to drag them onto the operator window, whatever tab is shown, or to click the **+** button to the right of the search field in the **PDF** and **Images** tabs. Verso copies them into the `pdf` or `images` folder, shows the tab of the first file added and selects it, without changing what is projected. Files of any other type are ignored. A file with the same name as one already present replaces it. You can also put them directly into the `pdf` or `images` folder.
 
 On first launch, if this folder is empty, Verso adds some free content to it:
 

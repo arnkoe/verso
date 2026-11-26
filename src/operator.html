@@ -59,12 +59,15 @@
 
         <!-- PDF -->
         <div id="listPdf" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
-          <div class="search-box">
+          <div class="search-box has-add">
             <div class="field">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M20 20l-3.5-3.5"/></svg>
               <input type="text" class="search-input" id="pdfSearchInput" placeholder="Rechercher un PDF" data-i18n-placeholder="search.pdfPlaceholder" autocomplete="off">
               <span class="shortcut-hint" aria-hidden="true"><span data-key="mod">Ctrl</span><span class="shortcut-hint-sep">+</span><span>F</span></span>
             </div>
+            <button class="hdr-btn add-media" data-action="addMedia" data-arg="pdf" title="Ajouter un PDF" aria-label="Ajouter un PDF" data-i18n-title="media.addPdf" data-i18n-aria-label="media.addPdf">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            </button>
           </div>
           <div class="content-list" id="pdfList">
             <div class="search-empty search-prompt" data-i18n="pdf.empty">Aucun PDF dans le dossier</div>
@@ -73,12 +76,15 @@
 
         <!-- Images -->
         <div id="listImages" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
-          <div class="search-box">
+          <div class="search-box has-add">
             <div class="field">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M20 20l-3.5-3.5"/></svg>
               <input type="text" class="search-input" id="imageSearchInput" placeholder="Rechercher une image" data-i18n-placeholder="search.imagePlaceholder" autocomplete="off">
               <span class="shortcut-hint" aria-hidden="true"><span data-key="mod">Ctrl</span><span class="shortcut-hint-sep">+</span><span>F</span></span>
             </div>
+            <button class="hdr-btn add-media" data-action="addMedia" data-arg="images" title="Ajouter une image" aria-label="Ajouter une image" data-i18n-title="media.addImage" data-i18n-aria-label="media.addImage">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            </button>
           </div>
           <div class="content-list" id="imageList">
             <div class="search-empty search-prompt" data-i18n="images.empty">Aucune image dans le dossier</div>
