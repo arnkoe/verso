@@ -256,19 +256,6 @@ kbd {
   margin-top: 28px;
 }
 
-/* Update section: the three steps, with the labels Verso really shows. */
-.ui-link { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
-.ui-button {
-  display: inline-block;
-  padding: 7px 14px;
-  font-size: .95rem;
-  font-weight: 600;
-  color: var(--button-text);
-  background: var(--button);
-  border-radius: 8px;
-}
-.ui-status { font-weight: 600; }
-.ui-status::before { content: "✓"; margin-right: 8px; color: var(--live); }
 
 /* Download */
 .download {
