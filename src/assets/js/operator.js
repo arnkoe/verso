@@ -346,7 +346,9 @@ function projectVerse(i) {
     source_number: state.song.source_number,
     verseText: state.song.verses[i].text,
     verseLabels: state.song.verses.map(v => verseShortLabel(v.type, v.number)),
-    copyright: state.song.author || '',
+    // Ligne de crédit : l'auteur, suivi du copyright quand il existe.
+    copyright: [state.song.author, state.song.copyright]
+      .map(s => (s || '').trim()).filter(Boolean).join(' · '),
   });
 }
 
@@ -1287,7 +1289,8 @@ document.addEventListener('keydown', e => {
 // Types de section canoniques (stockés tels quels dans les recueils). Le choix
 // est international et indépendant de la langue : l'affichage est traduit, mais
 // la donnée ne l'est pas.
-const VERSE_TYPES = ['verse', 'chorus', 'bridge', 'intro', 'outro', 'prechorus'];
+// `middle`, `solo` et `other` viennent d'OpenLyrics (sections m, s et o).
+const VERSE_TYPES = ['verse', 'chorus', 'bridge', 'intro', 'outro', 'prechorus', 'middle', 'solo', 'other'];
 
 // Alias acceptés en saisie -> type canonique. Insensible à la casse. Couvre les
 // lettres courtes (FR + EN) et les mots entiers, sans collision : `C` est
@@ -1302,6 +1305,9 @@ const VERSE_TYPE_ALIASES = {
   pc: 'prechorus', prechorus: 'prechorus', 'pre-chorus': 'prechorus',
   'pré-refrain': 'prechorus', 'pre-refrain': 'prechorus',
   'pré-r': 'prechorus', 'pre-r': 'prechorus',
+  middle: 'middle', transition: 'middle',
+  solo: 'solo',
+  other: 'other', autre: 'other',
 };
 
 // Normalise un type canonique : retombe sur `verse` pour toute valeur inconnue.

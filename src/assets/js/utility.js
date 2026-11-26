@@ -140,6 +140,7 @@ function _retranslateDynamic() {
     document.getElementById('contentModalTitle').textContent = t(CONTENT_TITLE_KEY[_contentKind]);
     refreshContentList();
   }
+  _renderOpenLyricsImport();
   _renderAvailableUpdate();
 }
 
@@ -188,6 +189,8 @@ async function manageContent(kind) {
   _contentKind = kind;
   document.getElementById('contentModalTitle').textContent = t(CONTENT_TITLE_KEY[kind]);
   _setContentStatus('', '');
+  const importBtn = document.getElementById('contentImportBtn');
+  if (importBtn) importBtn.hidden = kind !== 'songbooks';
   const list = document.getElementById('contentModalList');
   list.innerHTML = `<li class="content-mgr-empty">${esc(t('list.loading'))}</li>`;
   document.getElementById('contentModal').hidden = false;
@@ -195,6 +198,7 @@ async function manageContent(kind) {
 }
 
 function closeContentManager() {
+  closeOpenLyricsImport();
   const modal = document.getElementById('contentModal');
   if (modal) modal.hidden = true;
   _contentKind = null;
@@ -214,16 +218,38 @@ async function refreshContentList() {
     ul.innerHTML = `<li class="content-mgr-empty">${esc(t('settings.contentEmpty'))}</li>`;
     return;
   }
+  const songbooks = _contentKind === 'songbooks';
   ul.innerHTML = items.map(it => `
     <li class="content-mgr-item" data-file="${esc(it.filename)}">
-      <span class="content-mgr-name">${esc(it.label)}</span>
+      ${songbooks ? `<span class="content-mgr-book">
+        <span class="content-mgr-name">${esc(it.label)}</span>
+        ${it.added_at ? `<span class="content-mgr-date">${esc(_formatAddedAt(it.added_at))}</span>` : ''}
+      </span>` : `<span class="content-mgr-name">${esc(it.label)}</span>`}
       <span class="content-mgr-actions">
+        ${songbooks ? `<button class="hdr-btn content-mgr-export" data-export-file="${esc(it.filename)}"
+          data-export-code="${esc(it.code || '')}" data-export-label="${esc(it.label)}">
+          <span>${esc(t('settings.export'))}</span>
+        </button>` : ''}
         <button class="hdr-btn content-mgr-del" data-del-file="${esc(it.filename)}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
           <span>${esc(t('settings.delete'))}</span>
         </button>
       </span>
     </li>`).join('');
+}
+
+// Date d'ajout d'un recueil, dans la langue de l'interface :
+// « Ajouté le 3 mars 2026 à 18:47 » / « Added March 3, 2026 at 6:47 PM ».
+function _formatAddedAt(iso) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const text = new Intl.DateTimeFormat(currentLang(), { dateStyle: 'long', timeStyle: 'short' }).format(date);
+  return t('settings.addedOn', { date: text });
+}
+
+// Message au singulier ou au pluriel (clé `<key>One` pour 1).
+function _countMsg(key, count) {
+  return count === 1 ? t(key + 'One') : t(key, { count: String(count) });
 }
 
 async function _notifyContentChanged(kind) {
@@ -314,7 +340,168 @@ _contentModalList?.addEventListener('click', e => {
     return;
   }
   const del = e.target.closest('.content-mgr-del');
-  if (del) _askDeleteConfirm(del.closest('.content-mgr-item'), del.dataset.delFile);
+  if (del) { _askDeleteConfirm(del.closest('.content-mgr-item'), del.dataset.delFile); return; }
+  const exp = e.target.closest('.content-mgr-export');
+  if (exp && !exp.disabled) _exportSongbook(exp);
+});
+
+// ─── OPENLYRICS ─────────────────────────────────────────────────────────────
+
+// Export : boîte d'enregistrement du système, puis une ligne dans le pied de
+// la modale. L'archive contient un fichier OpenLyrics par chant.
+async function _exportSongbook(btn) {
+  const { exportFile: file, exportCode: code, exportLabel: label } = btn.dataset;
+  const base = code && code !== label ? `${code} - ${label}` : label;
+  const defaultPath = `${base} (OpenLyrics).zip`.replace(/[\\/:*?"<>|]/g, ' ');
+  let dest;
+  try {
+    dest = await window.__TAURI__.dialog.save({
+      defaultPath,
+      filters: [{ name: 'OpenLyrics', extensions: ['zip'] }],
+    });
+  } catch (_) { return; }
+  if (!dest) return;
+  const span = btn.querySelector('span');
+  btn.disabled = true;
+  if (span) span.textContent = t('settings.exporting');
+  _setContentStatus('', '');
+  try {
+    const count = await apiExportOpenLyrics(file, dest);
+    _setContentStatus(_countMsg('settings.exported', count), 'ok');
+  } catch (err) {
+    _setContentStatus(t('settings.exportError', { err: String(err) }), 'error');
+  } finally {
+    btn.disabled = false;
+    if (span) span.textContent = t('settings.export');
+  }
+}
+
+// Import : une seule boîte, vide à l'ouverture. « Importer » reste inactif
+// tant qu'aucun fichier n'est choisi, que le nom ou le code manque, ou qu'un
+// recueil porte déjà ce nom ou ce code. L'import crée toujours un recueil.
+const _olImport = { open: false, paths: [], books: [], busy: false };
+
+async function openOpenLyricsImport() {
+  const modal = document.getElementById('olImportModal');
+  if (!modal) return;
+  Object.assign(_olImport, { open: true, paths: [], books: [], busy: false });
+  document.getElementById('olName').value = '';
+  document.getElementById('olCode').value = '';
+  _setOlStatus('', '');
+  modal.hidden = false;
+  _renderOpenLyricsImport();
+  try { _olImport.books = await apiListSongbooks(); } catch (_) { _olImport.books = []; }
+  _renderOpenLyricsImport();
+}
+
+function closeOpenLyricsImport() {
+  const modal = document.getElementById('olImportModal');
+  if (!modal || _olImport.busy) return;
+  modal.hidden = true;
+  _olImport.open = false;
+  _olImport.paths = [];
+}
+
+function _setOlStatus(text, kind) {
+  const el = document.getElementById('olStatus');
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'settings-update-status' + (kind ? ' ' + kind : '');
+}
+
+// Nom ou code déjà pris (comparaison sans casse, comme côté Rust).
+function _olConflicts() {
+  const name = document.getElementById('olName').value.trim().toLowerCase();
+  const code = document.getElementById('olCode').value.trim().toLowerCase();
+  const byCode = code && _olImport.books.find(b => (b.code || '').toLowerCase() === code);
+  return {
+    name: !!name && _olImport.books.some(b => (b.name || '').toLowerCase() === name),
+    // Code existant tel qu'il est écrit dans son recueil, pour le message.
+    code: byCode ? byCode.code : '',
+  };
+}
+
+function _renderOpenLyricsImport() {
+  if (!_olImport.open) return;
+  const nameInput = document.getElementById('olName');
+  const codeInput = document.getElementById('olCode');
+  const picked = document.getElementById('olPicked');
+  const errorLine = document.getElementById('olError');
+  const importBtn = document.getElementById('olImportBtn');
+  const paths = _olImport.paths;
+  picked.textContent = !paths.length ? t('openlyrics.nothingPicked')
+    : paths.length === 1 ? paths[0].split(/[\\/]/).pop()
+    : t('openlyrics.pickedMany', { count: String(paths.length) });
+  picked.title = paths.length === 1 ? paths[0] : '';
+  const taken = _olConflicts();
+  nameInput.classList.toggle('error', taken.name);
+  codeInput.classList.toggle('error', !!taken.code);
+  const msg = taken.name && taken.code ? t('openlyrics.bothTaken')
+    : taken.code ? t('openlyrics.codeTaken', { code: taken.code })
+    : taken.name ? t('openlyrics.nameTaken', { name: nameInput.value.trim() })
+    : '';
+  errorLine.textContent = msg;
+  errorLine.hidden = !msg;
+  const span = importBtn.querySelector('span');
+  if (span) span.textContent = t(_olImport.busy ? 'openlyrics.importing' : 'openlyrics.import');
+  importBtn.disabled = _olImport.busy || !paths.length || !nameInput.value.trim()
+    || !codeInput.value.trim() || taken.name || !!taken.code;
+  document.getElementById('olPickBtn').disabled = _olImport.busy;
+}
+
+async function pickOpenLyricsFiles() {
+  let selected;
+  try {
+    selected = await window.__TAURI__.dialog.open({
+      multiple: true,
+      filters: [{ name: 'OpenLyrics', extensions: ['xml', 'zip'] }],
+    });
+  } catch (_) { return; }
+  if (!selected) return;
+  _olImport.paths = Array.isArray(selected) ? selected : [selected];
+  _setOlStatus('', '');
+  _renderOpenLyricsImport();
+}
+
+async function runOpenLyricsImport() {
+  const btn = document.getElementById('olImportBtn');
+  if (!btn || btn.disabled) return;
+  const name = document.getElementById('olName').value.trim();
+  const code = document.getElementById('olCode').value.trim();
+  _olImport.busy = true;
+  _setOlStatus('', '');
+  _renderOpenLyricsImport();
+  let result;
+  try {
+    result = await apiImportOpenLyrics(_olImport.paths, name, code);
+  } catch (err) {
+    _setOlStatus(t('openlyrics.importError', { err: String(err) }), 'error');
+    return;
+  } finally {
+    _olImport.busy = false;
+    _renderOpenLyricsImport();
+  }
+  if (!result.imported) {
+    _setOlStatus(t('openlyrics.noSongs'), 'error');
+    return;
+  }
+  closeOpenLyricsImport();
+  let msg = _countMsg('openlyrics.imported', result.imported);
+  if (result.ignored) msg += ' ' + _countMsg('openlyrics.ignored', result.ignored);
+  await refreshContentList();
+  await _notifyContentChanged('songbooks');
+  _setContentStatus(msg, 'ok');
+}
+
+document.getElementById('olImportModal')?.addEventListener('input', e => {
+  if (e.target.closest('.ol-input')) _renderOpenLyricsImport();
+});
+
+document.getElementById('olImportModal')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.closest('.ol-input')) {
+    e.preventDefault();
+    runOpenLyricsImport();
+  }
 });
 
 _contentModalList?.addEventListener('input', e => {
@@ -339,12 +526,19 @@ _contentModalList?.addEventListener('keydown', e => {
 });
 
 document.addEventListener('click', e => {
-  if (e.target.id === 'contentModal') closeContentManager();
+  if (e.target.id === 'olImportModal') closeOpenLyricsImport();
+  else if (e.target.id === 'contentModal') closeContentManager();
 });
 
 document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const importModal = document.getElementById('olImportModal');
   const modal = document.getElementById('contentModal');
-  if (e.key === 'Escape' && modal && !modal.hidden) {
+  if (importModal && !importModal.hidden) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    closeOpenLyricsImport();
+  } else if (modal && !modal.hidden) {
     e.preventDefault();
     e.stopImmediatePropagation();
     closeContentManager();

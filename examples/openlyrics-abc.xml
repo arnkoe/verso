@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<song xmlns="http://openlyrics.info/namespace/2009/song" version="0.9" createdIn="Verso 0.7.0" modifiedIn="Verso 0.7.0" modifiedDate="2026-11-26T15:20:00+01:00">
+  <properties>
+    <titles>
+      <title>Titre du premier chant</title>
+    </titles>
+    <authors>
+      <author>Auteur (ou null si inconnu)</author>
+    </authors>
+    <copyright>© 2001 Éditeur (facultatif)</copyright>
+    <ccliNo>1234567</ccliNo>
+    <verseOrder>v1 c v2 c b</verseOrder>
+    <songbooks>
+      <songbook name="Mon recueil" entry="1"/>
+    </songbooks>
+  </properties>
+  <lyrics>
+    <verse name="v1">
+      <lines>Première ligne de la strophe 1.<br/>Deuxième ligne de la strophe 1.</lines>
+    </verse>
+    <verse name="c">
+      <lines>Texte du refrain.<br/>Il est écrit une fois et répété par verseOrder.</lines>
+    </verse>
+    <verse name="v2">
+      <lines>Première ligne de la strophe 2.<br/>Deuxième ligne de la strophe 2.</lines>
+    </verse>
+    <verse name="b">
+      <lines>Texte du pont (facultatif).</lines>
+    </verse>
+  </lyrics>
+</song>

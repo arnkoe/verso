@@ -1,4 +1,5 @@
 mod bible_search;
+mod openlyrics;
 mod storage;
 mod sync;
 
@@ -241,6 +242,31 @@ fn delete_content(
     filename: String,
 ) -> Result<(), String> {
     storage::delete_content(&app, &state, &kind, &filename)
+}
+
+/// Importe des fichiers OpenLyrics (`.xml` ou `.zip`) dans un nouveau recueil.
+/// Exécuté hors du thread principal : une grosse archive ne fige pas l'interface.
+#[tauri::command]
+async fn import_openlyrics(
+    app: AppHandle,
+    sources: Vec<String>,
+    name: String,
+    code: String,
+) -> Result<storage::OpenLyricsImport, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app.state::<AppState>();
+        storage::import_openlyrics(&app, &state, &sources, &name, &code)
+    })
+    .await
+    .map_err(|e| format!("Import interrompu : {e}"))?
+}
+
+/// Exporte un recueil en archive `.zip` d'un fichier OpenLyrics par chant.
+#[tauri::command]
+async fn export_openlyrics(app: AppHandle, filename: String, dest: String) -> Result<usize, String> {
+    tauri::async_runtime::spawn_blocking(move || storage::export_openlyrics(&app, &filename, &dest))
+        .await
+        .map_err(|e| format!("Export interrompu : {e}"))?
 }
 
 // ─── SYNCHRONISATION ────────────────────────────────────────────────────────
@@ -1193,6 +1219,8 @@ pub fn run() {
             list_content,
             import_content,
             delete_content,
+            import_openlyrics,
+            export_openlyrics,
             sync_status,
             sync_pull,
             sync_push,

@@ -25,3 +25,15 @@ La fixture PDF montre l’onglet PDF avec le bouton d’ajout (`data-testid="add
 à droite du champ de recherche : il doit être carré, de la hauteur du champ
 (`--control-h`), et aligné sur lui. Le sélecteur de fichiers et le
 glisser-déposer ne sont pas testables ici (API Tauri absentes).
+
+La fixture Réglages OpenLyrics charge la vraie fenêtre Réglages
+(`src/utility.html`) avec une API Tauri simulée
+(`settings-openlyrics-stub.js`, données fixes, aucun accès fichier) :
+
+- `http://127.0.0.1:4173/tests/fixtures/settings-openlyrics.html?window=settings`
+  (ajouter `&lang=en` pour l'anglais)
+
+Ouvrir Contenus > Recueils > Gérer : date d'ajout sous chaque recueil,
+boutons Exporter et Importer OpenLyrics…, boîte « Importer un recueil ».
+`window.__fixtureCalls` liste les appels simulés ; `window.__fixtureFail`
+(`import`, `export`) force les messages d'échec.
