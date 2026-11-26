@@ -416,6 +416,10 @@ html[data-window-mode="about"] .main.card {
 }
 .search-box input[type=text]::placeholder { color: var(--mute-2); }
 
+/* Onglets PDF et Images : bouton + carré à droite du champ de recherche. */
+.search-box.has-add { grid-template-columns: minmax(0, 1fr) auto; }
+.hdr-btn.add-media { width: var(--control-h); padding: 0; justify-content: center; }
+
 /* Sélecteur de traduction (en-tête Bible) : même contrôle segmenté que les
    onglets, mais avec un nombre de segments variable. La piste est de largeur
    automatique et ses colonnes en 1fr : elles se calent donc toutes sur le code

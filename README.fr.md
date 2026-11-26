@@ -70,7 +70,7 @@ Il contient quatre dossiers :
 - **`pdf`** : les documents PDF à projeter.
 - **`images`** : les images à projeter.
 
-Pour ajouter des PDF ou des images, déposez-les dans le dossier `pdf` ou `images`.
+Pour ajouter des PDF ou des images, le plus simple est de les faire glisser sur la fenêtre opérateur, quel que soit l'onglet affiché, ou de cliquer sur le bouton **+** à droite du champ de recherche des onglets **PDF** et **Images**. Verso les copie dans le dossier `pdf` ou `images`, affiche l'onglet du premier fichier ajouté et le sélectionne, sans changer ce qui est projeté. Les fichiers d'un autre type sont ignorés. Un fichier qui porte le même nom qu'un fichier déjà présent le remplace. Vous pouvez aussi les déposer directement dans le dossier `pdf` ou `images`.
 
 Au premier lancement, si ce dossier est vide, Verso y dépose quelques contenus gratuits :
 

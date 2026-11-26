@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verso — Fixture onglet PDF</title>
+<link rel="stylesheet" href="../../src/assets/css/operator.css">
+<style>
+/* Vignettes factices (pas de pdf.js dans la fixture). */
+.pdf-page-thumb .fake-page { width: 100%; aspect-ratio: 16 / 9; background: var(--panel); }
+</style>
+</head>
+<body class="platform-macos">
+<div class="app">
+  <div class="body">
+    <aside class="sidebar-left">
+      <section class="card card-search">
+        <div class="tabs" role="tablist" style="--seg-index:2">
+          <button class="tab">Chants</button>
+          <button class="tab">Bible</button>
+          <button class="tab active">PDF</button>
+          <button class="tab">Images</button>
+        </div>
+        <div id="listPdf" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+          <div class="search-box has-add">
+            <div class="field">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input type="text" class="search-input" placeholder="Rechercher un PDF" autocomplete="off">
+              <span class="shortcut-hint" aria-hidden="true"><span>⌘</span><span>F</span></span>
+            </div>
+            <button class="hdr-btn add-media" title="Ajouter un PDF" aria-label="Ajouter un PDF" data-testid="add-media">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            </button>
+          </div>
+          <div class="content-list" id="pdfList">
+            <div class="content-item active"><span class="item-title">Annonces novembre.pdf</span></div>
+            <div class="content-item"><span class="item-title">Plan de lecture.pdf</span></div>
+            <div class="content-item"><span class="item-title">Programme de Noël.pdf</span></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="action-bar" aria-hidden="true">
+        <div class="action-bar-center"></div>
+      </div>
+
+      <section class="card card-monitor">
+        <div class="monitor-screen">
+          <div class="preview-stage"><div class="preview-content"></div></div>
+        </div>
+        <div class="actions-bar monitor-actions" role="toolbar">
+          <button class="hdr-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.033 9.44a.647.647 0 0 1 0 1.12l-4.065 2.352a.645.645 0 0 1-.968-.56V7.648a.645.645 0 0 1 .967-.56z"/><path d="M12 17v4"/><path d="M8 21h8"/><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
+            <span>Projeter</span>
+            <span class="shortcut-hint" aria-hidden="true"><span>⌘</span><span>P</span></span>
+          </button>
+          <button class="hdr-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14.5 12.5-5-5"/><path d="m9.5 12.5 5-5"/><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
+            <span>Masquer</span>
+            <span class="shortcut-hint" aria-hidden="true"><span>⌘</span><span>M</span></span>
+          </button>
+        </div>
+      </section>
+    </aside>
+
+    <main class="main card" data-loaded="true">
+      <div class="panel active" id="panelPdf">
+        <div class="content-header">
+          <div class="content-kicker">3 pages</div>
+          <div class="content-header-row">
+            <div class="content-title">Annonces novembre.pdf</div>
+          </div>
+        </div>
+        <div class="strophe-list">
+          <div class="list-item pdf-page-item">
+            <div class="strophe-index"><div class="strophe-action"></div><div class="strophe-number">1</div></div>
+            <div class="pdf-page-thumb"><div class="fake-page"></div></div>
+          </div>
+          <div class="list-item pdf-page-item">
+            <div class="strophe-index"><div class="strophe-action"></div><div class="strophe-number">2</div></div>
+            <div class="pdf-page-thumb"><div class="fake-page"></div></div>
+          </div>
+          <div class="list-item pdf-page-item">
+            <div class="strophe-index"><div class="strophe-action"></div><div class="strophe-number">3</div></div>
+            <div class="pdf-page-thumb"><div class="fake-page"></div></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

@@ -29,6 +29,8 @@ const I18N = {
     'search.imagePlaceholder': 'Rechercher une image',
     'pdf.empty': 'Aucun PDF dans le dossier',
     'images.empty': 'Aucune image dans le dossier',
+    'media.addPdf': 'Ajouter un PDF',
+    'media.addImage': 'Ajouter une image',
     // Retour projection + contrôles
     'monitor.controls': 'Contrôles de projection',
     'monitor.screen': 'Écran',
@@ -178,6 +180,8 @@ const I18N = {
     'search.imagePlaceholder': 'Search an image',
     'pdf.empty': 'No PDF in the folder',
     'images.empty': 'No image in the folder',
+    'media.addPdf': 'Add a PDF',
+    'media.addImage': 'Add an image',
     'monitor.controls': 'Projection controls',
     'monitor.screen': 'Screen',
     'monitor.screenTitle': 'Choose the projection screen',
