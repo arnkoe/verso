@@ -8,7 +8,7 @@ Verso est un logiciel pour projeter des chants et des textes de la Bible sur un 
 
 Vous travaillez sur une fenêtre (la fenêtre **opérateur**, sur votre ordinateur) et ce que vous choisissez s'affiche sur une deuxième fenêtre, en plein écran, sur le vidéoprojecteur.
 
-L'interface est disponible en **anglais** (par défaut) et en **français**. Vous pouvez changer de langue à tout moment depuis les Paramètres.
+L'interface est disponible en **anglais** (par défaut) et en **français**. Vous pouvez changer de langue à tout moment depuis les Réglages.
 
 ---
 
@@ -84,7 +84,7 @@ La fenêtre opérateur a quatre onglets : **Chants**, **Bible**, **PDF** et **Im
 
 Le principe est toujours le même : vous cherchez ce que vous voulez, vous le sélectionnez, et il s'affiche sur le vidéoprojecteur.
 
-Sous l'aperçu de la projection, **Projeter** ouvre la fenêtre de projection sur l'écran configuré dans les Paramètres, tandis que **Masquer** vide temporairement son contenu et affiche un écran blanc. Leurs raccourcis sont indiqués directement dans les boutons : **Cmd/Ctrl P** et **Cmd/Ctrl M**. Ils fonctionnent aussi lorsque la fenêtre de projection a le focus : **Cmd/Ctrl M** vide l'écran sans fermer ni réduire la fenêtre, et **Cmd/Ctrl P** réaffiche le dernier contenu projeté.
+Sous l'aperçu de la projection, **Projeter** ouvre la fenêtre de projection sur l'écran configuré dans les Réglages, tandis que **Masquer** vide temporairement son contenu et affiche un écran blanc. Leurs raccourcis sont indiqués directement dans les boutons : **Cmd/Ctrl P** et **Cmd/Ctrl M**. Ils fonctionnent aussi lorsque la fenêtre de projection a le focus : **Cmd/Ctrl M** vide l'écran sans fermer ni réduire la fenêtre, et **Cmd/Ctrl P** réaffiche le dernier contenu projeté.
 
 La recherche de chants est tolérante : elle ignore les accents et les apostrophes, accepte plusieurs mots, et matche aussi bien le numéro du chant que ses premiers mots (incipit).
 
@@ -116,12 +116,12 @@ Les noms complets fonctionnent aussi (`Strophe 1`, `Refrain`, `Pont`…) si vous
 
 Verso propose des raccourcis clavier pour changer d'onglet, chercher et projeter sans la souris. La liste complète et toujours à jour est intégrée à l'application : choisissez **Aide → Raccourcis clavier**. Elle s'ouvre dans une fenêtre séparée.
 
-### Paramètres
+### Réglages
 
 Sur macOS, choisissez **Verso → Réglages…** ou utilisez `⌘,`. Sous Windows, choisissez **Fichier → Réglages…** ou utilisez `Ctrl+,` ; sous Linux, la commande se trouve dans **Aide**. Une fenêtre séparée s'ouvre avec les rubriques suivantes :
 
 - **Projection** — choisissez l'écran utilisé pour la projection dans la liste déroulante. Ce choix est mémorisé pour les prochaines sessions.
-- **Contenus** — gérez vos recueils, Bibles, PDF et images directement depuis les paramètres : pour chaque catégorie vous pouvez **Ajouter** des fichiers, **Gérer** les éléments existants et les **Supprimer**, sans quitter l'application. Vous pouvez aussi ouvrir le dossier Verso où se trouvent ces fichiers.
+- **Contenus** — gérez vos recueils, Bibles, PDF et images directement depuis les Réglages : pour chaque catégorie vous pouvez **Ajouter** des fichiers, **Gérer** les éléments existants et les **Supprimer**, sans quitter l'application. Vous pouvez aussi ouvrir le dossier Verso où se trouvent ces fichiers.
 - **Langue** — changer la langue de l'interface.
 - **Mises à jour** — consulter l'état courant sous le bouton, vérifier manuellement une nouvelle version et l'installer.
 

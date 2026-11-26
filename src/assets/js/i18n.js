@@ -72,7 +72,7 @@ const I18N = {
     'about.author': 'Auteur : AKurba',
     'about.contact': 'Contact :',
     // Modale Paramètres
-    'settings.title': 'Paramètres',
+    'settings.title': 'Réglages',
     'settings.sections': 'Rubriques',
     'settings.close': 'Fermer',
     'settings.navContent': 'Contenus',
