@@ -1452,10 +1452,9 @@ html[data-window-mode="shortcuts"] .utility-section + .utility-section {
   min-width: 130px;
   max-width: min(300px, 45vw);
   font: inherit;
-  /* Le texte interne des selects natifs est rendu optiquement plus petit que
-     celui des boutons par WebKit. Le niveau suivant de l'échelle compense cet
-     écart et les aligne visuellement, sans valeur typographique isolée. */
-  font-size: var(--fs-lg);
+  /* Même taille que les boutons natifs des réglages : les deux contrôles sont
+     dessinés par le moteur du système et s'alignent sans compensation. */
+  font-size: var(--fs-md);
   color: var(--ink);
 }
 .settings-screen-select { min-width: 190px; }
